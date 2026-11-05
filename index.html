@@ -2660,6 +2660,20 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   onAuthStateChanged(auth, u => {
     if (!u) { window.cpoSinSesion(); return; }
     const correo = (u.email || "").toLowerCase();
+
+    const permitidos = [
+    "aaronfigueroa2538@gmail.com",
+    "tush.retamoso@gmail.com",
+    "rampognac@gmail.com",
+    "matiasdiniz27@gmail.com",
+    "thyagott09@gmail.com"
+];
+if (!permitidos.includes(correo)) {
+    alert("Acceso bloqueado. Para ingresar a este tablero es obligatorio solicitar autorización a Matías.");
+    window.location.href = "mailto:matiasdiniz27@gmail.com?subject=Solicitud de acceso obligatoria al tablero Creativa";
+    signOut(auth);
+    return;
+}
     // Perfil público mínimo para mostrar quién hizo cada cambio
     setDoc(doc(fs, "usuarios", u.uid), { nombre: u.displayName || correo, correo, visto: Date.now() }, { merge: true }).catch(() => {});
     window.cpoConectar({ db, user: usuario(u), correo, nombre: u.displayName || "" });

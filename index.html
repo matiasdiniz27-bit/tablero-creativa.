@@ -4393,3 +4393,786 @@ if (!permitidos.includes(correo)) {
 })();
 </script>
 <!-- === FIN SUITE MASTER CARTOGRAFÍA ELECTORAL PBA === -->
+<!-- === MÓDULO INDEPENDIENTE: SISTEMA DE ANÁLISIS Y REDACCIÓN POLÍTICA (IA + PDF.JS) === -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<style>
+  #cpo-redaccion-modal {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: #090d16; z-index: 99998; flex-direction: column;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #f8fafc; color-scheme: dark;
+  }
+
+  #cpo-redaccion-modal select,
+  #cpo-redaccion-modal input,
+  #cpo-redaccion-modal textarea,
+  #cpo-redaccion-modal button {
+    color-scheme: dark !important;
+    background-color: #162032 !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155 !important;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    outline: none;
+    font-family: inherit;
+  }
+  #cpo-redaccion-modal select option {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+  }
+
+  /* Barra Superior del Sistema */
+  .cpo-sar-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 16px; background: #0f172a; border-bottom: 1px solid #334155;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .cpo-sar-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cpo-sar-tab {
+    background: #1e293b !important; color: #cbd5e1 !important; border: 1px solid #334155 !important;
+    padding: 6px 12px !important; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 12px;
+  }
+  .cpo-sar-tab.activa {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+    color: #ffffff !important; border-color: #8b5cf6 !important;
+  }
+
+  /* Cuerpo a 2 Columnas: Izquierda (Fuentes y Parámetros) | Derecha (Mesa de Edición por Bloques) */
+  .cpo-sar-body {
+    display: grid; grid-template-columns: 430px 1fr; flex: 1; height: calc(100% - 54px); overflow: hidden;
+  }
+  @media (max-width: 980px) { .cpo-sar-body { grid-template-columns: 1fr; overflow-y: auto; } }
+
+  .cpo-sar-col-izq {
+    background: #0f172a; border-right: 1px solid #334155; padding: 14px;
+    overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+  }
+  .cpo-sar-col-der {
+    background: #090d16; padding: 16px 20px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .cpo-sar-box {
+    background: #131c2e; border: 1px solid #26354d; border-radius: 8px; padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .cpo-sar-box-title {
+    font-size: 12px; font-weight: 800; color: #38bdf8; text-transform: uppercase;
+    letter-spacing: 0.4px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .cpo-sar-label { font-size: 11px; font-weight: 700; color: #94a3b8; margin-top: 2px; display: block; }
+
+  /* Tarjetas de PDFs cargados en Biblioteca */
+  .cpo-pdf-item {
+    background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 7px 9px;
+    display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;
+  }
+  .cpo-pdf-badge {
+    font-size: 10px; background: rgba(56,189,248,0.15); color: #38bdf8;
+    padding: 2px 6px; border-radius: 4px; font-weight: 700;
+  }
+
+  /* Bloques Editables de la Mesa de Redacción */
+  .cpo-bloque-card {
+    background: #131c2e; border: 1px solid #334155; border-left: 4px solid #8b5cf6;
+    border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .cpo-bloque-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11.5px; font-weight: 800; color: #c4b5fd;
+  }
+  .cpo-bloque-textarea {
+    width: 100%; box-sizing: border-box; min-height: 85px; resize: vertical;
+    background: #090d16 !important; color: #f8fafc !important; border: 1px solid #334155 !important;
+    border-radius: 6px; padding: 8px 10px; font-size: 13px; line-height: 1.5;
+  }
+
+  /* Panel Desplegable de Enlace al Motor IA */
+  #cpo-sar-motor-config {
+    display: none; background: #162032; border-bottom: 2px solid #7c3aed;
+    padding: 10px 16px; font-size: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+</style>
+
+<div id="cpo-redaccion-modal" translate="no" class="notranslate">
+  <!-- BARRA SUPERIOR -->
+  <div class="cpo-sar-topbar">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <strong style="font-size:14px; color:#c4b5fd;">✍️ Sistema de Análisis y Redacción</strong>
+      <div class="cpo-sar-tabs">
+        <button type="button" class="cpo-sar-tab activa" data-modo="DISCURSO">🎙️ Discursos, Guiones y Copys</button>
+        <button type="button" class="cpo-sar-tab" data-modo="LEGISLATIVO">⚖️ Analista de Proyectos Legislativos</button>
+        <button type="button" class="cpo-sar-tab" data-modo="INCONGRUENCIAS">🔍 Detector de Incongruencias</button>
+        <button type="button" class="cpo-sar-tab" data-modo="FUNDAMENTOS">🏛️ Redactor de Proyectos (Vistos y Considerandos)</button>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <button type="button" id="cpo-sar-btn-motor" style="background:#1e293b !important; color:#38bdf8 !important; border:1px solid #38bdf8 !important; font-weight:700; cursor:pointer;">
+        🧠 Enlace al Motor Analítico <span id="cpo-sar-estado-motor" style="color:#fbbf24;">(Conectar)</span>
+      </button>
+      <button type="button" id="cpo-sar-cerrar" style="background:#ef4444 !important; color:#fff !important; border:none !important; font-weight:700; cursor:pointer;">
+        ✕ Cerrar
+      </button>
+    </div>
+  </div>
+
+  <!-- BARRA DESPLEGABLE PARA VINCULAR LA CLAVE DE GEMINI (GOOGLE AI STUDIO) -->
+  <div id="cpo-sar-motor-config">
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex:1;">
+      <strong style="color:#c4b5fd;">🔑 Credencial del Motor IA (Gemini API Gratuita):</strong>
+      <input type="password" id="cpo-sar-apikey" placeholder="Pegá acá tu clave de Google AI Studio (AIzaSy...)" style="width:310px;" />
+      <select id="cpo-sar-modelo" title="Modelo de procesamiento">
+        <option value="gemini-2.5-flash" selected>⚡ Gemini 2.5 Flash (Rápido y Gratuito - Recomendado)</option>
+        <option value="gemini-2.5-pro">🧠 Gemini 2.5 Pro (Análisis Profundo)</option>
+        <option value="gemini-1.5-flash">⚡ Gemini 1.5 Flash (Alternativo)</option>
+      </select>
+      <button type="button" id="cpo-sar-guardar-key" style="background:#10b981 !important; color:#052e16 !important; border:none !important; font-weight:800; cursor:pointer;">
+        💾 Guardar Enlace
+      </button>
+    </div>
+    <div style="font-size:11px; color:#94a3b8;">
+      ¿No tenés tu clave gratuita? Obtenela en 1 clic en <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#38bdf8; text-decoration:underline;">aistudio.google.com/app/apikey</a> (se guarda solo en tu navegador).
+    </div>
+  </div>
+
+  <!-- CUERPO PRINCIPAL -->
+  <div class="cpo-sar-body">
+    <!-- COLUMNA IZQUIERDA: BIBLIOTECA PDF Y PARÁMETROS DE ANÁLISIS -->
+    <div class="cpo-sar-col-izq">
+
+      <!-- 1. Biblioteca Académica y Documental (Lector de PDFs) -->
+      <div class="cpo-sar-box">
+        <div class="cpo-sar-box-title">
+          <span>📚 Respaldo Académico y PDFs (<span id="cpo-sar-count-pdfs">0</span>)</span>
+          <div style="display:flex; gap:5px;">
+            <input type="file" id="cpo-sar-pdf-input" accept=".pdf,.txt,.md" multiple style="display:none;" />
+            <button type="button" id="cpo-sar-btn-subir-pdf" style="background:#2563eb !important; color:#fff !important; border:none !important; padding:3px 8px !important; font-size:11px; font-weight:700; cursor:pointer;">
+              + Subir PDF / Libro
+            </button>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#94a3b8;">
+          Subí libros de Ciencia Política, presupuestos, ordenanzas o discursos previos. Marcá con ✔️ los que quieras usar como fundamento en esta redacción:
+        </div>
+        <div id="cpo-sar-lista-pdfs" style="display:flex; flex-direction:column; gap:5px; max-height:145px; overflow-y:auto;"></div>
+      </div>
+
+      <!-- 2. Configuración Dinámica según la Pestaña Elegida -->
+      <div class="cpo-sar-box" id="cpo-sar-form-dinamico" style="flex:1;">
+        <div class="cpo-sar-box-title">
+          <span id="cpo-sar-titulo-modo">🎙️ Parámetros de Redacción</span>
+        </div>
+
+        <div id="cpo-sar-campos-modo">
+          <!-- Se rellena dinámicamente según el modo seleccionado -->
+        </div>
+
+        <label class="cpo-sar-label" id="cpo-sar-lbl-principal">Texto base, proyecto a analizar o idea central:</label>
+        <textarea id="cpo-sar-input-principal" rows="5" placeholder="Pegá acá el texto del proyecto, declaración, datos del problema barrial o lo que quieras trabajar..."></textarea>
+
+        <div id="cpo-sar-contraste-wrap" style="display:none;">
+          <label class="cpo-sar-label" style="color:#fbbf24;">⚖️ Archivo / Realidad / Votación anterior para contrastar:</label>
+          <textarea id="cpo-sar-input-contraste" rows="3" placeholder="Pegá acá lo que dijeron o votaron antes, el artículo de la Ley Orgánica o los datos reales del presupuesto para detectar las contradicciones..."></textarea>
+        </div>
+
+        <label class="cpo-sar-label">🎯 Tu Criterio / Instrucción específica (Opcional):</label>
+        <input type="text" id="cpo-sar-criterio-usuario" placeholder="Ej: Citar a Sartori, hacer foco en el bolsillo, tono institucional sin agresiones..." />
+
+        <div style="display:flex; gap:6px; margin-top:6px;">
+          <button type="button" id="cpo-sar-btn-ejecutar" style="flex:1; background:linear-gradient(135deg,#7c3aed,#4f46e5) !important; color:#fff !important; border:none !important; padding:10px !important; font-weight:800; font-size:13px; cursor:pointer;">
+            ⚡ Procesar y Armar Bloques Editables
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLUMNA DERECHA: MESA DE EDICIÓN POR BLOQUES Y CRITERIO PROPIO -->
+    <div class="cpo-sar-col-der">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid #26354d; padding-bottom:10px;">
+        <div>
+          <strong style="font-size:14px; color:#38bdf8;">🛠️ Mesa de Edición Abierta (Control por Bloques)</strong>
+          <span id="cpo-sar-tiempo-lectura" style="margin-left:10px; font-size:11.5px; background:#1e293b; padding:3px 8px; border-radius:999px; color:#10b981; font-weight:700;">
+            ⏱️ Tiempo estimado de lectura en voz alta: 0 seg (0 palabras)
+          </span>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" id="cpo-sar-btn-add-bloque" style="background:#1e293b !important; color:#38bdf8 !important; border:1px solid #38bdf8 !important; font-weight:700; cursor:pointer;">
+            + Agregar Bloque Manual
+          </button>
+          <button type="button" id="cpo-sar-btn-guardar-borrador" style="background:#2563eb !important; color:#fff !important; border:none !important; font-weight:700; cursor:pointer;">
+            💾 Guardar en Cliente
+          </button>
+          <button type="button" id="cpo-sar-btn-copiar-todo" style="background:#10b981 !important; color:#052e16 !important; border:none !important; font-weight:800; cursor:pointer;">
+            📋 Copiar Texto Final Unificado
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor de Tarjetas Editables -->
+      <div id="cpo-sar-contenedor-bloques" style="display:flex; flex-direction:column; gap:10px; flex:1;"></div>
+
+      <!-- Historial de Documentos Guardados del Cliente -->
+      <details style="background:#131c2e; border:1px solid #26354d; border-radius:8px; padding:8px 12px;">
+        <summary style="cursor:pointer; font-weight:700; font-size:12px; color:#94a3b8;">
+          🗂️ Borradores y Análisis Guardados de este Cliente (<span id="cpo-sar-count-borradores">0</span>)
+        </summary>
+        <div id="cpo-sar-lista-borradores" style="display:flex; flex-direction:column; gap:6px; margin-top:8px; max-height:140px; overflow-y:auto;"></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  let modoActual = 'DISCURSO';
+  const CLAVE_API = 'cpo_sar_gemini_apikey';
+  const CLAVE_MODELO = 'cpo_sar_gemini_modelo';
+  const CLAVE_BIBLIOTECA_GLOBAL = 'cpo_sar_pdfs_biblioteca_global';
+
+  function obtenerClienteActual() {
+    const selects = Array.from(document.querySelectorAll('select'));
+    const sel = selects.find(s =>
+      s.id !== 'opt-como' && !s.id.startsWith('cpo-') && !s.id.startsWith('pop-') && !s.id.startsWith('wr-')
+    );
+    if (sel && sel.options[sel.selectedIndex]) {
+      const txt = sel.options[sel.selectedIndex].textContent.trim();
+      if (txt && !txt.toLowerCase().includes('sin cliente')) return txt.replace(/[^a-zA-Z0-9_-]/g, '_');
+    }
+    return 'general';
+  }
+
+  function claveBorradoresCliente() { return 'cpo_sar_borradores_' + obtenerClienteActual(); }
+
+  /* =========================================================================
+     1. GESTIÓN DE LA BIBLIOTECA DE PDFS Y LIBROS ACADÉMICOS
+     ========================================================================= */
+  function obtenerBibliotecaPDFs() {
+    try { return JSON.parse(localStorage.getItem(CLAVE_BIBLIOTECA_GLOBAL) || '[]'); }
+    catch (e) { return []; }
+  }
+
+  function guardarBibliotecaPDFs(lista) {
+    try {
+      localStorage.setItem(CLAVE_BIBLIOTECA_GLOBAL, JSON.stringify(lista));
+    } catch (e) {
+      alert('El archivo es muy extenso para la memoria local. Se mantendrá cargado durante esta sesión.');
+    }
+  }
+
+  let bibliotecaSesion = obtenerBibliotecaPDFs();
+
+  function renderListaPDFs() {
+    const cont = document.getElementById('cpo-sar-lista-pdfs');
+    const countEl = document.getElementById('cpo-sar-count-pdfs');
+    if (!cont) return;
+    countEl.textContent = bibliotecaSesion.length;
+    cont.innerHTML = '';
+
+    if (bibliotecaSesion.length === 0) {
+      cont.innerHTML = `<div style="font-size:11px; color:#64748b; padding:6px;">No hay PDFs ni libros cargados todavía. Tocá "+ Subir PDF / Libro" para cargar bibliografía o expedientes.</div>`;
+      return;
+    }
+
+    bibliotecaSesion.forEach((doc, idx) => {
+      const item = document.createElement('div');
+      item.className = 'cpo-pdf-item';
+      item.innerHTML = `
+        <label style="display:flex; align-items:center; gap:7px; cursor:pointer; flex:1; overflow:hidden;">
+          <input type="checkbox" class="cpo-chk-pdf-uso" data-idx="${idx}" ${doc.activo !== false ? 'checked' : ''} style="width:auto !important;" />
+          <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600;" title="${doc.nombre}">📄 ${doc.nombre}</span>
+        </label>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="cpo-pdf-badge">${Math.round((doc.texto || '').length / 1000)}k car.</span>
+          <button type="button" class="cpo-del-pdf" data-idx="${idx}" style="background:none !important; border:none !important; color:#f87171 !important; cursor:pointer; padding:2px !important;">🗑️</button>
+        </div>
+      `;
+      item.querySelector('.cpo-chk-pdf-uso').onchange = (e) => {
+        bibliotecaSesion[idx].activo = e.target.checked;
+        guardarBibliotecaPDFs(bibliotecaSesion);
+      };
+      item.querySelector('.cpo-del-pdf').onclick = () => {
+        bibliotecaSesion.splice(idx, 1);
+        guardarBibliotecaPDFs(bibliotecaSesion);
+        renderListaPDFs();
+      };
+      cont.appendChild(item);
+    });
+  }
+
+  async function extraerTextoDePDF(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      return await file.text();
+    }
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let textoCompleto = '';
+    const maxPaginas = Math.min(pdf.numPages, 120); // Lee hasta 120 páginas por documento al instante
+    for (let i = 1; i <= maxPaginas; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const strings = content.items.map(item => item.str);
+      textoCompleto += `\n--- [Página ${i}] ---\n` + strings.join(' ');
+    }
+    return textoCompleto;
+  }
+
+  document.getElementById('cpo-sar-btn-subir-pdf').onclick = () => {
+    document.getElementById('cpo-sar-pdf-input').click();
+  };
+
+  document.getElementById('cpo-sar-pdf-input').addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    const btn = document.getElementById('cpo-sar-btn-subir-pdf');
+    btn.textContent = '⏳ Leyendo PDF...';
+
+    for (const f of files) {
+      try {
+        const texto = await extraerTextoDePDF(f);
+        bibliotecaSesion.push({
+          nombre: f.name,
+          fecha: new Date().toLocaleDateString('es-AR'),
+          texto: texto.slice(0, 180000),
+          activo: true
+        });
+      } catch (err) {
+        alert(`No se pudo extraer el texto de ${f.name}: ${err.message}`);
+      }
+    }
+    guardarBibliotecaPDFs(bibliotecaSesion);
+    renderListaPDFs();
+    btn.textContent = '+ Subir PDF / Libro';
+    e.target.value = '';
+  });
+
+  /* =========================================================================
+     2. FORMULARIOS DINÁMICOS SEGÚN LAS 4 ESPECIALIDADES
+     ========================================================================= */
+  function renderFormularioModo(modo) {
+    modoActual = modo;
+    const wrapCampos = document.getElementById('cpo-sar-campos-modo');
+    const tituloModo = document.getElementById('cpo-sar-titulo-modo');
+    const lblPrincipal = document.getElementById('cpo-sar-lbl-principal');
+    const contrasteWrap = document.getElementById('cpo-sar-contraste-wrap');
+
+    if (modo === 'DISCURSO') {
+      tituloModo.textContent = '🎙️ Discursos, Guiones y Copys de Campaña';
+      lblPrincipal.textContent = 'Tema central, hecho político o eje que querés comunicar:';
+      contrasteWrap.style.display = 'none';
+      wrapCampos.innerHTML = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div>
+            <label class="cpo-sar-label">Formato de Salida</label>
+            <select id="sar-opt-formato" style="width:100%;">
+              <option value="Discurso Político de Recinto / Acto">🎙️ Discurso de Recinto / Acto</option>
+              <option value="Guion para Reel / TikTok / YouTube (60 seg)">📱 Guion Reel / TikTok (60s)</option>
+              <option value="Editorial para Programa de Streaming Político">🎧 Editorial de Streaming</option>
+              <option value="Pack de 3 Copys para Instagram / X (Twitter)">✍️ Pack Copys Redes Sociales</option>
+              <option value="Preguntas y Respuestas para Entrevista">🗞️ Media Training / Entrevista</option>
+            </select>
+          </div>
+          <div>
+            <label class="cpo-sar-label">Tono Estratégico</label>
+            <select id="sar-opt-tono" style="width:100%;">
+              <option value="Institucional, Estadista y con Datos Duros">🏛️ Institucional / Estadista</option>
+              <option value="Empático, Cercano y de Calle (Vecinal)">🤝 Cercano / Empático Barrial</option>
+              <option value="Contrastivo, Firme y de Debate Político">⚡ Contrastivo / Debate Picante</option>
+              <option value="Académico, Conceptual y Doctrinario">📚 Académico / Con Marco Teórico</option>
+            </select>
+          </div>
+        </div>
+      `;
+    } else if (modo === 'LEGISLATIVO') {
+      tituloModo.textContent = '⚖️ Analista de Proyectos Legislativos y Ordenanzas';
+      lblPrincipal.textContent = 'Pegá el texto del Proyecto (o subí el PDF arriba y dejá acá una nota):';
+      contrasteWrap.style.display = 'none';
+      wrapCampos.innerHTML = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div>
+            <label class="cpo-sar-label">Tipo de Pieza Legislativa</label>
+            <select id="sar-opt-formato" style="width:100%;">
+              <option value="Proyecto de Ordenanza Municipal">🏛️ Ordenanza Municipal (HCD)</option>
+              <option value="Proyecto de Ley Provincial / Nacional">🏦 Proyecto de Ley</option>
+              <option value="Pedido de Informes / Comunicación">📋 Pedido de Informes / Decreto</option>
+              <option value="Presupuesto Municipal / Rendición de Cuentas">💰 Presupuesto / Fiscal Impositiva</option>
+            </select>
+          </div>
+          <div>
+            <label class="cpo-sar-label">Nuestro Rol frente al Proyecto</label>
+            <select id="sar-opt-tono" style="width:100%;">
+              <option value="Oposición Crítica (Encontrar trampas, vicios y vacíos)">🔍 Auditar / Encontrar Puntos Débiles</option>
+              <option value="Autor / Defensor (Blindar argumentos y anticipar críticas)">🛡️ Blindar y Defender en Recinto</option>
+              <option value="Dictamen Técnico Imparcial (Viabilidad jurídica y fiscal)">⚖️ Dictamen Técnico y Presupuestario</option>
+            </select>
+          </div>
+        </div>
+      `;
+    } else if (modo === 'INCONGRUENCIAS') {
+      tituloModo.textContent = '🔍 Detector de Incongruencias y Cruce de Archivo';
+      lblPrincipal.textContent = 'Texto A: Lo que el actor político dice o propone HOY:';
+      contrasteWrap.style.display = 'block';
+      wrapCampos.innerHTML = `
+        <div>
+          <label class="cpo-sar-label">Tipo de Auditoría de Coherencia</label>
+          <select id="sar-opt-formato" style="width:100%;">
+            <option value="Contradicción entre Discurso Actual y Archivo / Votaciones Previas">🔄 Discurso Actual vs. Archivo / Votación Anterior</option>
+            <option value="Contradicción Interna (Los Considerandos dicen una cosa y el Articulado hace otra)">⚠️ Contradicción Interna del Documento</option>
+            <option value="Promesa Electoral vs. Ejecución Presupuestaria Real">💸 Promesa vs. Presupuesto Real</option>
+          </select>
+        </div>
+      `;
+    } else if (modo === 'FUNDAMENTOS') {
+      tituloModo.textContent = '🏛️ Redactor de Proyectos (Vistos, Considerandos y Articulado)';
+      lblPrincipal.textContent = 'Explicá qué problema querés resolver con este proyecto y qué propone:';
+      contrasteWrap.style.display = 'none';
+      wrapCampos.innerHTML = `
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div>
+            <label class="cpo-sar-label">Formato Técnico Legislativo</label>
+            <select id="sar-opt-formato" style="width:100%;">
+              <option value="Proyecto de Ordenanza Completo (Visto, Considerando y Artículos)">📜 Ordenanza Completa</option>
+              <option value="Proyecto de Comunicación / Pedido de Informes">📩 Pedido de Informes</option>
+              <option value="Proyecto de Declaración / Beneplácito / Repudio">📣 Proyecto de Declaración</option>
+            </select>
+          </div>
+          <div>
+            <label class="cpo-sar-label">Enfoque de Fundamentación</label>
+            <select id="sar-opt-tono" style="width:100%;">
+              <option value="Con Respaldo Académico de los PDFs adjuntos + Normativa PBA">📚 Con Citas de los PDFs + Ley Orgánica</option>
+              <option value="Con Foco en Impacto Vecinal Directo y Estadísticas">📊 Empírico y Vecinal</option>
+            </select>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  document.querySelectorAll('.cpo-sar-tab').forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll('.cpo-sar-tab').forEach(t => t.classList.remove('activa'));
+      tab.classList.add('activa');
+      renderFormularioModo(tab.getAttribute('data-modo'));
+    };
+  });
+
+  /* =========================================================================
+     3. MESA DE EDICIÓN POR BLOQUES (CON CRONÓMETRO DE LECTURA Y CONTROL HUMANO)
+     ========================================================================= */
+  function actualizarCronometroLectura() {
+    const textareas = Array.from(document.querySelectorAll('.cpo-bloque-textarea'));
+    const textoTotal = textareas.map(t => t.value.trim()).filter(Boolean).join(' ');
+    const palabras = textoTotal ? textoTotal.split(/\s+/).length : 0;
+    // En oratoria política promedio se hablan 130 palabras por minuto
+    const segundos = Math.round((palabras / 130) * 60);
+    const min = Math.floor(segundos / 60);
+    const segRest = segundos % 60;
+    const etiquetaTiempo = min > 0 ? `${min} min ${segRest} seg` : `${segundos} seg`;
+    const badge = document.getElementById('cpo-sar-tiempo-lectura');
+    if (badge) {
+      badge.textContent = `⏱️ Lectura en voz alta: ~${etiquetaTiempo} (${palabras} palabras)`;
+    }
+  }
+
+  function crearTarjetaBloque(titulo, contenido) {
+    const cont = document.getElementById('cpo-sar-contenedor-bloques');
+    const card = document.createElement('div');
+    card.className = 'cpo-bloque-card';
+    card.innerHTML = `
+      <div class="cpo-bloque-head">
+        <input type="text" class="cpo-bloque-titulo-inp" value="${titulo}" style="background:transparent !important; border:none !important; color:#c4b5fd !important; font-weight:800; font-size:12px; padding:0 !important; width:70%;" />
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="cpo-btn-copiar-bloque" style="padding:2px 7px !important; font-size:10.5px; cursor:pointer;">📋 Copiar bloque</button>
+          <button type="button" class="cpo-btn-del-bloque" style="padding:2px 7px !important; font-size:10.5px; color:#f87171 !important; cursor:pointer;">✕</button>
+        </div>
+      </div>
+      <textarea class="cpo-bloque-textarea">${contenido}</textarea>
+    `;
+
+    const ta = card.querySelector('.cpo-bloque-textarea');
+    ta.addEventListener('input', actualizarCronometroLectura);
+
+    card.querySelector('.cpo-btn-copiar-bloque').onclick = () => {
+      navigator.clipboard.writeText(ta.value);
+      card.querySelector('.cpo-btn-copiar-bloque').textContent = '✅ Copiado';
+      setTimeout(() => { card.querySelector('.cpo-btn-copiar-bloque').textContent = '📋 Copiar bloque'; }, 1200);
+    };
+
+    card.querySelector('.cpo-btn-del-bloque').onclick = () => {
+      card.remove();
+      actualizarCronometroLectura();
+    };
+
+    cont.appendChild(card);
+    actualizarCronometroLectura();
+  }
+
+  function cargarBloquesEnMesa(listaBloques) {
+    const cont = document.getElementById('cpo-sar-contenedor-bloques');
+    cont.innerHTML = '';
+    listaBloques.forEach(b => crearTarjetaBloque(b.titulo, b.contenido));
+  }
+
+  document.getElementById('cpo-sar-btn-add-bloque').onclick = () => {
+    crearTarjetaBloque('📌 Nuevo Bloque / Argumento Propio', '');
+  };
+
+  document.getElementById('cpo-sar-btn-copiar-todo').onclick = () => {
+    const tarjetas = Array.from(document.querySelectorAll('.cpo-bloque-card'));
+    const unificado = tarjetas.map(c => {
+      const tit = c.querySelector('.cpo-bloque-titulo-inp').value.trim();
+      const txt = c.querySelector('.cpo-bloque-textarea').value.trim();
+      return `=== ${tit} ===\n${txt}`;
+    }).join('\n\n');
+    navigator.clipboard.writeText(unificado);
+    const btn = document.getElementById('cpo-sar-btn-copiar-todo');
+    btn.textContent = '✅ ¡Texto Completo Copiado!';
+    setTimeout(() => { btn.textContent = '📋 Copiar Texto Final Unificado'; }, 1800);
+  };
+
+  /* =========================================================================
+     4. CONEXIÓN AL MOTOR ANALÍTICO (GEMINI API) Y GENERACIÓN DE BLOQUES
+     ========================================================================= */
+  function actualizarEstadoVisualMotor() {
+    const key = localStorage.getItem(CLAVE_API) || '';
+    const span = document.getElementById('cpo-sar-estado-motor');
+    const inp = document.getElementById('cpo-sar-apikey');
+    if (inp && key) inp.value = key;
+    if (span) {
+      if (key.startsWith('AIza')) {
+        span.textContent = '(Activo ✔️)';
+        span.style.color = '#10b981';
+      } else {
+        span.textContent = '(Vincular Clave)';
+        span.style.color = '#fbbf24';
+      }
+    }
+  }
+
+  document.getElementById('cpo-sar-btn-motor').onclick = () => {
+    const bar = document.getElementById('cpo-sar-motor-config');
+    bar.style.display = bar.style.display === 'flex' ? 'none' : 'flex';
+  };
+
+  document.getElementById('cpo-sar-guardar-key').onclick = () => {
+    const val = document.getElementById('cpo-sar-apikey').value.trim();
+    const mod = document.getElementById('cpo-sar-modelo').value;
+    localStorage.setItem(CLAVE_API, val);
+    localStorage.setItem(CLAVE_MODELO, mod);
+    actualizarEstadoVisualMotor();
+    document.getElementById('cpo-sar-motor-config').style.display = 'none';
+    alert('✅ Enlace al Motor Analítico guardado correctamente en tu navegador.');
+  };
+
+  async function ejecutarAnalisisConIA() {
+    const apiKey = (localStorage.getItem(CLAVE_API) || '').trim();
+    const modelo = localStorage.getItem(CLAVE_MODELO) || 'gemini-2.5-flash';
+
+    if (!apiKey || !apiKey.startsWith('AIza')) {
+      document.getElementById('cpo-sar-motor-config').style.display = 'flex';
+      alert('🔑 Primero vinculá tu clave gratuita de Gemini en la barra "Enlace al Motor Analítico" que se acaba de desplegar arriba.');
+      return;
+    }
+
+    const textoPrincipal = document.getElementById('cpo-sar-input-principal').value.trim();
+    const textoContraste = document.getElementById('cpo-sar-input-contraste').value.trim();
+    const criterioUsuario = document.getElementById('cpo-sar-criterio-usuario').value.trim();
+    const formato = document.getElementById('sar-opt-formato')?.value || '';
+    const tono = document.getElementById('sar-opt-tono')?.value || '';
+
+    const pdfsActivos = bibliotecaSesion.filter(p => p.activo !== false);
+    if (!textoPrincipal && pdfsActivos.length === 0) {
+      alert('Escribí un tema/texto o seleccioná al menos un PDF arriba para analizar.');
+      return;
+    }
+
+    const btn = document.getElementById('cpo-sar-btn-ejecutar');
+    const txtOriginalBtn = btn.textContent;
+    btn.textContent = '⏳ Analizando fuentes y redactando bloques...';
+    btn.disabled = true;
+
+    const contextoPDFs = pdfsActivos.map(p =>
+      `=== FUENTE DOCUMENTAL / LIBRO: "${p.nombre}" ===\n${p.texto.slice(0, 45000)}`
+    ).join('\n\n');
+
+    const promptSistema = `
+Sos el Consultor Político Senior, Politólogo y Analista Legislativo principal del equipo "Creativa Política" en la Provincia de Buenos Aires, Argentina.
+Tu objetivo es producir análisis rigurosos y piezas de comunicación listas para que el consultor humano las edite con su propio criterio.
+
+MODO DE TRABAJO ACTUAL: ${modoActual}
+FORMATO SOLICITADO: ${formato}
+TONO / ENFOQUE: ${tono}
+CRITERIO ESPECÍFICO DEL CONSULTOR HUMANO: ${criterioUsuario || 'Aplicar máximo rigor politológico, claridad expositiva y anclaje territorial.'}
+
+${contextoPDFs ? `BIBLIOGRAFÍA ACADÉMICA Y DOCUMENTOS PDF ADJUNTOS (Usalos para fundamentar y citá autores o páginas cuando corresponda):\n${contextoPDFs}\n` : ''}
+
+TEXTO / CASO PRINCIPAL A TRABAJAR:
+${textoPrincipal || '(Basarse en los PDFs adjuntos)'}
+
+${modoActual === 'INCONGRUENCIAS' && textoContraste ? `TEXTO DE ARCHIVO / REALIDAD PARA CONTRASTAR:\n${textoContraste}\n` : ''}
+
+INSTRUCCIÓN DE FORMATO ESTRICTA:
+Respondé ÚNICAMENTE con un arreglo JSON válido de objetos con la estructura:
+[
+  { "titulo": "Nombre de la sección o bloque", "contenido": "Desarrollo completo editable..." }
+]
+No agregues texto fuera del JSON. Dividí siempre tu respuesta en entre 4 y 6 bloques estratégicos claros:
+- Si es DISCURSO / GUION / COPY: 1. Gancho de Apertura (3 variantes a elección), 2. Diagnóstico y Dato Duro, 3. Marco Conceptual / Respaldo Teórico, 4. Propuesta / Giro Político, 5. Remate y Llamado a la Acción, 6. Bajada para Redes (Copy + Ideas visuales).
+- Si es LEGISLATIVO: 1. Radiografía Ejecutiva del Proyecto, 2. Detección de Artículos Ambiguos, Vicios o Discrecionalidades, 3. Impacto Fiscal y Presupuestario, 4. Argumentos para Defenderlo, 5. Puntos Débiles por donde Atacarlo en el Recinto.
+- Si es INCONGRUENCIAS: 1. Veredicto de Coherencia, 2. Contradicciones Internas Detectadas, 3. Cruce con Archivo / Normativa / Presupuesto, 4. Frases Listas para Exponer la Contradicción en Debate o Medios.
+- Si es FUNDAMENTOS: 1. VISTO (Encabezado técnico), 2. CONSIDERANDOS (Con citas teóricas de los PDFs y marco legal de PBA), 3. ARTICULADO RESOLUTIVO (Art. 1°, 2°, De forma), 4. Resumen de Prensa del Proyecto.
+`;
+
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: promptSistema }] }],
+          generationConfig: {
+            temperature: 0.45,
+            responseMimeType: 'application/json'
+          }
+        })
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data?.error?.message || 'Error en la consulta a la API.');
+      }
+
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+      let bloques = [];
+      try {
+        bloques = JSON.parse(rawText);
+      } catch (errJson) {
+        const match = rawText.match(/\[[\s\S]*\]/);
+        bloques = match ? JSON.parse(match[0]) : [{ titulo: 'Resultado del Análisis', contenido: rawText }];
+      }
+
+      if (Array.isArray(bloques) && bloques.length > 0) {
+        cargarBloquesEnMesa(bloques);
+      } else {
+        cargarBloquesEnMesa([{ titulo: 'Resultado Generado', contenido: rawText }]);
+      }
+    } catch (err) {
+      alert('⚠️ No se pudo procesar con la IA: ' + err.message);
+    } finally {
+      btn.textContent = txtOriginalBtn;
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('cpo-sar-btn-ejecutar').onclick = ejecutarAnalisisConIA;
+
+  /* =========================================================================
+     5. GUARDADO DE BORRADORES POR CLIENTE
+     ========================================================================= */
+  function obtenerBorradores() {
+    try { return JSON.parse(localStorage.getItem(claveBorradoresCliente()) || '[]'); }
+    catch (e) { return []; }
+  }
+
+  function renderBorradores() {
+    const lista = obtenerBorradores();
+    const cont = document.getElementById('cpo-sar-lista-borradores');
+    const countEl = document.getElementById('cpo-sar-count-borradores');
+    if (!cont) return;
+    countEl.textContent = lista.length;
+    cont.innerHTML = '';
+
+    lista.forEach((b, idx) => {
+      const row = document.createElement('div');
+      row.className = 'cpo-pdf-item';
+      row.innerHTML = `
+        <span style="cursor:pointer; font-weight:700; color:#38bdf8;" class="cpo-cargar-borrador">📝 [${b.modo}] ${b.titulo} <small style="color:#94a3b8;">(${b.fecha})</small></span>
+        <button type="button" class="cpo-del-borrador" style="background:none !important; border:none !important; color:#f87171 !important; cursor:pointer;">🗑️</button>
+      `;
+      row.querySelector('.cpo-cargar-borrador').onclick = () => {
+        cargarBloquesEnMesa(b.bloques || []);
+      };
+      row.querySelector('.cpo-del-borrador').onclick = () => {
+        lista.splice(idx, 1);
+        localStorage.setItem(claveBorradoresCliente(), JSON.stringify(lista));
+        renderBorradores();
+      };
+      cont.appendChild(row);
+    });
+  }
+
+  document.getElementById('cpo-sar-btn-guardar-borrador').onclick = () => {
+    const tarjetas = Array.from(document.querySelectorAll('.cpo-bloque-card'));
+    if (tarjetas.length === 0) return;
+    const nombre = prompt('Nombre para guardar este trabajo en el archivo del cliente:', 'Análisis / Discurso ' + new Date().toLocaleDateString('es-AR'));
+    if (!nombre) return;
+    const bloques = tarjetas.map(c => ({
+      titulo: c.querySelector('.cpo-bloque-titulo-inp').value,
+      contenido: c.querySelector('.cpo-bloque-textarea').value
+    }));
+    const lista = obtenerBorradores();
+    lista.unshift({ titulo: nombre.trim(), modo: modoActual, fecha: new Date().toLocaleString('es-AR'), bloques });
+    localStorage.setItem(claveBorradoresCliente(), JSON.stringify(lista));
+    renderBorradores();
+    alert('✅ Guardado en el archivo de este cliente.');
+  };
+
+  /* =========================================================================
+     6. INICIALIZACIÓN Y BOTÓN EN EL MENÚ DEL TABLERO
+     ========================================================================= */
+  function iniciarSistemaRedaccion() {
+    actualizarEstadoVisualMotor();
+    renderListaPDFs();
+    renderFormularioModo(modoActual);
+    renderBorradores();
+    const contBloques = document.getElementById('cpo-sar-contenedor-bloques');
+    if (contBloques && contBloques.children.length === 0) {
+      cargarBloquesEnMesa([
+        { titulo: '1. Gancho de Apertura / Idea Fuerza', contenido: 'Podés generar los bloques automáticamente con el botón violeta de la izquierda o escribir y editar libremente acá con tu criterio...' },
+        { titulo: '2. Desarrollo, Datos Duros y Respaldo Académico', contenido: '' },
+        { titulo: '3. Cierre Político / Bajada a Redes o Recinto', contenido: '' }
+      ]);
+    }
+  }
+
+  document.getElementById('cpo-sar-cerrar').onclick = () => {
+    document.getElementById('cpo-redaccion-modal').style.display = 'none';
+  };
+
+  function inyectarBotonMenuRedaccion() {
+    if (document.getElementById('cpo-btn-abrir-redaccion')) return;
+    const btnMapa = document.getElementById('cpo-btn-abrir-mapa');
+    const elementos = Array.from(document.querySelectorAll('a, button, div, li'));
+    const refMenciones = elementos.find(el => el.children.length === 0 && el.textContent.trim() === 'Menciones');
+
+    const btn = document.createElement('div');
+    btn.id = 'cpo-btn-abrir-redaccion';
+    btn.setAttribute('translate', 'no');
+    btn.innerHTML = '✍️ Análisis y Redacción';
+    btn.style.cssText = 'cursor:pointer; padding:8px 12px; margin:6px 8px; border-radius:6px; background:rgba(124,58,237,0.18); color:#c4b5fd; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px; border:1px solid rgba(139,92,246,0.4);';
+    btn.onclick = () => {
+      document.getElementById('cpo-redaccion-modal').style.display = 'flex';
+      iniciarSistemaRedaccion();
+    };
+
+    if (btnMapa && btnMapa.parentElement) {
+      btnMapa.insertAdjacentElement('afterend', btn);
+    } else if (refMenciones && refMenciones.parentElement) {
+      refMenciones.parentElement.insertAdjacentElement('afterend', btn);
+    } else {
+      btn.style.cssText += 'position:fixed; bottom:60px; left:16px; z-index:9999; background:#5b21b6; color:#fff;';
+      document.body.appendChild(btn);
+    }
+  }
+
+  setInterval(inyectarBotonMenuRedaccion, 1200);
+})();
+</script>
+<!-- === FIN MÓDULO SISTEMA DE ANÁLISIS Y REDACCIÓN POLÍTICA === -->

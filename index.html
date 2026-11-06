@@ -2680,3 +2680,287 @@ if (!permitidos.includes(correo)) {
   });
 </script>
 </body></html>
+<!-- === MÓDULO MAPA TERRITORIAL E INTERACTIVO === -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.14.2/dist/leaflet-geoman.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.14.2/dist/leaflet-geoman.min.js"></script>
+
+<style>
+  #cpo-mapa-modal {
+    display: none; position: fixed; top: 52px; left: 220px; right: 0; bottom: 0;
+    background: var(--bg, #121619); z-index: 900; flex-direction: column;
+    border-top: 1px solid rgba(128,128,128,0.2);
+  }
+  @media (max-width: 800px) { #cpo-mapa-modal { left: 0; } }
+  .cpo-mapa-bar {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;
+    padding: 10px 16px; background: var(--surface, #1a1f24); border-bottom: 1px solid rgba(128,128,128,0.2);
+    color: var(--fg, #e2e8f0); font-size: 13px;
+  }
+  .cpo-mapa-bar select, .cpo-mapa-bar input, .cpo-mapa-bar button {
+    padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(128,128,128,0.35);
+    background: var(--surface-2, #252b33); color: var(--fg, #fff); font-size: 12px; cursor: pointer;
+  }
+  .cpo-mapa-bar button.btn-cerrar { background: #ef4444; color: #fff; border: none; font-weight: 600; }
+  #cpo-leaflet-map { flex: 1; width: 100%; height: 100%; z-index: 1; }
+  .cpo-popup-form { display: flex; flex-direction: column; gap: 6px; min-width: 230px; color: #1e293b; font-family: sans-serif; }
+  .cpo-popup-form label { font-size: 11px; font-weight: 700; color: #475569; margin-top: 2px; }
+  .cpo-popup-form input, .cpo-popup-form select, .cpo-popup-form textarea {
+    padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box;
+  }
+  .cpo-popup-btns { display: flex; justify-content: space-between; gap: 6px; margin-top: 6px; }
+  .cpo-popup-btns button { flex: 1; padding: 6px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; }
+</style>
+
+<div id="cpo-mapa-modal">
+  <div class="cpo-mapa-bar">
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <strong style="font-size:14px;">🗺️ Territorio y Circuitos</strong>
+      <select id="cpo-mapa-salto">
+        <option value="-38.0055,-57.5426,13">📍 Gral. Pueyrredón (Mar del Plata)</option>
+        <option value="-36.5789,-56.6886,12">📍 Partido de La Costa</option>
+        <option value="-34.9214,-57.9544,13">📍 La Plata</option>
+        <option value="-36.6769,-60.5588,7">📍 Provincia de Buenos Aires (Vista general)</option>
+      </select>
+      <input type="text" id="cpo-mapa-buscar" placeholder="Buscar municipio o calle..." style="width:170px;" />
+      <button id="cpo-mapa-btn-buscar">Ir</button>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <span id="cpo-mapa-contador" style="font-size:12px; opacity:0.85;">0 zonas | 0 votantes</span>
+      <button id="cpo-mapa-exportar" title="Descargar polígonos en GeoJSON">⬇ Exportar GeoJSON</button>
+      <button id="cpo-mapa-cerrar" class="btn-cerrar">✕ Volver al tablero</button>
+    </div>
+  </div>
+  <div id="cpo-leaflet-map"></div>
+</div>
+
+<script>
+(function() {
+  let map = null;
+  let fg = null;
+
+  function obtenerClienteActual() {
+    const texto = document.body.innerText;
+    const match = texto.match(/Cliente\s+([^\n\t]+)/);
+    return (match && match[1] ? match[1].trim() : 'general').replace(/[^a-zA-Z0-9_-]/g, '_');
+  }
+
+  function claveStorage() {
+    return 'cpo_territorio_zonas_' + obtenerClienteActual();
+  }
+
+  function actualizarContador() {
+    if (!fg) return;
+    let zonas = 0, votantes = 0;
+    fg.eachLayer(layer => {
+      zonas++;
+      const d = layer.feature && layer.feature.properties ? layer.feature.properties : (layer._cpoData || {});
+      votantes += parseInt(d.votantes || 0, 10) || 0;
+    });
+    const el = document.getElementById('cpo-mapa-contador');
+    if (el) el.textContent = `${zonas} zonas | ${votantes.toLocaleString('es-AR')} votantes`;
+  }
+
+  function guardarZonas() {
+    if (!fg) return;
+    const features = [];
+    fg.eachLayer(layer => {
+      const geo = layer.toGeoJSON();
+      geo.properties = layer._cpoData || { nombre: 'Zona sin nombre', votantes: 0, referente: '', color: '#2563eb', notas: '' };
+      features.push(geo);
+    });
+    const dataStr = JSON.stringify({ type: 'FeatureCollection', features });
+    localStorage.setItem(claveStorage(), dataStr);
+    actualizarContador();
+  }
+
+  function aplicarEstilo(layer, data) {
+    if (layer.setStyle && data && data.color) {
+      layer.setStyle({ color: data.color, fillColor: data.color, fillOpacity: 0.28, weight: 3 });
+    }
+  }
+
+  function vincularPopup(layer) {
+    layer._cpoData = layer._cpoData || { nombre: 'Nuevo Circuito / Zona', votantes: '', referente: '', color: '#10b981', notas: '' };
+    aplicarEstilo(layer, layer._cpoData);
+
+    layer.on('click', function() {
+      const d = layer._cpoData;
+      const container = document.createElement('div');
+      container.className = 'cpo-popup-form';
+      container.innerHTML = `
+        <strong style="font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:4px;">📋 Datos de la Zona / Circuito</strong>
+        <label>Nombre o Número de Circuito</label>
+        <input type="text" id="pop-nombre" value="${d.nombre || ''}" placeholder="Ej: Circuito 364 - Centro" />
+        <label>Cantidad de Votantes / Padrón</label>
+        <input type="number" id="pop-votantes" value="${d.votantes || ''}" placeholder="Ej: 4500" />
+        <label>Referente / Responsable</label>
+        <input type="text" id="pop-referente" value="${d.referente || ''}" placeholder="Nombre del encargado" />
+        <label>Prioridad / Color de zona</label>
+        <select id="pop-color">
+          <option value="#10b981" ${d.color==='#10b981'?'selected':''}>🟢 Favorable / Consolidado</option>
+          <option value="#f59e0b" ${d.color==='#f59e0b'?'selected':''}>🟡 Disputado / Prioridad Media</option>
+          <option value="#ef4444" ${d.color==='#ef4444'?'selected':''}>🔴 Crítico / Reforzar rastrillaje</option>
+          <option value="#3b82f6" ${d.color==='#3b82f6'?'selected':''}>🔵 Neutral / Informativo</option>
+        </select>
+        <label>Notas estratégicas</label>
+        <textarea id="pop-notas" rows="2" placeholder="Observaciones del territorio...">${d.notas || ''}</textarea>
+        <div class="cpo-popup-btns">
+          <button id="pop-guardar" style="background:#10b981; color:#fff;">Guardar</button>
+          <button id="pop-borrar" style="background:#ef4444; color:#fff;">Eliminar zona</button>
+        </div>
+      `;
+
+      container.querySelector('#pop-guardar').onclick = () => {
+        layer._cpoData = {
+          nombre: container.querySelector('#pop-nombre').value,
+          votantes: container.querySelector('#pop-votantes').value,
+          referente: container.querySelector('#pop-referente').value,
+          color: container.querySelector('#pop-color').value,
+          notas: container.querySelector('#pop-notas').value
+        };
+        aplicarEstilo(layer, layer._cpoData);
+        layer.bindTooltip(`<b>${layer._cpoData.nombre}</b><br>Votantes: ${layer._cpoData.votantes || 0}`, { sticky: true });
+        guardarZonas();
+        layer.closePopup();
+      };
+
+      container.querySelector('#pop-borrar').onclick = () => {
+        if (confirm('¿Seguro que querés eliminar este recorte del mapa?')) {
+          fg.removeLayer(layer);
+          guardarZonas();
+        }
+      };
+
+      layer.bindPopup(container).openPopup();
+    });
+
+    if (layer._cpoData.nombre) {
+      layer.bindTooltip(`<b>${layer._cpoData.nombre}</b><br>Votantes: ${layer._cpoData.votantes || 0}`, { sticky: true });
+    }
+  }
+
+  function cargarZonasGuardadas() {
+    if (!fg) return;
+    fg.clearLayers();
+    const raw = localStorage.getItem(claveStorage());
+    if (!raw) { actualizarContador(); return; }
+    try {
+      const geojson = JSON.parse(raw);
+      L.geoJSON(geojson, {
+        onEachFeature: function(feature, layer) {
+          layer._cpoData = feature.properties || {};
+          vincularPopup(layer);
+          fg.addLayer(layer);
+        }
+      });
+      actualizarContador();
+    } catch (e) { console.error(e); }
+  }
+
+  function iniciarMapa() {
+    if (!map) {
+      map = L.map('cpo-leaflet-map').setView([-38.0055, -57.5426], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap | Creativa Política'
+      }).addTo(map);
+
+      fg = L.featureGroup().addTo(map);
+
+      map.pm.addControls({
+        position: 'topleft',
+        drawCircle: false,
+        drawCircleMarker: false,
+        drawText: false,
+        drawRectangle: true,
+        drawPolygon: true,
+        drawPolyline: true,
+        drawMarker: true,
+        editMode: true,
+        dragMode: false,
+        cutPolygon: true,
+        removalMode: true
+      });
+
+      map.on('pm:create', function(e) {
+        const layer = e.layer;
+        fg.addLayer(layer);
+        vincularPopup(layer);
+        guardarZonas();
+        setTimeout(() => layer.fire('click'), 150);
+      });
+
+      map.on('pm:remove', guardarZonas);
+    }
+    setTimeout(() => {
+      map.invalidateSize();
+      cargarZonasGuardadas();
+    }, 100);
+  }
+
+  document.getElementById('cpo-mapa-salto').addEventListener('change', function(e) {
+    const p = e.target.value.split(',');
+    if (map) map.setView([parseFloat(p[0]), parseFloat(p[1])], parseInt(p[2], 10));
+  });
+
+  document.getElementById('cpo-mapa-btn-buscar').addEventListener('click', function() {
+    const q = document.getElementById('cpo-mapa-buscar').value.trim();
+    if (!q) return;
+    fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q + ', Buenos Aires, Argentina'))
+      .then(r => r.json())
+      .then(res => {
+        if (res && res.length > 0 && map) {
+          map.setView([parseFloat(res[0].lat), parseFloat(res[0].lon)], 14);
+        } else {
+          alert('No se encontró la localidad o calle. Probá agregando el nombre del partido.');
+        }
+      });
+  });
+
+  document.getElementById('cpo-mapa-exportar').addEventListener('click', function() {
+    const raw = localStorage.getItem(claveStorage()) || '{"type":"FeatureCollection","features":[]}';
+    const blob = new Blob([raw], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'territorio_' + obtenerClienteActual() + '.geojson';
+    a.click();
+  });
+
+  document.getElementById('cpo-mapa-cerrar').addEventListener('click', function() {
+    document.getElementById('cpo-mapa-modal').style.display = 'none';
+  });
+
+  function inyectarBotonMenu() {
+    if (document.getElementById('cpo-btn-abrir-mapa')) return;
+    const elementos = Array.from(document.querySelectorAll('a, button, div, li'));
+    const refMenciones = elementos.find(el => el.children.length === 0 && el.textContent.trim() === 'Menciones');
+    
+    const btn = document.createElement('div');
+    btn.id = 'cpo-btn-abrir-mapa';
+    btn.innerHTML = '🗺️ Mapa Territorial';
+    btn.style.cssText = 'cursor:pointer; padding:8px 12px; margin:6px 8px; border-radius:6px; background:rgba(16,185,129,0.15); color:#10b981; font-weight:600; font-size:13px; display:flex; align-items:center; gap:8px;';
+    btn.onclick = function() {
+      const modal = document.getElementById('cpo-mapa-modal');
+      modal.style.display = 'flex';
+      iniciarMapa();
+    };
+
+    if (refMenciones && refMenciones.parentElement) {
+      refMenciones.parentElement.insertAdjacentElement('afterend', btn);
+    } else {
+      btn.style.position = 'fixed';
+      btn.style.bottom = '16px';
+      btn.style.left = '16px';
+      btn.style.zIndex = '9999';
+      btn.style.background = '#0c8a5e';
+      btn.style.color = '#fff';
+      document.body.appendChild(btn);
+    }
+  }
+
+  setInterval(inyectarBotonMenu, 1500);
+})();
+</script>
+<!-- === FIN MÓDULO MAPA TERRITORIAL === -->

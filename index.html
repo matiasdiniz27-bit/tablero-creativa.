@@ -2680,219 +2680,388 @@ if (!permitidos.includes(correo)) {
   });
 </script>
 </body></html>
-<!-- === SUITE CARTOGRAFÍA ELECTORAL PRO (VERSIÓN MASTER: DESPLEGABLE + PLUGINS) === -->
+<!-- === SUITE MASTER CARTOGRAFÍA ELECTORAL PBA + SISTEMA D'HONDT + GESTIÓN DE CLIENTES === -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.14.2/dist/leaflet-geoman.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.14.2/dist/leaflet-geoman.min.js"></script>
 
 <style>
+  /* Contenedor Principal Fullscreen Dark Mode */
   #cpo-mapa-modal {
     display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: #0b0f14; z-index: 99999; flex-direction: column;
-    font-family: system-ui, -apple-system, sans-serif; color: #f1f5f9;
+    background: #0b0f17; z-index: 99999; flex-direction: column;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #f8fafc; color-scheme: dark; user-select: none;
   }
-  
-  /* Barra Superior Única y Desplegable */
+
+  /* Forzar Modo Oscuro en TODOS los selects y opciones para evitar fondos blancos */
+  #cpo-mapa-modal select,
+  #cpo-mapa-modal input,
+  #cpo-mapa-modal button,
+  #cpo-warroom-overlay select,
+  #cpo-warroom-overlay input,
+  #cpo-warroom-overlay button {
+    color-scheme: dark !important;
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1px solid #475569 !important;
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 12px;
+    outline: none;
+  }
+  #cpo-mapa-modal select option,
+  #cpo-warroom-overlay select option {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    padding: 6px;
+  }
+
+  /* Barra Superior Compacta */
   .cpo-top-bar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 14px; background: #111822; border-bottom: 1px solid rgba(255,255,255,0.1);
-    font-size: 12px; z-index: 10; flex-wrap: wrap; gap: 8px;
+    padding: 8px 14px; background: #0f172a; border-bottom: 1px solid #334155;
+    z-index: 20; flex-wrap: wrap; gap: 8px;
   }
-  .cpo-top-bar select, .cpo-top-bar input, .cpo-top-bar button {
-    padding: 5px 9px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.18);
-    background: #1b2533; color: #fff; font-size: 11.5px; cursor: pointer; outline: none;
-  }
+  .cpo-top-bar button { cursor: pointer; font-weight: 600; transition: filter 0.15s; }
   .cpo-top-bar button:hover { filter: brightness(1.15); }
-  .cpo-btn-main { background: #10b981 !important; color: #042f1e !important; font-weight: 700; }
-  .cpo-btn-war { background: linear-gradient(135deg,#7c3aed,#4f46e5) !important; color: #fff !important; font-weight: 700; }
-  .cpo-btn-close { background: #ef4444 !important; color: #fff !important; font-weight: 700; }
+  .cpo-btn-toggle-top { background: #1e293b !important; color: #38bdf8 !important; border-color: #38bdf8 !important; font-weight: 700 !important; }
+  .cpo-btn-dhondt { background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; color: #ffffff !important; border: none !important; font-weight: 700 !important; }
+  .cpo-btn-verde { background: #10b981 !important; color: #052e16 !important; border: none !important; font-weight: 700 !important; }
+  .cpo-btn-azul { background: #2563eb !important; color: #ffffff !important; border: none !important; font-weight: 700 !important; }
+  .cpo-btn-rojo { background: #ef4444 !important; color: #ffffff !important; border: none !important; font-weight: 700 !important; }
 
-  /* Panel Desplegable de Control */
+  /* Panel Superior Desplegable (Controles, KPIs y Pines) */
   #cpo-panel-desplegable {
-    display: none; background: #16202b; border-bottom: 1px solid rgba(255,255,255,0.12);
-    padding: 10px 14px; font-size: 11.5px; z-index: 9; flex-direction: column; gap: 8px;
+    display: none; flex-direction: column; gap: 9px;
+    padding: 10px 14px; background: #131c2e; border-bottom: 2px solid #334155;
+    z-index: 19; font-size: 12px;
   }
-  .cpo-row-flex { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
-  .cpo-pill {
-    background: #111822; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08);
-    display: inline-flex; align-items: center; gap: 6px;
+  .cpo-row-flex {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;
   }
-  .cpo-pill strong { color: #38bdf8; }
-  .cpo-pill input { width: 70px; background: #0b0f14; border: 1px solid rgba(255,255,255,0.2); color: #10b981; border-radius: 4px; padding: 1px 4px; font-weight: 700; }
+  .cpo-kpi-badge {
+    background: #0f172a; border: 1px solid #334155; border-radius: 999px;
+    padding: 4px 11px; display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: #cbd5e1;
+  }
+  .cpo-kpi-badge strong { color: #38bdf8; font-size: 12.5px; }
+  .cpo-kpi-badge input {
+    width: 82px !important; padding: 2px 6px !important; font-weight: 700 !important;
+    color: #10b981 !important; background: #090d16 !important; border-color: #475569 !important;
+  }
 
-  /* Cuerpo y Mapa */
-  .cpo-mapa-body { display: flex; flex: 1; width: 100%; height: calc(100% - 45px); position: relative; overflow: hidden; }
-  #cpo-leaflet-map { flex: 1; height: 100%; background: #0b0f14; z-index: 1; }
+  /* Botonera de Pines */
+  .cpo-pines-wrap { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .cpo-pin-btn {
+    background: #1e293b !important; color: #e2e8f0 !important; border: 1px solid #475569 !important;
+    padding: 4px 9px !important; border-radius: 6px !important; cursor: pointer; font-size: 11.5px !important;
+  }
+  .cpo-pin-btn.activo {
+    background: #f59e0b !important; color: #0f172a !important; border-color: #fbbf24 !important; font-weight: 800 !important;
+  }
+  .cpo-pin-btn.modo-borrar.activo {
+    background: #ef4444 !important; color: #ffffff !important; border-color: #f87171 !important; font-weight: 800 !important;
+  }
 
-  /* Sidebar Lateral */
+  /* Cuerpo Principal: Mapa + Barra Lateral Colapsable */
+  .cpo-mapa-body {
+    display: flex; flex: 1; width: 100%; height: 100%; position: relative; overflow: hidden;
+  }
+  #cpo-leaflet-map { flex: 1; height: 100%; width: 100%; background: #090d16; z-index: 1; }
+
+  /* Botón Flotante para Plegar/Desplegar Lista Lateral */
+  #cpo-btn-toggle-side {
+    position: absolute; right: 320px; top: 12px; z-index: 1000;
+    background: #0f172a !important; color: #38bdf8 !important;
+    border: 1px solid #475569 !important; border-right: none !important;
+    padding: 6px 10px !important; border-radius: 8px 0 0 8px !important;
+    cursor: pointer; font-weight: 700; font-size: 11.5px; box-shadow: -3px 2px 10px rgba(0,0,0,0.5);
+    transition: right 0.25s ease;
+  }
+  #cpo-btn-toggle-side.plegado {
+    right: 0 !important; border-right: 1px solid #475569 !important; border-radius: 8px 0 0 8px !important;
+  }
+
+  /* Sidebar Derecha */
   .cpo-sidebar {
-    width: 290px; background: #111822; border-left: 1px solid rgba(255,255,255,0.1);
-    display: flex; flex-direction: column; z-index: 5;
+    width: 320px; background: #0f172a; border-left: 1px solid #334155;
+    display: flex; flex-direction: column; z-index: 10; transition: width 0.25s ease, transform 0.25s ease;
   }
-  @media (max-width: 760px) { .cpo-sidebar { display: none; } }
-  .cpo-side-head { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; gap: 6px; }
-  .cpo-side-head input { width: 100%; box-sizing: border-box; padding: 6px; background: #0b0f14; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 11.5px; }
-  .cpo-lista-zonas { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-  .cpo-card-zona { background: #1b2533; border-radius: 6px; padding: 8px 10px; cursor: pointer; border-left: 4px solid #10b981; }
-  .cpo-card-zona:hover { background: #233142; }
+  .cpo-sidebar.oculto { width: 0 !important; overflow: hidden !important; border-left: none !important; transform: translateX(100%); }
+  .cpo-side-head { padding: 10px 12px; border-bottom: 1px solid #1e293b; display: flex; flex-direction: column; gap: 7px; }
+  .cpo-lista-zonas { flex: 1; overflow-y: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 7px; }
+  .cpo-card-zona {
+    background: #1e293b; border-radius: 7px; padding: 8px 10px; cursor: pointer;
+    border-left: 5px solid #10b981; position: relative; transition: background 0.15s;
+  }
+  .cpo-card-zona:hover { background: #26354d; }
+  .cpo-card-del {
+    position: absolute; top: 7px; right: 7px;
+    background: rgba(239,68,68,0.2) !important; color: #f87171 !important;
+    border: 1px solid rgba(239,68,68,0.45) !important; border-radius: 5px !important;
+    padding: 2px 6px !important; font-size: 11px !important; cursor: pointer;
+  }
+  .cpo-card-del:hover { background: #ef4444 !important; color: #ffffff !important; }
 
-  /* Popup Ficha y Apartados Personalizados */
+  /* Etiquetas Fijas sobre el Mapa: Fondo Oscuro Sólido y Letras Blancas (Blindado contra CSS externo) */
+  .leaflet-tooltip.cpo-label-fija {
+    background-color: rgba(15, 23, 42, 0.94) !important;
+    border: 1px solid #38bdf8 !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    padding: 3px 7px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.65) !important;
+    text-align: center !important;
+    pointer-events: none !important;
+    white-space: nowrap !important;
+  }
+  .leaflet-tooltip.cpo-label-fija::before { display: none !important; }
+
+  /* Pines Personalizados en el Mapa (Con Emoji Visible y Fácil de Cliquear) */
+  .cpo-custom-pin-icon {
+    background: #0f172a; border: 2px solid #fbbf24; border-radius: 50%;
+    display: flex !important; align-items: center; justify-content: center;
+    font-size: 18px; box-shadow: 0 3px 8px rgba(0,0,0,0.7); cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .cpo-custom-pin-icon:hover { transform: scale(1.2); border-color: #ef4444; }
+
+  /* Popup Ficha Electoral: Con Acordeones Desplegables para que NO se corte nunca */
+  .leaflet-popup-content-wrapper {
+    background: #0f172a !important; color: #f8fafc !important;
+    border: 1px solid #334155 !important; border-radius: 10px !important;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.75) !important;
+  }
+  .leaflet-popup-tip { background: #0f172a !important; }
   .cpo-popup-form {
-    display: flex; flex-direction: column; gap: 5px; width: 295px; max-height: 420px; overflow-y: auto;
-    padding-right: 4px; color: #1e293b; font-family: system-ui, sans-serif; font-size: 11.5px;
+    display: flex; flex-direction: column; gap: 6px; width: 305px; max-height: 370px;
+    overflow-y: auto; padding-right: 4px; color: #f8fafc; font-size: 11.5px;
   }
-  .cpo-popup-form label { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; margin-top: 2px; }
+  .cpo-popup-form label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 2px; display: block; }
   .cpo-popup-form input, .cpo-popup-form select, .cpo-popup-form textarea {
-    padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 11.5px; width: 100%; box-sizing: border-box;
+    width: 100%; box-sizing: border-box; background: #1e293b !important; color: #ffffff !important;
+    border: 1px solid #475569 !important; border-radius: 5px; padding: 5px 7px; font-size: 11.5px;
   }
-  .cpo-popup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-  .cpo-popup-sec { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; margin-top: 2px; }
-  .cpo-swatch-row { display: flex; gap: 3px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
-  .cpo-swatch { width: 17px; height: 17px; border-radius: 3px; cursor: pointer; border: 1px solid rgba(0,0,0,0.2); }
-  .cpo-popup-btns { display: flex; gap: 5px; margin-top: 6px; position: sticky; bottom: 0; background: #fff; padding-top: 4px; }
-  .cpo-popup-btns button { flex: 1; padding: 6px; border: none; border-radius: 5px; cursor: pointer; font-weight: 700; font-size: 11.5px; }
-
-  /* Etiquetas fijas en mapa */
-  .cpo-label-fija {
-    background: rgba(15, 23, 42, 0.9) !important; border: 1px solid rgba(255,255,255,0.25) !important;
-    color: #f8fafc !important; border-radius: 4px !important; padding: 2px 5px !important;
-    font-size: 10px !important; font-weight: 700 !important; text-align: center; pointer-events: none;
+  .cpo-popup-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .cpo-popup-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+  .cpo-details-box {
+    background: #162032; border: 1px solid #334155; border-radius: 6px; padding: 5px 8px; margin-top: 2px;
   }
+  .cpo-details-box summary {
+    cursor: pointer; font-weight: 700; font-size: 11px; color: #38bdf8; outline: none; padding: 2px 0;
+  }
+  .cpo-swatch-row { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 5px; }
+  .cpo-swatch { width: 18px; height: 18px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(255,255,255,0.35); }
+  .cpo-popup-btns {
+    display: flex; gap: 6px; margin-top: 6px; position: sticky; bottom: 0;
+    background: #0f172a; padding-top: 6px; border-top: 1px solid #334155;
+  }
+  .cpo-popup-btns button { flex: 1; padding: 7px; border: none !important; border-radius: 5px; cursor: pointer; font-weight: 700; }
 
-  /* Modal War Room */
+  /* Modal Comando Electoral y Calculadora D'Hondt */
   #cpo-warroom-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 20000;
-    align-items: center; justify-content: center; padding: 16px;
+    display: none; position: fixed; inset: 0; background: rgba(5, 8, 15, 0.88); z-index: 100005;
+    align-items: center; justify-content: center; padding: 16px; color-scheme: dark;
   }
   .cpo-warroom-box {
-    background: #111822; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 10px; width: 100%; max-width: 820px; max-height: 85vh; overflow-y: auto; padding: 18px;
+    background: #0f172a; color: #f8fafc; border: 1px solid #334155;
+    border-radius: 12px; width: 100%; max-width: 980px; max-height: 90vh; overflow-y: auto;
+    padding: 20px 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.85);
   }
-  .cpo-wr-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 8px; }
-  .cpo-wr-table th, .cpo-wr-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; }
-  .cpo-wr-table th { color: #94a3b8; font-size: 10.5px; text-transform: uppercase; }
+  .cpo-wr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 14px 0; }
+  .cpo-wr-card { background: #162032; border: 1px solid #334155; border-radius: 9px; padding: 14px; }
+  .cpo-wr-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; background: #162032; border-radius: 8px; overflow: hidden; }
+  .cpo-wr-table th, .cpo-wr-table td { padding: 8px 10px; border-bottom: 1px solid #26354d; text-align: left; }
+  .cpo-wr-table th { background: #090d16; color: #94a3b8; font-size: 10.5px; text-transform: uppercase; }
 
-  /* Botones de Gestión de Clientes */
-  #cpo-cliente-tools { display: inline-flex; gap: 6px; align-items: center; margin-left: 8px; }
-  .cpo-btn-tool { padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid rgba(128,128,128,0.3); }
+  /* Botones de Gestión de Clientes en el Tablero Principal */
+  #cpo-cliente-tools { display: inline-flex; gap: 6px; align-items: center; margin-left: 8px; flex-wrap: wrap; }
+  .cpo-btn-tool {
+    padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 600;
+    cursor: pointer; border: 1px solid rgba(128,128,128,0.3); display: inline-flex; align-items: center; gap: 4px;
+  }
   .cpo-btn-dl { background: #2563eb; color: #fff; border: none; }
   .cpo-btn-del { background: rgba(239,68,68,0.18); color: #f87171; border-color: rgba(239,68,68,0.4); }
   .cpo-btn-res { background: rgba(16,185,129,0.15); color: #10b981; border-color: rgba(16,185,129,0.35); }
 </style>
 
-<div id="cpo-mapa-modal">
+<!-- translate="no" evita que Google Chrome traduzca mal "Hab.", "Manzanas" o "War Room" -->
+<div id="cpo-mapa-modal" translate="no" class="notranslate">
+  <!-- BARRA SUPERIOR COMPACTA -->
   <div class="cpo-top-bar">
-    <div style="display:flex; gap:6px; align-items:center;">
-      <button type="button" id="cpo-btn-toggle-panel" style="background:#1f2937; color:#38bdf8; font-weight:700;">🎛️ Controles y Filtros [ ▼ ]</button>
-      <select id="cpo-mapa-municipio" style="max-width:190px; font-weight:700;"></select>
-      <input type="text" id="cpo-mapa-buscar" placeholder="Buscar calle..." style="width:140px;" />
-      <button type="button" id="cpo-mapa-btn-buscar" style="background:#2563eb; color:#fff;">🔍</button>
+    <div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap;">
+      <button type="button" id="cpo-btn-toggle-panel" class="cpo-btn-toggle-top">🎛️ Controles, Secciones y Pines [ ▼ ]</button>
+      <select id="cpo-mapa-municipio" title="Seleccionar Municipio de la Provincia de Buenos Aires" style="max-width:225px; font-weight:700;"></select>
+      <input type="text" id="cpo-mapa-buscar" placeholder="Buscar calle, esquina o barrio..." style="width:170px;" />
+      <button type="button" id="cpo-mapa-btn-buscar" class="cpo-btn-azul">🔍 Ir</button>
     </div>
-    <div style="display:flex; gap:6px; align-items:center;">
-      <button type="button" id="cpo-btn-warroom" class="cpo-btn-war">🎯 War Room</button>
-      <button type="button" id="cpo-mapa-excel" style="background:#334155; color:#fff;">📊 Excel</button>
-      <button type="button" id="cpo-mapa-exportar" class="cpo-btn-main">⬇ GeoJSON</button>
-      <button type="button" id="cpo-mapa-cerrar" class="cpo-btn-close">✕ Cerrar</button>
+
+    <div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap;">
+      <button type="button" id="cpo-btn-warroom" class="cpo-btn-dhondt" title="Simulador de Escenarios, Comparativa y Calculadora D'Hondt">🏛️ Simulador & D'Hondt</button>
+      <button type="button" id="cpo-mapa-excel" class="cpo-btn-azul" title="Descargar tabla completa para Excel">📊 Excel (.CSV)</button>
+      <button type="button" id="cpo-mapa-exportar" class="cpo-btn-verde" title="Descargar cartografía GeoJSON">⬇ GeoJSON</button>
+      <button type="button" id="cpo-mapa-cerrar" class="cpo-btn-rojo">✕ Cerrar Mapa</button>
     </div>
   </div>
 
+  <!-- PANEL SUPERIOR DESPLEGABLE (SE ABRE Y CIERRA A PEDIDO PARA NO QUITAR LUGAR AL MAPA) -->
   <div id="cpo-panel-desplegable">
+    <!-- Fila 1: Secciones, Población Censo, Padrón y KPIs en Vivo -->
     <div class="cpo-row-flex">
-      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-        <select id="cpo-filtro-seccion">
-          <option value="TODAS">🏛️ Todas las Secciones</option>
-          <option value="1">1ª Sección</option><option value="2">2ª Sección</option><option value="3">3ª Sección</option>
-          <option value="4">4ª Sección</option><option value="5" selected>5ª Sección (Costa/Sudeste)</option>
-          <option value="6">6ª Sección</option><option value="7">7ª Sección</option><option value="8">8ª Sección (La Plata)</option>
+      <div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap;">
+        <select id="cpo-filtro-seccion" title="Filtrar por Sección Electoral de PBA">
+          <option value="TODAS">🏛️ Todas las Secciones PBA (135 Municipios)</option>
+          <option value="1">1ª Sección Electoral (Norte/Oeste GBA - 24 municipios)</option>
+          <option value="2">2ª Sección Electoral (Norte PBA - 15 municipios)</option>
+          <option value="3">3ª Sección Electoral (Sur GBA - 19 municipios)</option>
+          <option value="4">4ª Sección Electoral (Noroeste - 19 municipios)</option>
+          <option value="5" selected>5ª Sección Electoral (Costa y Sudeste - 27 municipios)</option>
+          <option value="6">6ª Sección Electoral (Sudoeste - 22 municipios)</option>
+          <option value="7">7ª Sección Electoral (Centro - 8 municipios)</option>
+          <option value="8">8ª Sección Electoral (Capital / La Plata - 1 municipio)</option>
         </select>
-        <span class="cpo-pill">Hab. INDEC: <strong id="kpi-muni-hab">667.082</strong></span>
-        <span class="cpo-pill">Padrón Muni: <input type="number" id="kpi-muni-padron-input" value="585000" /></span>
+        <span class="cpo-kpi-badge" title="Habitantes según Censo Nacional INDEC">👥 Población Censo: <strong id="kpi-muni-hab">667.082</strong></span>
+        <span class="cpo-kpi-badge" title="Electores habilitados en el municipio (editable)">🗳️ Padrón Distrito: <input type="number" id="kpi-muni-padron-input" value="585000" /></span>
+        <span class="cpo-kpi-badge" title="Concejales que renueva este municipio y piso D'Hondt">🏛️ Renueva: <strong id="kpi-muni-bancas" style="color:#fbbf24;">12 conc. (Piso 8.33%)</strong></span>
       </div>
-      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-        <span class="cpo-pill">Zonas: <strong id="kpi-zonas">0</strong></span>
-        <span class="cpo-pill">Padrón Relevado: <strong id="kpi-padron">0</strong></span>
-        <span class="cpo-pill">🎯 Meta Votos: <strong id="kpi-meta" style="color:#10b981;">0</strong></span>
-        <span class="cpo-pill">🧱 Manzanas: <strong id="kpi-manzanas">~0</strong></span>
+
+      <div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap;">
+        <span class="cpo-kpi-badge" id="kpi-pill-zonas" style="cursor:pointer;" title="Clic para abrir el Simulador">🗺️ Zonas: <strong id="kpi-zonas">0</strong></span>
+        <span class="cpo-kpi-badge" id="kpi-pill-padron" style="cursor:pointer;" title="Padrón suma de las zonas dibujadas">👥 Padrón Zonas: <strong id="kpi-padron">0</strong> (<span id="kpi-cobertura">0%</span>)</span>
+        <span class="cpo-kpi-badge" id="kpi-pill-meta" style="cursor:pointer; border-color:#10b981;" title="Clic para abrir el Simulador D'Hondt">🎯 Meta Votos: <strong id="kpi-meta" style="color:#10b981;">0</strong></span>
+        <span class="cpo-kpi-badge" id="kpi-pill-manzanas" style="cursor:pointer;" title="Superficie estimada en manzanas urbanas">🧱 Manzanas: <strong id="kpi-manzanas">~0</strong></span>
       </div>
     </div>
-    <div class="cpo-row-flex" style="border-top:1px solid rgba(255,255,255,0.06); padding-top:6px;">
-      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-        <span style="color:#94a3b8; font-weight:700;">📌 Pines:</span>
-        <button type="button" class="cpo-pin-btn" data-pin="ninguno" style="background:#1b2533; border:1px solid #475569; padding:2px 6px; border-radius:4px; cursor:pointer; color:#fff;">✋ Navegar</button>
-        <button type="button" class="cpo-pin-btn" data-pin="🏫 Escuela" style="background:#1b2533; border:1px solid #475569; padding:2px 6px; border-radius:4px; cursor:pointer; color:#fff;">🏫 Escuela</button>
-        <button type="button" class="cpo-pin-btn" data-pin="🏠 Local / Ref" style="background:#1b2533; border:1px solid #475569; padding:2px 6px; border-radius:4px; cursor:pointer; color:#fff;">🏠 Local</button>
-        <button type="button" class="cpo-pin-btn" data-pin="⚠️ Reclamo" style="background:#1b2533; border:1px solid #475569; padding:2px 6px; border-radius:4px; cursor:pointer; color:#fff;">⚠️ Reclamo</button>
+
+    <!-- Fila 2: Pines Personalizados, Modo Borrar 1-Clic y Capas Visuales -->
+    <div class="cpo-row-flex" style="border-top:1px solid #26354d; padding-top:8px;">
+      <div class="cpo-pines-wrap" id="cpo-barra-pines">
+        <strong style="color:#94a3b8; font-size:11.5px; margin-right:3px;">📌 Herramienta Pin:</strong>
+        <button type="button" class="cpo-pin-btn activo" data-pin="ninguno">✋ Navegar</button>
+        <button type="button" class="cpo-pin-btn" data-pin="🏫|Escuela">🏫 Escuela</button>
+        <button type="button" class="cpo-pin-btn" data-pin="🏠|Local Partidario">🏠 Local</button>
+        <button type="button" class="cpo-pin-btn" data-pin="⚠️|Reclamo Vecinal">⚠️ Reclamo</button>
+        <button type="button" class="cpo-pin-btn" data-pin="📢|Cartel Vía Pública">📢 Cartel</button>
+        <button type="button" class="cpo-pin-btn" data-pin="🤝|Institución / Club">🤝 Club/Inst.</button>
+        <span id="cpo-pines-custom-slot" style="display:inline-flex; gap:5px; flex-wrap:wrap;"></span>
+        <button type="button" id="cpo-btn-crear-pin" style="background:#10b981 !important; color:#052e16 !important; border:none !important; font-weight:700; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;">+ Crear Pin Propio</button>
+        <button type="button" class="cpo-pin-btn modo-borrar" data-pin="BORRAR_1CLIC" title="Activá esto y tocá cualquier escuela, reclamo o zona para borrarla al instante">🗑️ Borrar con 1 clic</button>
       </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <label style="cursor:pointer;"><input type="checkbox" id="cpo-chk-labels" checked /> Nombres fijos</label>
-        <select id="cpo-modo-pintado">
-          <option value="manual">🎨 Color por Categoría</option>
-          <option value="calor">🔥 Mapa de Calor</option>
-          <option value="avance">🚶 Avance Rastrillaje</option>
+
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <label style="display:inline-flex; align-items:center; gap:5px; cursor:pointer; color:#f8fafc; font-weight:600;">
+          <input type="checkbox" id="cpo-chk-labels" checked style="width:auto !important;" /> 🏷️ Nombres fijos
+        </label>
+        <select id="cpo-modo-pintado" title="Elegir cómo se colorean las zonas">
+          <option value="manual">🎨 Pintar: Color / Categoría Política</option>
+          <option value="historico">⚖️ Pintar: Comparativa Elección Anterior (Ganado/Perdido)</option>
+          <option value="calor">🔥 Pintar: Mapa de Calor (Cantidad de Votantes)</option>
+          <option value="avance">🚶 Pintar: Avance de Caminata / Rastrillaje</option>
         </select>
-        <select id="cpo-mapa-capa">
-          <option value="osm">🗺️ Callejero</option><option value="dark">🌙 Oscuro</option><option value="sat">🛰️ Satelital</option>
+        <select id="cpo-mapa-capa" title="Cambiar tipo de mapa">
+          <option value="osm">🗺️ Mapa Callejero</option>
+          <option value="dark">🌙 Mapa Oscuro Electoral</option>
+          <option value="sat">🛰️ Mapa Satelital</option>
         </select>
         <input type="file" id="cpo-mapa-file-in" accept=".geojson,.json" style="display:none;" />
-        <button type="button" id="cpo-mapa-importar" style="background:#334155; color:#fff; padding:4px 8px; border-radius:4px; border:none; cursor:pointer;">📂 Importar</button>
+        <button type="button" id="cpo-mapa-importar" style="cursor:pointer;">📂 Importar GeoJSON</button>
       </div>
     </div>
   </div>
 
+  <!-- CUERPO DEL MAPA Y LISTA LATERAL PLEGABLE -->
   <div class="cpo-mapa-body">
     <div id="cpo-leaflet-map"></div>
+    <button type="button" id="cpo-btn-toggle-side" title="Ocultar o mostrar la lista lateral para agrandar el mapa">Ocultar Lista ▶</button>
     <div class="cpo-sidebar" id="cpo-sidebar">
       <div class="cpo-side-head">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong style="font-size:12px;">📋 Circuitos y Zonas</strong>
-          <button type="button" id="cpo-btn-gestor-cats" style="background:#1e293b; color:#38bdf8; border:none; border-radius:4px; padding:2px 6px; font-size:10px; cursor:pointer;">+ Categorías</button>
+          <strong style="font-size:12.5px; color:#f8fafc;">📋 Circuitos, Zonas y Pines</strong>
+          <button type="button" id="cpo-btn-gestor-cats" style="background:#1e293b !important; color:#38bdf8 !important; border:1px solid #38bdf8 !important; border-radius:5px; padding:2px 7px; font-size:10.5px; cursor:pointer; font-weight:700;">+ Categorías</button>
         </div>
-        <input type="text" id="cpo-filtro-zonas" placeholder="Filtrar circuitos..." />
+        <input type="text" id="cpo-filtro-zonas" placeholder="Filtrar por nombre, categoría, referente..." />
       </div>
       <div class="cpo-lista-zonas" id="cpo-zonas-lista"></div>
     </div>
   </div>
 </div>
 
-<div id="cpo-warroom-overlay">
+<!-- MODAL COMANDO ELECTORAL, COMPARATIVA HISTÓRICA Y CALCULADORA D'HONDT -->
+<div id="cpo-warroom-overlay" translate="no" class="notranslate">
   <div class="cpo-warroom-box" id="cpo-warroom-content"></div>
 </div>
 
 <script>
 (function() {
+  /* =========================================================================
+     1. BASE COMPLETA DE LOS 135 MUNICIPIOS DE PBA + SECCIÓN + CENSO + CONCEJALES
+     ========================================================================= */
+  // Función según Ley Orgánica de las Municipalidades PBA (Decreto-Ley 6769/58 Art. 284)
+  function concejalesQueRenuevaPorPoblacion(hab) {
+    if (hab <= 5000) return 3;
+    if (hab <= 10000) return 5;
+    if (hab <= 20000) return 6;
+    if (hab <= 30000) return 7;
+    if (hab <= 40000) return 8;
+    if (hab <= 80000) return 9;
+    if (hab <= 200000) return 10;
+    return 12; // Más de 200.000 hab: 24 concejales totales -> renueva 12 por elección
+  }
+
+  const BANCA_SECCIONAL_INFO = {
+    "1": { diputados: 15, senadores: 8, pisoDip: 6.67, pisoSen: 12.50 },
+    "2": { diputados: 11, senadores: 5, pisoDip: 9.09, pisoSen: 20.00 },
+    "3": { diputados: 18, senadores: 9, pisoDip: 5.56, pisoSen: 11.11 },
+    "4": { diputados: 14, senadores: 7, pisoDip: 7.14, pisoSen: 14.29 },
+    "5": { diputados: 11, senadores: 5, pisoDip: 9.09, pisoSen: 20.00 },
+    "6": { diputados: 11, senadores: 6, pisoDip: 9.09, pisoSen: 16.67 },
+    "7": { diputados: 6,  senadores: 3, pisoDip: 16.67, pisoSen: 33.33 },
+    "8": { diputados: 6,  senadores: 3, pisoDip: 16.67, pisoSen: 33.33 }
+  };
+
   const MUNICIPIOS_PBA = [
-    { n: "General Pueyrredón (Mar del Plata)", s: "5", h: 667082, lat: -38.0055, lon: -57.5426, z: 12 },
-    { n: "La Costa", s: "5", h: 100689, lat: -36.5789, lon: -56.6886, z: 11 },
-    { n: "Tandil", s: "5", h: 145575, lat: -37.3217, lon: -59.1332, z: 13 },
-    { n: "Necochea", s: "5", h: 102110, lat: -38.5545, lon: -58.7396, z: 13 },
-    { n: "Villa Gesell", s: "5", h: 37463, lat: -37.2639, lon: -56.9731, z: 13 },
-    { n: "Pinamar", s: "5", h: 39449, lat: -37.1167, lon: -56.8667, z: 13 },
-    { n: "Chascomús", s: "5", h: 42452, lat: -35.575, lon: -58.0089, z: 13 },
-    { n: "Mar Chiquita", s: "5", h: 33110, lat: -37.7442, lon: -57.4239, z: 11 },
-    { n: "General Alvarado (Miramar)", s: "5", h: 45526, lat: -38.2667, lon: -57.8333, z: 13 },
-    { n: "Balcarce", s: "5", h: 48982, lat: -37.8464, lon: -58.2556, z: 13 },
-    { n: "Dolores", s: "5", h: 32032, lat: -36.3132, lon: -57.6792, z: 14 },
-    { n: "La Plata", s: "8", h: 768470, lat: -34.9214, lon: -57.9544, z: 12 },
-    { n: "Bahía Blanca", s: "6", h: 336574, lat: -38.7183, lon: -62.2663, z: 12 },
-    { n: "Tigre", s: "1", h: 446949, lat: -34.426, lon: -58.5796, z: 12 },
-    { n: "La Matanza", s: "3", h: 1841247, lat: -34.770, lon: -58.625, z: 11 },
-    { n: "Zárate", s: "2", h: 135037, lat: -34.098, lon: -59.028, z: 13 },
-    { n: "Junín", s: "4", h: 103787, lat: -34.585, lon: -60.959, z: 13 },
-    { n: "Olavarría", s: "7", h: 125751, lat: -36.8927, lon: -60.3225, z: 13 }
+    // 1ª Sección Electoral (24 municipios)
+    {n:"Campana",s:"1",h:110566,lat:-34.168,lon:-58.959,z:12},{n:"Escobar",s:"1",h:256268,lat:-34.348,lon:-58.793,z:12},{n:"General Las Heras",s:"1",h:18022,lat:-34.926,lon:-58.946,z:13},{n:"General Rodríguez",s:"1",h:142709,lat:-34.608,lon:-58.952,z:12},{n:"General San Martín",s:"1",h:450518,lat:-34.575,lon:-58.536,z:13},{n:"Hurlingham",s:"1",h:187122,lat:-34.588,lon:-58.639,z:13},{n:"Ituzaingó",s:"1",h:180232,lat:-34.658,lon:-58.667,z:13},{n:"José C. Paz",s:"1",h:326992,lat:-34.515,lon:-58.765,z:13},{n:"Luján",s:"1",h:111251,lat:-34.570,lon:-59.105,z:12},{n:"Malvinas Argentinas",s:"1",h:350674,lat:-34.504,lon:-58.701,z:12},{n:"Marcos Paz",s:"1",h:67011,lat:-34.773,lon:-58.838,z:13},{n:"Mercedes",s:"1",h:72980,lat:-34.651,lon:-59.431,z:13},{n:"Merlo",s:"1",h:582486,lat:-34.665,lon:-58.727,z:12},{n:"Moreno",s:"1",h:574374,lat:-34.634,lon:-58.791,z:12},{n:"Morón",s:"1",h:331183,lat:-34.653,lon:-58.619,z:13},{n:"Navarro",s:"1",h:19899,lat:-35.005,lon:-59.276,z:13},{n:"Pilar",s:"1",h:394754,lat:-34.458,lon:-58.914,z:12},{n:"San Fernando",s:"1",h:171616,lat:-34.442,lon:-58.558,z:13},{n:"San Isidro",s:"1",h:297282,lat:-34.470,lon:-58.528,z:13},{n:"San Miguel",s:"1",h:328835,lat:-34.543,lon:-58.712,z:13},{n:"Suipacha",s:"1",h:11786,lat:-34.770,lon:-59.687,z:13},{n:"Tigre",s:"1",h:446949,lat:-34.426,lon:-58.579,z:12},{n:"Tres de Febrero",s:"1",h:364176,lat:-34.603,lon:-58.565,z:13},{n:"Vicente López",s:"1",h:282281,lat:-34.526,lon:-58.479,z:13},
+    // 2ª Sección Electoral (15 municipios)
+    {n:"Arrecifes",s:"2",h:32215,lat:-34.064,lon:-60.104,z:13},{n:"Baradero",s:"2",h:36325,lat:-33.809,lon:-59.505,z:13},{n:"Capitán Sarmiento",s:"2",h:17538,lat:-34.172,lon:-59.796,z:13},{n:"Carmen de Areco",s:"2",h:16808,lat:-34.378,lon:-59.822,z:13},{n:"Colón",s:"2",h:27504,lat:-33.895,lon:-61.101,z:13},{n:"Exaltación de la Cruz",s:"2",h:40159,lat:-34.294,lon:-59.102,z:13},{n:"Pergamino",s:"2",h:115340,lat:-33.890,lon:-60.573,z:12},{n:"Ramallo",s:"2",h:39706,lat:-33.485,lon:-60.007,z:13},{n:"Rojas",s:"2",h:25290,lat:-34.197,lon:-60.733,z:13},{n:"Salto",s:"2",h:39425,lat:-34.293,lon:-60.254,z:13},{n:"San Andrés de Giles",s:"2",h:26510,lat:-34.444,lon:-59.443,z:13},{n:"San Antonio de Areco",s:"2",h:26897,lat:-34.249,lon:-59.471,z:13},{n:"San Nicolás",s:"2",h:161521,lat:-33.335,lon:-60.211,z:12},{n:"San Pedro",s:"2",h:68613,lat:-33.679,lon:-59.667,z:13},{n:"Zárate",s:"2",h:135037,lat:-34.098,lon:-59.028,z:12},
+    // 3ª Sección Electoral (19 municipios)
+    {n:"Almirante Brown",s:"3",h:584827,lat:-34.805,lon:-58.390,z:12},{n:"Avellaneda",s:"3",h:367554,lat:-34.662,lon:-58.365,z:13},{n:"Berazategui",s:"3",h:358712,lat:-34.763,lon:-58.212,z:12},{n:"Berisso",s:"3",h:100931,lat:-34.873,lon:-57.884,z:13},{n:"Brandsen",s:"3",h:32448,lat:-35.167,lon:-58.234,z:13},{n:"Cañuelas",s:"3",h:70684,lat:-35.053,lon:-58.761,z:12},{n:"Ensenada",s:"3",h:63997,lat:-34.862,lon:-57.911,z:13},{n:"Esteban Echeverría",s:"3",h:338480,lat:-34.817,lon:-58.467,z:12},{n:"Ezeiza",s:"3",h:201511,lat:-34.854,lon:-58.523,z:12},{n:"Florencio Varela",s:"3",h:496433,lat:-34.812,lon:-58.276,z:12},{n:"La Matanza",s:"3",h:1841247,lat:-34.770,lon:-58.625,z:11},{n:"Lanús",s:"3",h:461267,lat:-34.706,lon:-58.396,z:13},{n:"Lobos",s:"3",h:41760,lat:-35.186,lon:-59.096,z:13},{n:"Lomas de Zamora",s:"3",h:690323,lat:-34.761,lon:-58.406,z:12},{n:"Magdalena",s:"3",h:20705,lat:-35.081,lon:-57.517,z:13},{n:"Presidente Perón (Guernica)",s:"3",h:102106,lat:-34.918,lon:-58.386,z:13},{n:"Punta Indio",s:"3",h:12297,lat:-35.276,lon:-57.256,z:12},{n:"Quilmes",s:"3",h:636026,lat:-34.724,lon:-58.260,z:12},{n:"San Vicente",s:"3",h:98215,lat:-35.025,lon:-58.423,z:12},
+    // 4ª Sección Electoral (19 municipios)
+    {n:"Alberti",s:"4",h:12982,lat:-35.032,lon:-60.281,z:13},{n:"Bragado",s:"4",h:46504,lat:-35.119,lon:-60.489,z:13},{n:"Carlos Casares",s:"4",h:23140,lat:-35.622,lon:-61.365,z:13},{n:"Carlos Tejedor",s:"4",h:14079,lat:-35.393,lon:-62.420,z:13},{n:"Chacabuco",s:"4",h:52734,lat:-34.642,lon:-60.472,z:13},{n:"Chivilcoy",s:"4",h:70839,lat:-34.897,lon:-60.019,z:13},{n:"Florentino Ameghino",s:"4",h:10790,lat:-34.844,lon:-62.467,z:13},{n:"General Arenales",s:"4",h:16350,lat:-34.298,lon:-61.305,z:13},{n:"General Pinto",s:"4",h:12941,lat:-34.764,lon:-61.891,z:13},{n:"General Viamonte",s:"4",h:20288,lat:-35.002,lon:-61.036,z:13},{n:"General Villegas",s:"4",h:35251,lat:-35.033,lon:-63.016,z:13},{n:"Hipólito Yrigoyen (Henderson)",s:"4",h:10661,lat:-36.297,lon:-61.716,z:13},{n:"Junín",s:"4",h:103787,lat:-34.585,lon:-60.959,z:13},{n:"Leandro N. Alem",s:"4",h:17266,lat:-34.520,lon:-61.390,z:13},{n:"Lincoln",s:"4",h:45506,lat:-34.868,lon:-61.529,z:13},{n:"Nueve de Julio",s:"4",h:52607,lat:-35.444,lon:-60.884,z:13},{n:"Pehuajó",s:"4",h:44783,lat:-35.811,lon:-61.898,z:13},{n:"Rivadavia",s:"4",h:19849,lat:-35.488,lon:-62.973,z:13},{n:"Trenque Lauquen",s:"4",h:49514,lat:-35.972,lon:-62.734,z:13},
+    // 5ª Sección Electoral (27 municipios)
+    {n:"Ayacucho",s:"5",h:21977,lat:-37.152,lon:-58.488,z:14},{n:"Balcarce",s:"5",h:48982,lat:-37.846,lon:-58.255,z:13},{n:"Castelli",s:"5",h:9594,lat:-36.088,lon:-57.804,z:14},{n:"Chascomús",s:"5",h:42452,lat:-35.575,lon:-58.008,z:13},{n:"Dolores",s:"5",h:32032,lat:-36.313,lon:-57.679,z:14},{n:"General Alvarado (Miramar)",s:"5",h:45526,lat:-38.266,lon:-57.833,z:13},{n:"General Belgrano",s:"5",h:20791,lat:-35.766,lon:-58.500,z:13},{n:"General Guido",s:"5",h:3174,lat:-36.650,lon:-57.783,z:14},{n:"General Lavalle",s:"5",h:4870,lat:-36.405,lon:-56.941,z:14},{n:"General Madariaga",s:"5",h:22634,lat:-37.003,lon:-57.135,z:13},{n:"General Paz (Ranchos)",s:"5",h:14207,lat:-35.516,lon:-58.316,z:13},{n:"General Pueyrredón (Mar del Plata)",s:"5",h:667082,lat:-38.005,lon:-57.542,z:12},{n:"La Costa",s:"5",h:100689,lat:-36.578,lon:-56.688,z:11},{n:"Las Flores",s:"5",h:27239,lat:-36.013,lon:-59.100,z:13},{n:"Lezama",s:"5",h:6221,lat:-35.866,lon:-57.883,z:14},{n:"Lobería",s:"5",h:18234,lat:-38.166,lon:-58.783,z:13},{n:"Maipú",s:"5",h:11323,lat:-36.866,lon:-57.883,z:14},{n:"Mar Chiquita",s:"5",h:33110,lat:-37.744,lon:-57.423,z:11},{n:"Monte",s:"5",h:24868,lat:-35.438,lon:-58.806,z:13},{n:"Necochea",s:"5",h:102110,lat:-38.554,lon:-58.739,z:13},{n:"Pila",s:"5",h:4642,lat:-36.000,lon:-58.150,z:13},{n:"Pinamar",s:"5",h:39449,lat:-37.116,lon:-56.866,z:13},{n:"Rauch",s:"5",h:16635,lat:-36.774,lon:-59.086,z:14},{n:"San Cayetano",s:"5",h:8994,lat:-38.350,lon:-59.600,z:14},{n:"Tandil",s:"5",h:145575,lat:-37.321,lon:-59.133,z:13},{n:"Tordillo",s:"5",h:2542,lat:-36.500,lon:-57.200,z:13},{n:"Villa Gesell",s:"5",h:37463,lat:-37.263,lon:-56.973,z:13},
+    // 6ª Sección Electoral (22 municipios)
+    {n:"Adolfo Alsina (Carhué)",s:"6",h:18146,lat:-37.179,lon:-62.760,z:13},{n:"Adolfo Gonzales Chaves",s:"6",h:12947,lat:-38.033,lon:-60.098,z:13},{n:"Bahía Blanca",s:"6",h:336574,lat:-38.718,lon:-62.266,z:12},{n:"Benito Juárez",s:"6",h:22292,lat:-37.676,lon:-59.805,z:13},{n:"Coronel Dorrego",s:"6",h:16503,lat:-38.718,lon:-61.287,z:13},{n:"Coronel Pringles",s:"6",h:24420,lat:-37.985,lon:-61.353,z:13},{n:"Coronel Rosales (Punta Alta)",s:"6",h:67503,lat:-38.880,lon:-62.075,z:13},{n:"Coronel Suárez",s:"6",h:42110,lat:-37.458,lon:-61.933,z:13},{n:"Daireaux",s:"6",h:18422,lat:-36.599,lon:-61.751,z:13},{n:"General La Madrid",s:"6",h:11564,lat:-37.248,lon:-61.262,z:13},{n:"Guaminí",s:"6",h:11801,lat:-37.011,lon:-62.422,z:13},{n:"Laprida",s:"6",h:11646,lat:-37.545,lon:-60.801,z:13},{n:"Monte Hermoso",s:"6",h:8821,lat:-38.985,lon:-61.292,z:13},{n:"Patagones",s:"6",h:37646,lat:-40.799,lon:-62.986,z:13},{n:"Pellegrini",s:"6",h:7143,lat:-36.268,lon:-63.165,z:14},{n:"Puán",s:"6",h:16613,lat:-37.544,lon:-62.766,z:13},{n:"Saavedra (Pigüé)",s:"6",h:22652,lat:-37.606,lon:-62.405,z:13},{n:"Salliqueló",s:"6",h:9427,lat:-36.751,lon:-62.959,z:14},{n:"Tornquist",s:"6",h:14810,lat:-38.101,lon:-62.222,z:13},{n:"Tres Arroyos",s:"6",h:62835,lat:-38.378,lon:-60.279,z:13},{n:"Tres Lomas",s:"6",h:9164,lat:-36.459,lon:-62.861,z:14},{n:"Villarino",s:"6",h:32724,lat:-38.821,lon:-62.695,z:11},
+    // 7ª Sección Electoral (8 municipios)
+    {n:"Azul",s:"7",h:75324,lat:-36.777,lon:-59.858,z:13},{n:"Bolívar",s:"7",h:37594,lat:-36.233,lon:-61.116,z:13},{n:"General Alvear",s:"7",h:12957,lat:-36.023,lon:-60.015,z:13},{n:"Olavarría",s:"7",h:125751,lat:-36.892,lon:-60.322,z:13},{n:"Roque Pérez",s:"7",h:13977,lat:-35.398,lon:-59.332,z:13},{n:"Saladillo",s:"7",h:35656,lat:-35.637,lon:-59.778,z:13},{n:"Tapalqué",s:"7",h:10783,lat:-36.357,lon:-60.024,z:13},{n:"Veinticinco de Mayo",s:"7",h:37639,lat:-35.432,lon:-60.172,z:13},
+    // 8ª Sección Electoral (Capital)
+    {n:"La Plata",s:"8",h:768470,lat:-34.921,lon:-57.954,z:12}
   ];
 
-  let map = null, fg = null, tileLayerActual = null, pinActivoModo = 'ninguno', muniActualObj = MUNICIPIOS_PBA[0];
-  const CAPAS_TILES = {
-    osm: { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attr: '© OSM' },
-    dark: { url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', attr: '© CartoDB' },
-    sat: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: '© Esri' }
-  };
-  const PALETA_RAPIDA = ['#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316'];
+  let map = null;
+  let fg = null;
+  let tileLayerActual = null;
+  let pinActivoModo = 'ninguno';
+  let muniActualObj = MUNICIPIOS_PBA.find(m => m.n.includes("General Pueyrredón")) || MUNICIPIOS_PBA[0];
 
+  const CAPAS_TILES = {
+    osm: { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attr: '© OpenStreetMap' },
+    dark: { url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', attr: '© CartoDB Dark' },
+    sat: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: '© Esri Satelital' }
+  };
+
+  const PALETA_RAPIDA = ['#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#14b8a6','#6366f1','#64748b'];
+
+  /* =========================================================================
+     2. CLAVES DE ALMACENAMIENTO POR CLIENTE Y GESTIÓN DE PLANTILLAS
+     ========================================================================= */
   function obtenerSelectorCliente() {
-    return Array.from(document.querySelectorAll('select')).find(s =>
-      s.id !== 'opt-como' && !s.id.startsWith('cpo-') && !s.id.startsWith('pop-')
+    const selects = Array.from(document.querySelectorAll('select'));
+    return selects.find(s =>
+      s.id !== 'opt-como' && !s.id.startsWith('cpo-') && !s.id.startsWith('pop-') && !s.id.startsWith('wr-')
     );
   }
 
@@ -2900,7 +3069,9 @@ if (!permitidos.includes(correo)) {
     const sel = obtenerSelectorCliente();
     if (sel && sel.options[sel.selectedIndex]) {
       const txt = sel.options[sel.selectedIndex].textContent.trim();
-      if (txt && !txt.toLowerCase().includes('sin cliente')) return txt.replace(/[^a-zA-Z0-9_-]/g, '_');
+      if (txt && !txt.toLowerCase().includes('sin cliente')) {
+        return txt.replace(/[^a-zA-Z0-9_-]/g, '_');
+      }
     }
     return 'general';
   }
@@ -2908,224 +3079,540 @@ if (!permitidos.includes(correo)) {
   function claveStorage() { return 'cpo_territorio_zonas_' + obtenerClienteActual(); }
   function claveCategorias() { return 'cpo_categorias_custom_' + obtenerClienteActual(); }
   function clavePlantillaCampos() { return 'cpo_plantilla_campos_' + obtenerClienteActual(); }
+  function clavePinesCustom() { return 'cpo_pines_custom_' + obtenerClienteActual(); }
   function clavePadronMuni(nombre) { return 'cpo_padron_muni_' + nombre.replace(/[^a-zA-Z0-9]/g, '_'); }
 
   function obtenerCategorias() {
-    const raw = localStorage.getItem(claveCategorias());
-    if (raw) { try { return JSON.parse(raw); } catch (e) {} }
-    return [{ nombre: 'Bastión Propio', color: '#10b981' }, { nombre: 'Disputado', color: '#f59e0b' }, { nombre: 'Crítico', color: '#ef4444' }, { nombre: 'Aliado', color: '#8b5cf6' }];
+    try {
+      const r = localStorage.getItem(claveCategorias());
+      if (r) return JSON.parse(r);
+    } catch (e) {}
+    return [
+      { nombre: 'Bastión Propio / Consolidado', color: '#10b981' },
+      { nombre: 'Disputado / Voto Blando', color: '#f59e0b' },
+      { nombre: 'Crítico / Reforzar Rastrillaje', color: '#ef4444' },
+      { nombre: 'Aliados / Institución Amiga', color: '#8b5cf6' },
+      { nombre: 'Neutral / En Relevamiento', color: '#3b82f6' }
+    ];
   }
+
   function guardarCategorias(lista) { localStorage.setItem(claveCategorias(), JSON.stringify(lista)); }
   function obtenerPlantillaCampos() { try { return JSON.parse(localStorage.getItem(clavePlantillaCampos()) || '[]'); } catch (e) { return []; } }
   function guardarPlantillaCampos(lista) { localStorage.setItem(clavePlantillaCampos(), JSON.stringify(lista)); }
+  function obtenerPinesCustom() { try { return JSON.parse(localStorage.getItem(clavePinesCustom()) || '[]'); } catch (e) { return []; } }
+  function guardarPinesCustom(lista) { localStorage.setItem(clavePinesCustom(), JSON.stringify(lista)); }
 
+  /* =========================================================================
+     3. CÁLCULOS GEOMÉTRICOS (HECTÁREAS, MANZANAS, HORAS DE TIMBREO) Y METAS
+     ========================================================================= */
   function calcularGeometriaPoligono(layer) {
     if (!layer || !layer.getLatLngs) return { hectareas: 0, manzanas: 0, horasBrigada: 0 };
     try {
       let latlngs = layer.getLatLngs();
-      while (Array.isArray(latlngs[0]) && typeof latlngs[0][0] === 'object' && !('lat' in latlngs[0])) latlngs = latlngs[0];
+      while (Array.isArray(latlngs[0]) && typeof latlngs[0][0] === 'object' && !('lat' in latlngs[0])) {
+        latlngs = latlngs[0];
+      }
       if (Array.isArray(latlngs[0])) latlngs = latlngs[0];
       if (!latlngs || latlngs.length < 3) return { hectareas: 0, manzanas: 0, horasBrigada: 0 };
+      const R = 6378137;
       let area = 0;
       for (let i = 0; i < latlngs.length; i++) {
-        const p1 = latlngs[i], p2 = latlngs[(i + 1) % latlngs.length];
-        area += ((p2.lng - p1.lng) * Math.PI / 180) * (2 + Math.sin(p1.lat * Math.PI / 180) + Math.sin(p2.lat * Math.PI / 180));
+        const p1 = latlngs[i];
+        const p2 = latlngs[(i + 1) % latlngs.length];
+        const x1 = (p1.lng * Math.PI) / 180;
+        const y1 = (p1.lat * Math.PI) / 180;
+        const x2 = (p2.lng * Math.PI) / 180;
+        const y2 = (p2.lat * Math.PI) / 180;
+        area += (x2 - x1) * (2 + Math.sin(y1) + Math.sin(y2));
       }
-      area = Math.abs(area * 6378137 * 6378137 / 2.0);
+      area = Math.abs((area * R * R) / 2.0);
       const hectareas = +(area / 10000).toFixed(1);
       const manzanas = Math.max(1, Math.round(hectareas / 1.25));
-      return { hectareas, manzanas, horasBrigada: +(manzanas / 4).toFixed(1) };
-    } catch (e) { return { hectareas: 0, manzanas: 0, horasBrigada: 0 }; }
+      const horasBrigada = +(manzanas / 4).toFixed(1);
+      return { hectareas, manzanas, horasBrigada };
+    } catch (e) {
+      return { hectareas: 0, manzanas: 0, horasBrigada: 0 };
+    }
   }
 
-  function calcularMetaZona(d) {
+  function calcularMetaZona(d, simPartDelta = 0, simObjDelta = 0) {
     const padron = parseInt(d.votantes || 0, 10) || 0;
-    const part = parseFloat(d.participacion || 75) || 75;
-    const obj = parseFloat(d.objetivoPct || 40) || 40;
+    const part = Math.min(100, Math.max(0, (parseFloat(d.participacion || 75) || 75) + simPartDelta));
+    const obj = Math.min(100, Math.max(0, (parseFloat(d.objetivoPct || 40) || 40) + simObjDelta));
     return Math.round(padron * (part / 100) * (obj / 100));
   }
 
-  function aplicarEstilo(layer, d) {
+  /* =========================================================================
+     4. ESTILOS VISUALES, ICONOS DE PINES PERSONALIZADOS Y ETIQUETAS OSCURAS
+     ========================================================================= */
+  function crearIconoPin(emoji, colorBorde) {
+    return L.divIcon({
+      className: 'cpo-custom-pin-icon',
+      html: `<span style="pointer-events:none;">${emoji || '📍'}</span>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -16]
+    });
+  }
+
+  function obtenerColorSegunModo(d) {
     const modo = document.getElementById('cpo-modo-pintado')?.value || 'manual';
-    let col = d.color || '#10b981';
+    if (modo === 'manual') return d.color || '#10b981';
+
     if (modo === 'calor') {
       const v = parseInt(d.votantes || 0, 10) || 0;
-      col = v >= 5000 ? '#991b1b' : v >= 2500 ? '#ef4444' : v >= 1000 ? '#f97316' : '#38bdf8';
-    } else if (modo === 'avance') {
-      col = d.avance === 'Completado' ? '#10b981' : d.avance === 'Rastrillaje' ? '#f59e0b' : '#ef4444';
+      if (v >= 5000) return '#991b1b';
+      if (v >= 2500) return '#ef4444';
+      if (v >= 1000) return '#f97316';
+      if (v >= 300) return '#eab308';
+      return '#38bdf8';
     }
-    if (layer.setStyle) layer.setStyle({ color: col, fillColor: col, fillOpacity: 0.35, weight: 3 });
+
+    if (modo === 'historico') {
+      const prop = parseFloat(d.histPropio || 0) || 0;
+      const riv = parseFloat(d.histRival || 0) || 0;
+      if (prop === 0 && riv === 0) return '#64748b';
+      const dif = prop - riv;
+      if (dif >= 3) return '#10b981'; // Ganado claro
+      if (dif >= -3) return '#f59e0b'; // Empate técnico
+      return '#ef4444'; // Perdido
+    }
+
+    if (modo === 'avance') {
+      const av = d.avance || 'Pendiente';
+      if (av === 'Completado 100%') return '#10b981';
+      if (av === 'En rastrillaje') return '#f59e0b';
+      return '#ef4444';
+    }
+
+    return d.color || '#10b981';
+  }
+
+  function aplicarEstilo(layer, d) {
+    const col = obtenerColorSegunModo(d || {});
+    if (layer.setStyle) {
+      layer.setStyle({ color: col, fillColor: col, fillOpacity: 0.36, weight: 3 });
+    } else if (layer.setIcon && d && d.esPin) {
+      layer.setIcon(crearIconoPin(d.emojiPin || '📍', d.color || '#fbbf24'));
+    }
   }
 
   function actualizarEtiqueta(layer) {
     const d = layer._cpoData || {};
     const mostrarFijas = document.getElementById('cpo-chk-labels')?.checked;
     layer.unbindTooltip();
+
     if (d.esPin) {
-      layer.bindTooltip(`<b>${d.tipoPin || '📍'} ${d.nombre || 'Punto'}</b>`, { permanent: mostrarFijas, direction: 'top', className: 'cpo-label-fija' });
-    } else {
-      layer.bindTooltip(`<b>${d.nombre || 'Zona'}</b><br>🎯 ${calcularMetaZona(d).toLocaleString('es-AR')} v.`, { permanent: mostrarFijas, direction: 'center', className: 'cpo-label-fija' });
+      layer.bindTooltip(`<span>${d.emojiPin || '📍'} ${d.nombre || 'Punto'}</span>`, {
+        permanent: mostrarFijas,
+        direction: 'top',
+        offset: [0, -14],
+        className: 'cpo-label-fija'
+      });
+      return;
     }
+
+    const meta = calcularMetaZona(d);
+    const pad = parseInt(d.votantes || 0, 10) || 0;
+    const html = `<div><b>${d.nombre || 'Circuito'}</b><br><span style="color:#38bdf8;">👥 ${pad.toLocaleString('es-AR')}</span> | <span style="color:#10b981;">🎯 ${meta.toLocaleString('es-AR')} v.</span></div>`;
+    layer.bindTooltip(html, {
+      permanent: mostrarFijas,
+      direction: 'center',
+      className: 'cpo-label-fija'
+    });
   }
 
+  /* =========================================================================
+     5. FICHA EMERGENTE CON SECCIONES DESPLEGABLES (ACORDEÓN) + BORRADO 1 CLIC
+     ========================================================================= */
   function vincularPopup(layer) {
-    const geom = calcularGeometriaPoligono(layer);
     const plantilla = obtenerPlantillaCampos();
-    const camposIniciales = {}; plantilla.forEach(c => { camposIniciales[c] = ''; });
+    const camposBase = {};
+    plantilla.forEach(c => { camposBase[c] = ''; });
 
     layer._cpoData = Object.assign({
-      esPin: !layer.getLatLngs, tipoPin: '📍 Punto', nombre: !layer.getLatLngs ? 'Nuevo Pin' : 'Nueva Zona',
-      categoria: 'Bastión Propio', color: '#10b981', votantes: '', participacion: 75, objetivoPct: 40,
-      avance: 'Pendiente', referente: '', notas: '', camposExtra: camposIniciales
+      esPin: !layer.getLatLngs,
+      emojiPin: '📍',
+      tipoPin: 'Punto Estratégico',
+      nombre: !layer.getLatLngs ? 'Nuevo Punto' : 'Nuevo Circuito / Zona',
+      categoria: 'Bastión Propio / Consolidado',
+      color: '#10b981',
+      votantes: '',
+      participacion: 75,
+      objetivoPct: 40,
+      mesas: '',
+      avance: 'Pendiente',
+      histAnio: '2023',
+      histPropio: '',
+      histRival: '',
+      histTercero: '',
+      histNombreRival: '',
+      escuela: '',
+      referente: '',
+      notas: '',
+      camposExtra: camposBase
     }, layer._cpoData || {});
-    layer._cpoData.camposExtra = Object.assign({}, camposIniciales, layer._cpoData.camposExtra || {});
 
+    layer._cpoData.camposExtra = Object.assign({}, camposBase, layer._cpoData.camposExtra || {});
     aplicarEstilo(layer, layer._cpoData);
     actualizarEtiqueta(layer);
 
-    layer.on('click', function() {
+    layer.on('click', function(ev) {
+      L.DomEvent.stopPropagation(ev);
+
+      // Si el usuario activó "🗑️ Borrar con 1 clic", elimina directo sin siquiera abrir el popup
+      if (pinActivoModo === 'BORRAR_1CLIC') {
+        fg.removeLayer(layer);
+        guardarZonas();
+        return;
+      }
+
       if (pinActivoModo !== 'ninguno') return;
+
       const d = layer._cpoData;
+      const geoCalc = calcularGeometriaPoligono(layer);
       const categorias = obtenerCategorias();
       const container = document.createElement('div');
       container.className = 'cpo-popup-form';
 
-      const swatchesHtml = PALETA_RAPIDA.map(c => `<span class="cpo-swatch" data-col="${c}" style="background:${c};"></span>`).join('');
-      const optsCat = categorias.map(cat => `<option value="${cat.nombre}" data-col="${cat.color}" ${d.categoria===cat.nombre?'selected':''}>${cat.nombre}</option>`).join('');
+      const swatchesHtml = PALETA_RAPIDA.map(c =>
+        `<span class="cpo-swatch" data-col="${c}" style="background:${c};" title="${c}"></span>`
+      ).join('');
+
+      const opcionesCatHtml = categorias.map(cat =>
+        `<option value="${cat.nombre}" data-col="${cat.color}" ${d.categoria===cat.nombre?'selected':''}>${cat.nombre}</option>`
+      ).join('');
 
       container.innerHTML = `
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #cbd5e1; padding-bottom:3px;">
-          <strong style="font-size:12px;">${d.esPin ? '📍 Ficha de Punto' : '📋 Ficha Electoral'}</strong>
-          ${!d.esPin ? `<span style="font-size:10px; background:#e2e8f0; padding:2px 4px; border-radius:3px;">~${geom.manzanas} mz</span>` : ''}
-        </div>
-        <label>Nombre</label>
-        <input type="text" id="pop-nombre" value="${d.nombre || ''}" />
-        <div class="cpo-popup-sec">
-          <div style="display:flex; justify-content:space-between;"><label style="margin:0;">Categoría y Color</label><button type="button" id="pop-nueva-cat" style="background:none; border:none; color:#2563eb; font-weight:700; font-size:10px; cursor:pointer;">+ Categoría</button></div>
-          <div style="display:flex; gap:5px; margin-top:3px;"><select id="pop-cat" style="flex:1;">${optsCat}</select><input type="color" id="pop-col" value="${d.color || '#10b981'}" style="width:34px; height:26px; padding:0; cursor:pointer;" /></div>
-          <div class="cpo-swatch-row">${swatchesHtml}</div>
-        </div>
-        ${!d.esPin ? `
-        <div class="cpo-popup-grid">
-          <div><label>Padrón</label><input type="number" id="pop-vot" value="${d.votantes || ''}" placeholder="Ej: 3000" /></div>
-          <div><label>% Objetivo</label><input type="number" id="pop-obj" value="${d.objetivoPct || 40}" /></div>
-        </div>
-        <div style="background:#ecfdf5; border:1px solid #a7f3d0; padding:4px 6px; border-radius:4px; font-size:11px; color:#047857; margin-top:2px;">
-          🎯 Meta de Votos: <strong id="pop-meta-calc">${calcularMetaZona(d).toLocaleString('es-AR')}</strong>
-        </div>
-        ` : ''}
-        <label>Referente / Institución</label>
-        <input type="text" id="pop-ref" value="${d.referente || ''}" placeholder="Referente..." />
-        
-        <div class="cpo-popup-sec">
-          <div style="display:flex; justify-content:space-between;"><label style="margin:0;">➕ Apartados Extra</label><button type="button" id="pop-add-campo" style="background:#2563eb; color:#fff; border:none; border-radius:3px; padding:2px 5px; font-size:9px; cursor:pointer;">+ Agregar</button></div>
-          <div id="pop-custom-fields-wrap" style="display:flex; flex-direction:column; gap:4px; margin-top:4px;"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:5px;">
+          <strong style="font-size:12.5px; color:#38bdf8;">
+            ${d.esPin ? `${d.emojiPin || '📍'} ${d.tipoPin || 'Pin Estratégico'}` : '🗳️ Ficha Electoral de Zona'}
+          </strong>
+          ${!d.esPin ? `<span style="font-size:10.5px; background:#1e293b; border:1px solid #475569; padding:2px 6px; border-radius:4px; color:#fbbf24; font-weight:700;">🧱 ~${geoCalc.manzanas} mz (${geoCalc.hectareas} ha)</span>` : ''}
         </div>
 
-        <label>Notas Estratégicas</label>
-        <textarea id="pop-notas" rows="1" placeholder="Notas...">${d.notas || ''}</textarea>
+        <div class="${d.esPin ? 'cpo-popup-grid2' : ''}">
+          ${d.esPin ? `
+          <div>
+            <label>Ícono / Emoji</label>
+            <input type="text" id="pop-emoji" value="${d.emojiPin || '📍'}" style="text-align:center; font-size:14px;" />
+          </div>
+          ` : ''}
+          <div>
+            <label>Nombre Identificatorio</label>
+            <input type="text" id="pop-nombre" value="${d.nombre || ''}" placeholder="Ej: Circuito 364 / EP N° 12" />
+          </div>
+        </div>
+
+        <!-- Categoría y Paleta de Color Libre -->
+        <div class="cpo-details-box">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label style="margin:0; color:#cbd5e1;">Categoría y Color Libre</label>
+            <button type="button" id="pop-nueva-cat" style="background:none !important; border:none !important; color:#38bdf8 !important; font-size:10.5px; font-weight:700; cursor:pointer; padding:0;">+ Nueva categoría</button>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:4px; align-items:center;">
+            <select id="pop-categoria" style="flex:1;">${opcionesCatHtml}</select>
+            <input type="color" id="pop-color-picker" value="${d.color || '#10b981'}" style="width:38px !important; height:28px !important; padding:1px !important; cursor:pointer;" />
+          </div>
+          <div class="cpo-swatch-row">${swatchesHtml}</div>
+        </div>
+
+        ${!d.esPin ? `
+        <!-- Datos de Padrón y Meta en Vivo -->
+        <div class="cpo-popup-grid3">
+          <div>
+            <label>Padrón Electores</label>
+            <input type="number" id="pop-votantes" value="${d.votantes || ''}" placeholder="Ej: 4500" />
+          </div>
+          <div>
+            <label>% Participación</label>
+            <input type="number" id="pop-part" value="${d.participacion || 75}" />
+          </div>
+          <div>
+            <label>% Voto Objetivo</label>
+            <input type="number" id="pop-obj" value="${d.objetivoPct || 40}" />
+          </div>
+        </div>
+
+        <div style="background:#064e3b; border:1px solid #10b981; border-radius:6px; padding:6px 9px; font-size:11.5px; display:flex; justify-content:space-between; align-items:center;">
+          <span>🎯 Meta Votos: <strong id="pop-meta-calc" style="color:#34d399; font-size:13px;">${calcularMetaZona(d).toLocaleString('es-AR')}</strong></span>
+          <span style="color:#a7f3d0; font-size:10.5px;">🚶 Caminata: ~${geoCalc.horasBrigada} hs</span>
+        </div>
+
+        <!-- Desplegable 1: Comparativa Elecciones Anteriores -->
+        <details class="cpo-details-box" ${(d.histPropio || d.histRival) ? 'open' : ''}>
+          <summary>⚖️ Comparar Elecciones Anteriores (Histórico %)</summary>
+          <div class="cpo-popup-grid3" style="margin-top:6px;">
+            <div>
+              <label>% Nuestro (Ant.)</label>
+              <input type="number" id="pop-hist-prop" value="${d.histPropio || ''}" placeholder="Ej: 38" />
+            </div>
+            <div>
+              <label>% 1° Rival</label>
+              <input type="number" id="pop-hist-riv" value="${d.histRival || ''}" placeholder="Ej: 34" />
+            </div>
+            <div>
+              <label>% 3ª Fuerza</label>
+              <input type="number" id="pop-hist-ter" value="${d.histTercero || ''}" placeholder="Ej: 18" />
+            </div>
+          </div>
+          <div class="cpo-popup-grid2" style="margin-top:5px;">
+            <div>
+              <label>Nombre Fuerza Rival</label>
+              <input type="text" id="pop-hist-nom" value="${d.histNombreRival || ''}" placeholder="Ej: Oficialismo / Rival" />
+            </div>
+            <div>
+              <label>Avance Rastrillaje</label>
+              <select id="pop-avance">
+                <option value="Pendiente" ${d.avance==='Pendiente'?'selected':''}>⏳ Pendiente</option>
+                <option value="En rastrillaje" ${d.avance==='En rastrillaje'?'selected':''}>🚶 En rastrillaje</option>
+                <option value="Completado 100%" ${d.avance==='Completado 100%'?'selected':''}>✅ Completado 100%</option>
+              </select>
+            </div>
+          </div>
+        </details>
+        ` : ''}
+
+        <!-- Desplegable 2: Referente, Escuela y Notas -->
+        <details class="cpo-details-box" ${(d.referente || d.escuela || d.notas) ? 'open' : ''}>
+          <summary>👤 Referente, Escuela y Notas de Campaña</summary>
+          <div class="cpo-popup-grid2" style="margin-top:6px;">
+            <div>
+              <label>Escuela / Centro Votación</label>
+              <input type="text" id="pop-escuela" value="${d.escuela || ''}" placeholder="EP N° / Dirección..." />
+            </div>
+            <div>
+              <label>Referente y Teléfono</label>
+              <input type="text" id="pop-referente" value="${d.referente || ''}" placeholder="Nombre y WhatsApp..." />
+            </div>
+          </div>
+          <label style="margin-top:5px;">Diagnóstico / Observaciones</label>
+          <textarea id="pop-notas" rows="2" placeholder="Problemáticas de la zona, pedidos vecinales...">${d.notas || ''}</textarea>
+        </details>
+
+        <!-- Desplegable 3: Apartados Personalizados Creados por el Usuario -->
+        <details class="cpo-details-box" ${Object.keys(d.camposExtra || {}).length > 0 ? 'open' : ''}>
+          <summary>➕ Apartados Personalizados (${Object.keys(d.camposExtra || {}).length})</summary>
+          <div style="display:flex; justify-content:flex-end; margin-top:4px;">
+            <button type="button" id="pop-add-campo" style="background:#2563eb !important; color:#fff !important; border:none !important; border-radius:4px; padding:3px 8px; font-size:10.5px; font-weight:700; cursor:pointer;">+ Crear Nuevo Apartado</button>
+          </div>
+          <div id="pop-custom-fields-wrap" style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"></div>
+        </details>
+
         <div class="cpo-popup-btns">
-          <button type="button" id="pop-guardar" style="background:#10b981; color:#fff;">💾 Guardar</button>
-          <button type="button" id="pop-borrar" style="background:#ef4444; color:#fff;">🗑️ Borrar</button>
+          <button type="button" id="pop-guardar" style="background:#10b981 !important; color:#052e16 !important;">💾 Guardar Datos</button>
+          <button type="button" id="pop-borrar" style="background:#ef4444 !important; color:#ffffff !important; flex:0.55;">🗑️ Eliminar</button>
         </div>
       `;
 
       const wrapCustom = container.querySelector('#pop-custom-fields-wrap');
-      function renderCampos() {
+      function renderCamposCustom() {
         wrapCustom.innerHTML = '';
         const claves = Object.keys(d.camposExtra || {});
-        if (claves.length === 0) { wrapCustom.innerHTML = `<small style="color:#64748b; font-size:10px;">Tocá "+ Agregar" para sumar datos propios.</small>`; return; }
+        if (claves.length === 0) {
+          wrapCustom.innerHTML = `<small style="color:#94a3b8; font-size:10.5px;">Tocá "+ Crear Nuevo Apartado" para agregar casilleros propios (ej: Intención de voto, Pasacalles, Fiscales, etc.).</small>`;
+          return;
+        }
         claves.forEach(k => {
           const row = document.createElement('div');
-          row.innerHTML = `<div style="display:flex; justify-content:space-between;"><span style="font-size:10px; font-weight:700;">📌 ${k}</span><span class="del-k" data-k="${k}" style="color:#ef4444; cursor:pointer; font-size:10px;">✕</span></div>
-                           <input type="text" class="inp-custom" data-k="${k}" value="${d.camposExtra[k] || ''}" />`;
+          row.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:10px; font-weight:700; color:#38bdf8;">📌 ${k}</span>
+              <span class="del-custom-k" data-k="${k}" style="color:#f87171; cursor:pointer; font-size:10.5px; font-weight:700;" title="Borrar apartado">✕ Quitar</span>
+            </div>
+            <input type="text" class="inp-custom-val" data-k="${k}" value="${d.camposExtra[k] || ''}" placeholder="Valor para ${k}..." />
+          `;
           wrapCustom.appendChild(row);
         });
-        wrapCustom.querySelectorAll('.del-k').forEach(btn => { btn.onclick = () => { delete d.camposExtra[btn.getAttribute('data-k')]; renderCampos(); }; });
+        wrapCustom.querySelectorAll('.del-custom-k').forEach(btn => {
+          btn.onclick = () => {
+            delete d.camposExtra[btn.getAttribute('data-k')];
+            renderCamposCustom();
+          };
+        });
       }
-      renderCampos();
+      renderCamposCustom();
 
       container.querySelector('#pop-add-campo').onclick = () => {
-        const n = prompt('Nombre del nuevo apartado (Ej: "Intención Voto", "Reclamo"):');
-        if (!n || !n.trim()) return;
-        wrapCustom.querySelectorAll('.inp-custom').forEach(inp => { d.camposExtra[inp.getAttribute('data-k')] = inp.value; });
-        d.camposExtra[n.trim()] = '';
-        if (confirm(`¿Agregar "${n.trim()}" como plantilla para todas las zonas?`)) {
-          const p = obtenerPlantillaCampos(); if (!p.includes(n.trim())) { p.push(n.trim()); guardarPlantillaCampos(p); }
+        const nuevoNombre = prompt('Nombre del nuevo apartado (Ej: "Reclamo principal", "Fiscales confirmados", "Cantidad de boletas"):');
+        if (!nuevoNombre || !nuevoNombre.trim()) return;
+        const limpio = nuevoNombre.trim();
+        wrapCustom.querySelectorAll('.inp-custom-val').forEach(inp => {
+          d.camposExtra[inp.getAttribute('data-k')] = inp.value;
+        });
+        d.camposExtra[limpio] = '';
+        if (confirm(`¿Querés que el apartado "${limpio}" quede fijo como plantilla en todas las zonas de este cliente?`)) {
+          const plant = obtenerPlantillaCampos();
+          if (!plant.includes(limpio)) {
+            plant.push(limpio);
+            guardarPlantillaCampos(plant);
+          }
         }
-        renderCampos();
+        renderCamposCustom();
       };
 
+      const colorPicker = container.querySelector('#pop-color-picker');
+      const catSelect = container.querySelector('#pop-categoria');
+      catSelect.onchange = () => {
+        const opt = catSelect.options[catSelect.selectedIndex];
+        const colSug = opt ? opt.getAttribute('data-col') : null;
+        if (colSug) colorPicker.value = colSug;
+      };
       container.querySelectorAll('.cpo-swatch').forEach(sw => {
-        sw.onclick = () => { container.querySelector('#pop-col').value = sw.getAttribute('data-col'); };
+        sw.onclick = () => { colorPicker.value = sw.getAttribute('data-col'); };
       });
+
       container.querySelector('#pop-nueva-cat').onclick = () => {
-        const nom = prompt('Nombre de la categoría:'); if (!nom) return;
-        const cats = obtenerCategorias(); cats.push({ nombre: nom.trim(), color: container.querySelector('#pop-col').value });
+        const nom = prompt('Nombre de la nueva categoría política (Ej: "Voto Indeciso", "Agrupación Aliada"):');
+        if (!nom || !nom.trim()) return;
+        const colElegido = colorPicker.value || '#8b5cf6';
+        const cats = obtenerCategorias();
+        cats.push({ nombre: nom.trim(), color: colElegido });
         guardarCategorias(cats);
-        const opt = document.createElement('option'); opt.value = nom.trim(); opt.textContent = nom.trim(); opt.selected = true;
-        container.querySelector('#pop-cat').appendChild(opt);
+        const opt = document.createElement('option');
+        opt.value = nom.trim();
+        opt.textContent = nom.trim();
+        opt.setAttribute('data-col', colElegido);
+        opt.selected = true;
+        catSelect.appendChild(opt);
       };
 
       if (!d.esPin) {
         const recalc = () => {
-          const temp = { votantes: container.querySelector('#pop-vot').value, participacion: 75, objetivoPct: container.querySelector('#pop-obj').value };
+          const temp = {
+            votantes: container.querySelector('#pop-votantes').value,
+            participacion: container.querySelector('#pop-part').value,
+            objetivoPct: container.querySelector('#pop-obj').value
+          };
           container.querySelector('#pop-meta-calc').textContent = calcularMetaZona(temp).toLocaleString('es-AR');
         };
-        container.querySelector('#pop-vot').addEventListener('input', recalc);
+        container.querySelector('#pop-votantes').addEventListener('input', recalc);
+        container.querySelector('#pop-part').addEventListener('input', recalc);
         container.querySelector('#pop-obj').addEventListener('input', recalc);
       }
 
       container.querySelector('#pop-guardar').onclick = () => {
-        const ext = {}; wrapCustom.querySelectorAll('.inp-custom').forEach(i => { ext[i.getAttribute('data-k')] = i.value.trim(); });
-        layer._cpoData = Object.assign(layer._cpoData, {
-          nombre: container.querySelector('#pop-nombre').value.trim() || 'Zona', categoria: container.querySelector('#pop-cat').value,
-          color: container.querySelector('#pop-col').value, referente: container.querySelector('#pop-ref').value.trim(), notas: container.querySelector('#pop-notas').value.trim(), camposExtra: ext
+        const extrasGuardados = {};
+        wrapCustom.querySelectorAll('.inp-custom-val').forEach(inp => {
+          extrasGuardados[inp.getAttribute('data-k')] = inp.value.trim();
         });
-        if (!d.esPin) {
-          layer._cpoData.votantes = container.querySelector('#pop-vot').value; layer._cpoData.objetivoPct = container.querySelector('#pop-obj').value;
+
+        layer._cpoData = Object.assign(layer._cpoData, {
+          nombre: container.querySelector('#pop-nombre').value.trim() || 'Zona',
+          categoria: catSelect.value,
+          color: colorPicker.value,
+          escuela: container.querySelector('#pop-escuela').value.trim(),
+          referente: container.querySelector('#pop-referente').value.trim(),
+          notas: container.querySelector('#pop-notas').value.trim(),
+          camposExtra: extrasGuardados
+        });
+
+        if (d.esPin && container.querySelector('#pop-emoji')) {
+          layer._cpoData.emojiPin = container.querySelector('#pop-emoji').value.trim() || '📍';
         }
-        aplicarEstilo(layer, layer._cpoData); actualizarEtiqueta(layer); guardarZonas(); layer.closePopup();
+
+        if (!d.esPin) {
+          layer._cpoData.votantes = container.querySelector('#pop-votantes').value;
+          layer._cpoData.participacion = container.querySelector('#pop-part').value;
+          layer._cpoData.objetivoPct = container.querySelector('#pop-obj').value;
+          layer._cpoData.avance = container.querySelector('#pop-avance').value;
+          layer._cpoData.histPropio = container.querySelector('#pop-hist-prop').value;
+          layer._cpoData.histRival = container.querySelector('#pop-hist-riv').value;
+          layer._cpoData.histTercero = container.querySelector('#pop-hist-ter').value;
+          layer._cpoData.histNombreRival = container.querySelector('#pop-hist-nom').value.trim();
+        }
+
+        aplicarEstilo(layer, layer._cpoData);
+        actualizarEtiqueta(layer);
+        guardarZonas();
+        layer.closePopup();
       };
 
-      container.querySelector('#pop-borrar').onclick = () => { if (confirm('¿Eliminar elemento?')) { fg.removeLayer(layer); guardarZonas(); } };
-      layer.bindPopup(container, { maxWidth: 310 }).openPopup();
+      // Eliminación directa sin bloqueos molestos
+      container.querySelector('#pop-borrar').onclick = () => {
+        fg.removeLayer(layer);
+        guardarZonas();
+      };
+
+      layer.bindPopup(container, { maxWidth: 330 }).openPopup();
     });
   }
 
+  /* =========================================================================
+     6. LISTA LATERAL CON BORRADO RÁPIDO Y ACTUALIZACIÓN DE INDICADORES
+     ========================================================================= */
   function actualizarPanelYKPIs() {
     if (!fg) return;
     let zonas = 0, padronTotal = 0, metaTotal = 0, manzanasTotal = 0;
-    const filtro = (document.getElementById('cpo-filtro-zonas')?.value || '').toLowerCase();
-    const listaHtml = document.getElementById('cpo-zonas-lista');
-    if (listaHtml) listaHtml.innerHTML = '';
+
+    const filtro = (document.getElementById('cpo-filtro-zonas')?.value || '').toLowerCase().trim();
+    const contenedorLista = document.getElementById('cpo-zonas-lista');
+    if (contenedorLista) contenedorLista.innerHTML = '';
 
     fg.eachLayer(layer => {
       const d = layer._cpoData || {};
-      aplicarEstilo(layer, d); actualizarEtiqueta(layer);
+      aplicarEstilo(layer, d);
+      actualizarEtiqueta(layer);
+
       const v = parseInt(d.votantes || 0, 10) || 0;
       const meta = d.esPin ? 0 : calcularMetaZona(d);
       const geo = d.esPin ? { manzanas: 0 } : calcularGeometriaPoligono(layer);
 
-      if (!d.esPin) { zonas++; padronTotal += v; metaTotal += meta; manzanasTotal += geo.manzanas; }
+      if (!d.esPin) {
+        zonas++;
+        padronTotal += v;
+        metaTotal += meta;
+        manzanasTotal += geo.manzanas;
+      }
 
-      const busq = `${d.nombre || ''} ${d.categoria || ''}`.toLowerCase();
-      if (!filtro || busq.includes(filtro)) {
-        if (listaHtml) {
-          const card = document.createElement('div'); card.className = 'cpo-card-zona'; card.style.borderLeftColor = d.color || '#10b981';
-          card.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:700; font-size:12px;"><span>${d.esPin?'📍':'🗺️'} ${d.nombre}</span><span style="color:#10b981;">${!d.esPin?meta.toLocaleString('es-AR')+' v.':''}</span></div><small style="color:#94a3b8;">${d.categoria} ${!d.esPin?`| 👥 ${v}`:''}</small>`;
+      const extrasTxt = Object.entries(d.camposExtra || {}).map(([k, val]) => `${k}: ${val}`).join(' ');
+      const textoBusqueda = `${d.nombre || ''} ${d.categoria || ''} ${d.referente || ''} ${d.escuela || ''} ${d.notas || ''} ${extrasTxt}`.toLowerCase();
+
+      if (!filtro || textoBusqueda.includes(filtro)) {
+        if (contenedorLista) {
+          const card = document.createElement('div');
+          card.className = 'cpo-card-zona';
+          card.style.borderLeftColor = obtenerColorSegunModo(d);
+
+          const histBadge = (!d.esPin && (d.histPropio || d.histRival))
+            ? `<span style="color:#fbbf24;">⚖️ Ant: ${d.histPropio || 0}% vs ${d.histRival || 0}%</span>`
+            : '';
+
+          card.innerHTML = `
+            <div style="font-weight:700; font-size:12px; color:#ffffff; padding-right:28px;">
+              ${d.esPin ? (d.emojiPin || '📍') : '🗺️'} ${d.nombre || 'Zona'}
+            </div>
+            <div style="font-size:10.5px; color:#94a3b8; margin-top:4px; display:flex; flex-wrap:wrap; gap:7px;">
+              <span style="color:#38bdf8;">${d.categoria || ''}</span>
+              ${!d.esPin ? `<span>👥 ${v.toLocaleString('es-AR')}</span><span style="color:#10b981; font-weight:700;">🎯 ${meta.toLocaleString('es-AR')} v.</span><span>🧱 ~${geo.manzanas} mz</span>` : ''}
+              ${histBadge}
+            </div>
+            <button type="button" class="cpo-card-del" title="Borrar inmediatamente del mapa">🗑️</button>
+          `;
+
           card.onclick = () => {
-            if (layer.getBounds) map.fitBounds(layer.getBounds(), { padding: [30,30] });
+            if (layer.getBounds) map.fitBounds(layer.getBounds(), { maxZoom: 16, padding: [40, 40] });
             else if (layer.getLatLng) map.setView(layer.getLatLng(), 16);
             layer.fire('click');
           };
-          listaHtml.appendChild(card);
+
+          card.querySelector('.cpo-card-del').onclick = (e) => {
+            e.stopPropagation();
+            fg.removeLayer(layer);
+            guardarZonas();
+          };
+
+          contenedorLista.appendChild(card);
         }
       }
     });
 
+    const padronMuni = parseInt(document.getElementById('kpi-muni-padron-input')?.value || 1, 10) || 1;
+    const pctCob = Math.min(100, +((padronTotal / padronMuni) * 100).toFixed(1));
+
     document.getElementById('kpi-zonas').textContent = zonas;
     document.getElementById('kpi-padron').textContent = padronTotal.toLocaleString('es-AR');
+    document.getElementById('kpi-cobertura').textContent = pctCob + '%';
     document.getElementById('kpi-meta').textContent = metaTotal.toLocaleString('es-AR');
     document.getElementById('kpi-manzanas').textContent = '~' + manzanasTotal.toLocaleString('es-AR');
   }
@@ -3133,165 +3620,667 @@ if (!permitidos.includes(correo)) {
   function guardarZonas() {
     if (!fg) return;
     const features = [];
-    fg.eachLayer(layer => { const geo = layer.toGeoJSON(); geo.properties = layer._cpoData || {}; features.push(geo); });
+    fg.eachLayer(layer => {
+      const geo = layer.toGeoJSON();
+      geo.properties = layer._cpoData || {};
+      features.push(geo);
+    });
     localStorage.setItem(claveStorage(), JSON.stringify({ type: 'FeatureCollection', features }));
     actualizarPanelYKPIs();
   }
 
   function cargarZonasGuardadas() {
-    if (!fg) return; fg.clearLayers();
+    if (!fg) return;
+    fg.clearLayers();
     const raw = localStorage.getItem(claveStorage());
     if (!raw) { actualizarPanelYKPIs(); return; }
     try {
-      L.geoJSON(JSON.parse(raw), { onEachFeature: (feature, layer) => { layer._cpoData = feature.properties || {}; vincularPopup(layer); fg.addLayer(layer); } });
+      const geojson = JSON.parse(raw);
+      L.geoJSON(geojson, {
+        pointToLayer: function(feature, latlng) {
+          const props = feature.properties || {};
+          return L.marker(latlng, { icon: crearIconoPin(props.emojiPin || '📍', props.color) });
+        },
+        onEachFeature: function(feature, layer) {
+          layer._cpoData = feature.properties || {};
+          vincularPopup(layer);
+          fg.addLayer(layer);
+        }
+      });
       actualizarPanelYKPIs();
-    } catch (e) {}
+    } catch (e) { console.error(e); }
+  }
+
+  /* =========================================================================
+     7. SIMULADOR ELECTORAL, COMPARATIVA HISTÓRICA Y SISTEMA D'HONDT REAL PBA
+     ========================================================================= */
+  function ejecutarRepartoDHondt(bancasTotales, votosValidosTotales, fuerzas) {
+    // En Provincia de Buenos Aires (Ley 5109), el piso para entrar al reparto es el cociente electoral (100% / bancas)
+    const pisoPct = +(100 / bancasTotales).toFixed(2);
+    const pisoVotos = Math.ceil(votosValidosTotales / bancasTotales);
+
+    const cocientes = [];
+    fuerzas.forEach((f, idxFuerza) => {
+      const pct = votosValidosTotales > 0 ? (f.votos / votosValidosTotales) * 100 : 0;
+      f.pct = +pct.toFixed(2);
+      f.superaPiso = f.votos >= pisoVotos;
+      f.bancas = 0;
+      if (f.superaPiso) {
+        for (let div = 1; div <= bancasTotales; div++) {
+          cocientes.push({ idxFuerza, valor: f.votos / div, divisor: div });
+        }
+      }
+    });
+
+    cocientes.sort((a, b) => b.valor - a.valor);
+    const ganadores = cocientes.slice(0, bancasTotales);
+    ganadores.forEach(g => { fuerzas[g.idxFuerza].bancas++; });
+
+    const cifraRepartidora = ganadores.length === bancasTotales ? Math.ceil(ganadores[ganadores.length - 1].valor) : pisoVotos;
+    return { pisoPct, pisoVotos, cifraRepartidora, fuerzas };
   }
 
   function abrirWarRoom() {
-    document.getElementById('cpo-warroom-overlay').style.display = 'flex';
-    const arr = [];
-    if (fg) fg.eachLayer(l => { if (l._cpoData && !l._cpoData.esPin) arr.push(Object.assign({}, l._cpoData, calcularGeometriaPoligono(l))); });
-    arr.sort((a,b) => (b.votantes||0) - (a.votantes||0));
-    
-    let html = `<div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-      <h3 style="margin:0; color:#10b981;">🎯 War Room Electoral - ${muniActualObj.n}</h3>
-      <button type="button" id="wr-cerrar" style="background:#ef4444; color:#fff; border:none; padding:4px 10px; border-radius:4px; cursor:pointer;">✕ Cerrar</button>
-    </div>
-    <table class="cpo-wr-table"><thead><tr><th>Zona</th><th>Categoría</th><th>Padrón</th><th>Meta Votos</th><th>Manzanas / Caminata</th></tr></thead><tbody>`;
-    arr.forEach(z => { html += `<tr><td><b>${z.nombre}</b></td><td>${z.categoria||'-'}</td><td>${parseInt(z.votantes||0).toLocaleString('es-AR')}</td><td style="color:#10b981; font-weight:700;">${calcularMetaZona(z).toLocaleString('es-AR')}</td><td>~${z.manzanas} mz (${z.horasBrigada} hs)</td></tr>`; });
-    html += `</tbody></table>`;
-    document.getElementById('cpo-warroom-content').innerHTML = html;
-    document.getElementById('wr-cerrar').onclick = () => { document.getElementById('cpo-warroom-overlay').style.display = 'none'; };
+    const overlay = document.getElementById('cpo-warroom-overlay');
+    const content = document.getElementById('cpo-warroom-content');
+    overlay.style.display = 'flex';
+
+    const zonasArr = [];
+    if (fg) {
+      fg.eachLayer(l => {
+        if (l._cpoData && !l._cpoData.esPin) {
+          zonasArr.push(Object.assign({}, l._cpoData, calcularGeometriaPoligono(l)));
+        }
+      });
+    }
+    zonasArr.sort((a, b) => (parseInt(b.votantes || 0, 10) || 0) - (parseInt(a.votantes || 0, 10) || 0));
+
+    const bancasMuniDefault = concejalesQueRenuevaPorPoblacion(muniActualObj.h);
+    const infoSec = BANCA_SECCIONAL_INFO[muniActualObj.s] || BANCA_SECCIONAL_INFO["5"];
+    const padronMuni = parseInt(document.getElementById('kpi-muni-padron-input')?.value || Math.round(muniActualObj.h * 0.82), 10);
+
+    content.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #334155; padding-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <h3 style="margin:0; font-size:18px; color:#38bdf8;">🏛️ Centro de Simulación Electoral, Comparativa y Sistema D'Hondt</h3>
+          <div style="font-size:12px; color:#94a3b8; margin-top:4px;">
+            Municipio: <b style="color:#fff;">${muniActualObj.n}</b> (${muniActualObj.s}ª Sección) | Población Censo: <b style="color:#38bdf8;">${muniActualObj.h.toLocaleString('es-AR')} hab.</b> | Padrón: <b style="color:#10b981;">${padronMuni.toLocaleString('es-AR')} electores</b>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" id="wr-btn-print" class="cpo-btn-azul" style="cursor:pointer;">🖨️ Imprimir Hoja de Ruta / PDF</button>
+          <button type="button" id="wr-btn-close" class="cpo-btn-rojo" style="cursor:pointer;">✕ Cerrar</button>
+        </div>
+      </div>
+
+      <!-- Explicación breve de uso -->
+      <div style="background:#1e293b; border-left:4px solid #38bdf8; padding:8px 12px; border-radius:6px; font-size:11.5px; color:#cbd5e1; margin-top:10px;">
+        💡 <b>¿Para qué sirve este panel?</b> Calculá cuántos votos y qué porcentaje necesitás en <b>${muniActualObj.n}</b> para meter <b>Concejales, Diputados o Senadores Provinciales</b> según la Ley Electoral de PBA (Cociente y Sistema D'Hondt), y compará tus metas actuales contra la elección anterior.
+      </div>
+
+      <div class="cpo-wr-grid">
+        <!-- Columna 1: Configuración de Categoría en Juego (Concejales / Diputados / Senadores) -->
+        <div class="cpo-wr-card">
+          <strong style="color:#fbbf24; font-size:13px;">1️⃣ Categoría Legislativa y Bancas en Juego</strong>
+          <label style="font-size:11px; color:#94a3b8; display:block; margin-top:8px;">Elegir qué elección querés calcular:</label>
+          <select id="wr-tipo-eleccion" style="width:100%; margin-top:4px;">
+            <option value="CONCEJALES" selected>🏛️ Concejales Municipales (${muniActualObj.n} renueva ${bancasMuniDefault})</option>
+            <option value="DIPUTADOS">🏦 Diputados Provinciales (${muniActualObj.s}ª Sección: ${infoSec.diputados} bancas)</option>
+            <option value="SENADORES">🏛️ Senadores Provinciales (${muniActualObj.s}ª Sección: ${infoSec.senadores} bancas)</option>
+          </select>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
+            <div>
+              <label style="font-size:10.5px; color:#94a3b8;">Bancas a repartir</label>
+              <input type="number" id="wr-inp-bancas" value="${bancasMuniDefault}" min="1" max="50" style="width:100%; font-weight:700;" />
+            </div>
+            <div>
+              <label style="font-size:10.5px; color:#94a3b8;">% Participación Muni</label>
+              <input type="number" id="wr-inp-part-muni" value="76" min="10" max="100" style="width:100%; font-weight:700;" />
+            </div>
+          </div>
+
+          <div style="background:#090d16; border:1px solid #334155; border-radius:6px; padding:8px 10px; margin-top:10px; font-size:11.5px;">
+            <div>📌 <b>Piso Electoral Ley PBA (Cociente):</b> <strong id="wr-piso-pct" style="color:#fbbf24;">8.33%</strong></div>
+            <div style="margin-top:4px;">🗳️ <b>Votos mínimos para 1ª banca:</b> <strong id="wr-piso-votos" style="color:#10b981;">0 votos</strong></div>
+          </div>
+        </div>
+
+        <!-- Columna 2: Porcentajes de Fuerzas Políticas para Simular el Reparto D'Hondt -->
+        <div class="cpo-wr-card">
+          <strong style="color:#10b981; font-size:13px;">2️⃣ Simulador de Fuerzas (% de Votos Válidos)</strong>
+          <div style="font-size:11px; color:#94a3b8; margin-top:4px;">Ajustá los porcentajes para ver cuántas bancas entra cada lista:</div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+            <div>
+              <label style="font-size:10.5px; color:#10b981; font-weight:700;">🟢 Nuestra Fuerza (%)</label>
+              <input type="number" id="wr-pct-f1" value="36" step="0.5" style="width:100%; border-color:#10b981 !important; font-weight:700;" />
+            </div>
+            <div>
+              <label style="font-size:10.5px; color:#f87171; font-weight:700;">🔴 Rival Principal (%)</label>
+              <input type="number" id="wr-pct-f2" value="33" step="0.5" style="width:100%;" />
+            </div>
+            <div>
+              <label style="font-size:10.5px; color:#fbbf24; font-weight:700;">🟡 3ª Fuerza (%)</label>
+              <input type="number" id="wr-pct-f3" value="19" step="0.5" style="width:100%;" />
+            </div>
+            <div>
+              <label style="font-size:10.5px; color:#38bdf8; font-weight:700;">🔵 4ª Fuerza (%)</label>
+              <input type="number" id="wr-pct-f4" value="8" step="0.5" style="width:100%;" />
+            </div>
+          </div>
+          <button type="button" id="wr-btn-usar-mapa" style="width:100%; margin-top:8px; background:#1e293b !important; color:#38bdf8 !important; border:1px solid #38bdf8 !important; cursor:pointer; font-weight:700; font-size:11px;">
+            🔄 Tomar porcentaje proyectado de mis zonas dibujadas
+          </button>
+        </div>
+
+        <!-- Columna 3: Resultado del Reparto de Bancas D'Hondt -->
+        <div class="cpo-wr-card" style="border-color:#7c3aed;">
+          <strong style="color:#c4b5fd; font-size:13px;">3️⃣ Resultado de Bancas (Sistema D'Hondt)</strong>
+          <div id="wr-dhondt-resumen" style="margin-top:8px; font-size:12px;"></div>
+        </div>
+      </div>
+
+      <!-- Tabla Comparativa de Zonas Dibujadas (Meta Actual vs Elección Anterior) -->
+      <h4 style="margin:14px 0 6px 0; font-size:13.5px; color:#38bdf8;">📊 Comparativa por Circuito / Zona: Elección Anterior vs. Meta Actual</h4>
+      <table class="cpo-wr-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Circuito / Zona</th>
+            <th>Categoría</th>
+            <th>Padrón</th>
+            <th>Elección Anterior (Propio vs Rival)</th>
+            <th>Objetivo Actual (%)</th>
+            <th>Meta Votos</th>
+            <th>Diferencia vs Anterior</th>
+            <th>Referente / Avance</th>
+          </tr>
+        </thead>
+        <tbody id="wr-tbody-zonas"></tbody>
+      </table>
+    `;
+
+    const selTipo = content.querySelector('#wr-tipo-eleccion');
+    const inpBancas = content.querySelector('#wr-inp-bancas');
+
+    selTipo.onchange = () => {
+      if (selTipo.value === 'CONCEJALES') inpBancas.value = bancasMuniDefault;
+      if (selTipo.value === 'DIPUTADOS') inpBancas.value = infoSec.diputados;
+      if (selTipo.value === 'SENADORES') inpBancas.value = infoSec.senadores;
+      recalcularTodoWarRoom();
+    };
+
+    content.querySelector('#wr-btn-usar-mapa').onclick = () => {
+      let sumaPad = 0, sumaMeta = 0;
+      zonasArr.forEach(z => {
+        sumaPad += parseInt(z.votantes || 0, 10) || 0;
+        sumaMeta += calcularMetaZona(z);
+      });
+      const partMuni = parseFloat(content.querySelector('#wr-inp-part-muni').value || 76) / 100;
+      const validos = Math.max(1, Math.round((sumaPad > 0 ? sumaPad : padronMuni) * partMuni));
+      const pctCalculado = +((sumaMeta / validos) * 100).toFixed(1);
+      if (pctCalculado > 0) {
+        content.querySelector('#wr-pct-f1').value = Math.min(100, pctCalculado);
+        recalcularTodoWarRoom();
+      } else {
+        alert('Primero cargá el Padrón de votantes en al menos una zona dibujada en el mapa.');
+      }
+    };
+
+    function recalcularTodoWarRoom() {
+      const bancas = Math.max(1, parseInt(inpBancas.value || 12, 10));
+      const partMuni = Math.min(100, Math.max(10, parseFloat(content.querySelector('#wr-inp-part-muni').value || 76)));
+      const votosValidosMuni = Math.round(padronMuni * (partMuni / 100) * 0.94); // 94% votos afirmativos válidos
+
+      const f1Pct = parseFloat(content.querySelector('#wr-pct-f1').value || 0);
+      const f2Pct = parseFloat(content.querySelector('#wr-pct-f2').value || 0);
+      const f3Pct = parseFloat(content.querySelector('#wr-pct-f3').value || 0);
+      const f4Pct = parseFloat(content.querySelector('#wr-pct-f4').value || 0);
+
+      const fuerzas = [
+        { nombre: '🟢 Nuestra Fuerza', votos: Math.round(votosValidosMuni * (f1Pct / 100)), color: '#10b981' },
+        { nombre: '🔴 Rival Principal', votos: Math.round(votosValidosMuni * (f2Pct / 100)), color: '#ef4444' },
+        { nombre: '🟡 3ª Fuerza', votos: Math.round(votosValidosMuni * (f3Pct / 100)), color: '#f59e0b' },
+        { nombre: '🔵 4ª Fuerza', votos: Math.round(votosValidosMuni * (f4Pct / 100)), color: '#38bdf8' }
+      ];
+
+      const dh = ejecutarRepartoDHondt(bancas, votosValidosMuni, fuerzas);
+      content.querySelector('#wr-piso-pct').textContent = dh.pisoPct + '%';
+      content.querySelector('#wr-piso-votos').textContent = dh.pisoVotos.toLocaleString('es-AR') + ' votos';
+
+      const nuestra = dh.fuerzas[0];
+      const votosParaSiguienteBanca = Math.max(0, (dh.cifraRepartidora * (nuestra.bancas + 1)) - nuestra.votos);
+
+      content.querySelector('#wr-dhondt-resumen').innerHTML = `
+        <div style="background:#064e3b; border:1px solid #10b981; border-radius:7px; padding:8px 10px; margin-bottom:8px;">
+          <div style="font-size:11px; color:#a7f3d0;">Bancas que obtiene Nuestra Fuerza:</div>
+          <div style="font-size:22px; font-weight:900; color:#34d399;">${nuestra.bancas} de ${bancas} bancas <span style="font-size:12px; font-weight:600;">(${nuestra.votos.toLocaleString('es-AR')} votos)</span></div>
+          <div style="font-size:10.5px; color:#d1fae5; margin-top:3px;">
+            ${nuestra.superaPiso
+              ? `➕ Te faltan <b>${votosParaSiguienteBanca.toLocaleString('es-AR')} votos</b> para meter la banca N° ${nuestra.bancas + 1}.`
+              : `⚠️ No alcanza el piso del ${dh.pisoPct}% (${dh.pisoVotos.toLocaleString('es-AR')} votos).`}
+          </div>
+        </div>
+        ${dh.fuerzas.map(f => `
+          <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #26354d; font-size:11.5px;">
+            <span>${f.nombre} (${f.pct}%)</span>
+            <strong>${f.bancas} bancas ${!f.superaPiso ? '<small style="color:#f87171;">(Bajo piso)</small>' : ''}</strong>
+          </div>
+        `).join('')}
+      `;
+
+      const tbody = content.querySelector('#wr-tbody-zonas');
+      tbody.innerHTML = '';
+      if (zonasArr.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#94a3b8; padding:14px;">Todavía no dibujaste zonas o circuitos en el mapa. Usá el ícono de polígono a la izquierda del mapa para trazar zonas.</td></tr>`;
+        return;
+      }
+
+      zonasArr.forEach((z, idx) => {
+        const pad = parseInt(z.votantes || 0, 10) || 0;
+        const meta = calcularMetaZona(z);
+        const hProp = parseFloat(z.histPropio || 0) || 0;
+        const hRiv = parseFloat(z.histRival || 0) || 0;
+        const objActual = parseFloat(z.objetivoPct || 40) || 40;
+        const difPts = hProp > 0 ? +(objActual - hProp).toFixed(1) : null;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><b>${idx + 1}</b></td>
+          <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${z.color};margin-right:6px;"></span><b>${z.nombre}</b></td>
+          <td>${z.categoria || '-'}</td>
+          <td>${pad.toLocaleString('es-AR')}</td>
+          <td>${(hProp || hRiv) ? `<b>${hProp}%</b> vs ${hRiv}% ${z.histNombreRival ? `(${z.histNombreRival})` : ''}` : '<span style="color:#64748b;">Sin cargar</span>'}</td>
+          <td><b>${objActual}%</b></td>
+          <td style="color:#10b981; font-weight:700;">${meta.toLocaleString('es-AR')} v.</td>
+          <td style="color:${difPts === null ? '#64748b' : difPts >= 0 ? '#38bdf8' : '#f87171'}; font-weight:700;">
+            ${difPts === null ? '-' : (difPts >= 0 ? `+${difPts} pts` : `${difPts} pts`)}
+          </td>
+          <td>${z.referente || '-'} <small style="color:#94a3b8;">(${z.avance || 'Pendiente'})</small></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    ['#wr-inp-bancas', '#wr-inp-part-muni', '#wr-pct-f1', '#wr-pct-f2', '#wr-pct-f3', '#wr-pct-f4'].forEach(sel => {
+      content.querySelector(sel).addEventListener('input', recalcularTodoWarRoom);
+    });
+    recalcularTodoWarRoom();
+
+    content.querySelector('#wr-btn-close').onclick = () => { overlay.style.display = 'none'; };
+
+    // Impresión de Hoja de Ruta Ejecutiva
+    content.querySelector('#wr-btn-print').onclick = () => {
+      const win = window.open('', '_blank');
+      const filasHtml = zonasArr.map((z, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><b>${z.nombre}</b><br><small>${z.categoria || ''}</small></td>
+          <td>${(parseInt(z.votantes || 0, 10) || 0).toLocaleString('es-AR')}</td>
+          <td>${z.histPropio ? `${z.histPropio}% vs ${z.histRival || 0}%` : '-'}</td>
+          <td><b>${calcularMetaZona(z).toLocaleString('es-AR')} votos</b> (${z.objetivoPct || 40}%)</td>
+          <td>~${z.manzanas} mz (${z.horasBrigada} hs)</td>
+          <td>${z.referente || '-'}<br>${z.escuela || ''}</td>
+          <td>${z.notas || ''}</td>
+        </tr>
+      `).join('');
+
+      win.document.write(`
+        <html><head><title>Reporte Electoral y Hoja de Ruta - ${muniActualObj.n}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; color: #0f172a; }
+          h1 { font-size: 18px; margin: 0 0 5px 0; }
+          p { font-size: 12px; color: #475569; margin: 0 0 14px 0; }
+          table { width: 100%; border-collapse: collapse; font-size: 11px; }
+          th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+          th { background: #f1f5f9; text-transform: uppercase; }
+        </style></head><body>
+          <h1>🗺️ Reporte Electoral y Hoja de Ruta — ${muniActualObj.n} (${muniActualObj.s}ª Sección)</h1>
+          <p>Población Censo INDEC: <b>${muniActualObj.h.toLocaleString('es-AR')} hab.</b> | Padrón: <b>${padronMuni.toLocaleString('es-AR')}</b> | Concejales que renueva: <b>${bancasMuniDefault}</b> (Piso D'Hondt: ${(100/bancasMuniDefault).toFixed(2)}%)</p>
+          <table>
+            <thead><tr><th>#</th><th>Zona / Circuito</th><th>Padrón</th><th>Elección Ant.</th><th>Meta Actual</th><th>Superficie</th><th>Referente / Escuela</th><th>Diagnóstico</th></tr></thead>
+            <tbody>${filasHtml}</tbody>
+          </table>
+          <script>window.onload = function(){ window.print(); }<\/script>
+        </body></html>
+      `);
+      win.document.close();
+    };
   }
 
+  /* =========================================================================
+     8. EXPORTACIÓN A EXCEL (.CSV) COMPLETA
+     ========================================================================= */
   function exportarExcelCSV() {
     if (!fg) return;
     const extrasSet = new Set();
     fg.eachLayer(l => { Object.keys(l._cpoData?.camposExtra || {}).forEach(k => extrasSet.add(k)); });
-    const cols = Array.from(extrasSet);
-    const encab = ['Tipo', 'Nombre Zona', 'Categoría', 'Padrón', 'Objetivo %', 'Meta Votos', 'Manzanas', 'Horas', 'Referente', 'Notas', ...cols];
+    const colsExtra = Array.from(extrasSet);
+
+    const encab = [
+      'Tipo', 'Nombre', 'Categoría Política', 'Color', 'Padrón Electores',
+      'Participación %', 'Objetivo %', 'Meta Votos', 'Histórico Propio %',
+      'Histórico Rival %', 'Histórico 3ra Fuerza %', 'Manzanas Aprox',
+      'Horas Caminata', 'Avance', 'Escuela', 'Referente', 'Notas', ...colsExtra
+    ];
+
     const filas = [];
     fg.eachLayer(l => {
-      const d = l._cpoData || {}; const geo = d.esPin ? { manzanas: 0, horasBrigada: 0 } : calcularGeometriaPoligono(l);
+      const d = l._cpoData || {};
+      const geo = d.esPin ? { manzanas: 0, horasBrigada: 0 } : calcularGeometriaPoligono(l);
       filas.push([
-        d.esPin?'Pin':'Zona', d.nombre||'', d.categoria||'', d.votantes||0, d.objetivoPct||40, d.esPin?0:calcularMetaZona(d), geo.manzanas, geo.horasBrigada, d.referente||'', d.notas||'',
-        ...cols.map(k => d.camposExtra?.[k] || '')
+        d.esPin ? `${d.emojiPin || '📍'} ${d.tipoPin || 'Pin'}` : 'Circuito/Zona',
+        d.nombre || '', d.categoria || '', d.color || '', d.votantes || 0,
+        d.participacion || 75, d.objetivoPct || 40, d.esPin ? 0 : calcularMetaZona(d),
+        d.histPropio || '', d.histRival || '', d.histTercero || '',
+        geo.manzanas, geo.horasBrigada, d.avance || '', d.escuela || '', d.referente || '', d.notas || '',
+        ...colsExtra.map(k => d.camposExtra?.[k] || '')
       ]);
     });
-    const csv = '\uFEFF' + [encab.map(v => `"${v}"`).join(';'), ...filas.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';'))].join('\r\n');
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-    a.download = `Planilla_${obtenerClienteActual()}.csv`; a.click();
+
+    const esc = v => `"${String(v ?? '').replace(/"/g, '""').replace(/\r?\n/g, ' ')}"`;
+    const csv = '\uFEFF' + [encab.map(esc).join(';'), ...filas.map(r => r.map(esc).join(';'))].join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    a.download = `Planilla_Electoral_${muniActualObj.n.split(' (')[0]}_${obtenerClienteActual()}.csv`;
+    a.click();
   }
 
+  /* =========================================================================
+     9. SELECTOR DE 135 MUNICIPIOS, PINES PERSONALIZADOS E INICIALIZACIÓN
+     ========================================================================= */
   function poblarSelectorMunicipios() {
     const sec = document.getElementById('cpo-filtro-seccion').value;
-    const sel = document.getElementById('cpo-mapa-municipio'); sel.innerHTML = '';
-    MUNICIPIOS_PBA.filter(m => sec === 'TODAS' || m.s === sec).forEach((m, i) => {
-      const opt = document.createElement('option'); opt.value = m.n; opt.textContent = m.n.split(' (')[0];
-      if (i === 0) opt.selected = true; sel.appendChild(opt);
+    const sel = document.getElementById('cpo-mapa-municipio');
+    sel.innerHTML = '';
+
+    const lista = MUNICIPIOS_PBA.filter(m => sec === 'TODAS' || m.s === sec)
+      .sort((a, b) => a.n.localeCompare(b.n, 'es'));
+
+    lista.forEach((m, idx) => {
+      const opt = document.createElement('option');
+      opt.value = m.n;
+      opt.textContent = `📍 ${m.n} (${m.h.toLocaleString('es-AR')} hab.)`;
+      if (m.n.includes('General Pueyrredón') || (idx === 0 && !lista.some(x => x.n.includes('General Pueyrredón')))) {
+        opt.selected = true;
+      }
+      sel.appendChild(opt);
     });
-    actualizarFichaMuni(sel.value);
+
+    actualizarFichaMunicipio(sel.value);
   }
 
-  function actualizarFichaMuni(nombre) {
-    const m = MUNICIPIOS_PBA.find(x => x.n === nombre) || MUNICIPIOS_PBA[0];
+  function actualizarFichaMunicipio(nombreMuni) {
+    const m = MUNICIPIOS_PBA.find(x => x.n === nombreMuni) || MUNICIPIOS_PBA[0];
     muniActualObj = m;
-    document.getElementById('kpi-muni-hab').textContent = m.h.toLocaleString('es-AR');
-    document.getElementById('kpi-muni-padron-input').value = localStorage.getItem(clavePadronMuni(m.n)) || Math.round(m.h * 0.82);
+    document.getElementById('kpi-muni-hab').textContent = m.h.toLocaleString('es-AR') + ' hab.';
+
+    const guardadoPadron = localStorage.getItem(clavePadronMuni(m.n));
+    document.getElementById('kpi-muni-padron-input').value = guardadoPadron ? parseInt(guardadoPadron, 10) : Math.round(m.h * 0.82);
+
+    const conc = concejalesQueRenuevaPorPoblacion(m.h);
+    const piso = (100 / conc).toFixed(2);
+    document.getElementById('kpi-muni-bancas').textContent = `${conc} conc. (Piso ${piso}%)`;
+
     if (map) map.setView([m.lat, m.lon], m.z);
     actualizarPanelYKPIs();
+  }
+
+  function renderPinesCustomEnBarra() {
+    const slot = document.getElementById('cpo-pines-custom-slot');
+    if (!slot) return;
+    slot.innerHTML = '';
+    obtenerPinesCustom().forEach(p => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cpo-pin-btn';
+      b.setAttribute('data-pin', `${p.emoji}|${p.nombre}`);
+      b.textContent = `${p.emoji} ${p.nombre}`;
+      b.onclick = () => activarModoPin(`${p.emoji}|${p.nombre}`);
+      slot.appendChild(b);
+    });
+  }
+
+  function activarModoPin(modo) {
+    pinActivoModo = modo;
+    document.querySelectorAll('.cpo-pin-btn').forEach(b => {
+      b.classList.toggle('activo', b.getAttribute('data-pin') === modo);
+    });
+    const mapDiv = document.getElementById('cpo-leaflet-map');
+    if (mapDiv) {
+      mapDiv.style.cursor = modo === 'ninguno' ? '' : (modo === 'BORRAR_1CLIC' ? 'not-allowed' : 'crosshair');
+    }
   }
 
   function iniciarMapa() {
     if (!map) {
       poblarSelectorMunicipios();
-      map = L.map('cpo-leaflet-map').setView([-38.0055, -57.5426], 12);
-      tileLayerActual = L.tileLayer(CAPAS_TILES.osm.url, { maxZoom: 19 }).addTo(map);
+      renderPinesCustomEnBarra();
+
+      map = L.map('cpo-leaflet-map').setView([muniActualObj.lat, muniActualObj.lon], muniActualObj.z);
+      tileLayerActual = L.tileLayer(CAPAS_TILES.osm.url, { maxZoom: 19, attribution: CAPAS_TILES.osm.attr }).addTo(map);
       fg = L.featureGroup().addTo(map);
-      map.pm.addControls({ position: 'topleft', drawCircle: false, drawCircleMarker: false, drawText: false, drawRectangle: true, drawPolygon: true, drawPolyline: false, drawMarker: false, editMode: true, removalMode: true });
-      map.on('pm:create', e => { fg.addLayer(e.layer); vincularPopup(e.layer); guardarZonas(); setTimeout(() => e.layer.fire('click'), 150); });
-      map.on('pm:edit pm:remove', guardarZonas);
-      map.on('click', e => {
-        if (pinActivoModo === 'ninguno') return;
-        const m = L.marker(e.latlng); m._cpoData = { esPin: true, tipoPin: pinActivoModo, nombre: pinActivoModo };
-        fg.addLayer(m); vincularPopup(m); guardarZonas();
-        document.querySelector('.cpo-pin-btn[data-pin="ninguno"]').click();
-        setTimeout(() => m.fire('click'), 100);
+
+      map.pm.addControls({
+        position: 'topleft',
+        drawCircle: false,
+        drawCircleMarker: false,
+        drawText: false,
+        drawRectangle: true,
+        drawPolygon: true,
+        drawPolyline: true,
+        drawMarker: false,
+        editMode: true,
+        dragMode: false,
+        cutPolygon: true,
+        removalMode: true
+      });
+
+      map.on('pm:create', function(e) {
+        const layer = e.layer;
+        fg.addLayer(layer);
+        vincularPopup(layer);
+        guardarZonas();
+        setTimeout(() => layer.fire('click'), 180);
+      });
+
+      map.on('pm:edit', guardarZonas);
+      map.on('pm:remove', guardarZonas);
+
+      map.on('click', function(e) {
+        if (pinActivoModo === 'ninguno' || pinActivoModo === 'BORRAR_1CLIC') return;
+        const partes = pinActivoModo.split('|');
+        const emoji = partes[0] || '📍';
+        const tipo = partes[1] || 'Pin Estratégico';
+
+        const marker = L.marker(e.latlng, { icon: crearIconoPin(emoji, '#fbbf24') });
+        marker._cpoData = {
+          esPin: true,
+          emojiPin: emoji,
+          tipoPin: tipo,
+          nombre: `${tipo}`,
+          categoria: 'Aliados / Institución Amiga',
+          color: '#3b82f6',
+          camposExtra: {}
+        };
+        fg.addLayer(marker);
+        vincularPopup(marker);
+        guardarZonas();
+        activarModoPin('ninguno');
+        setTimeout(() => marker.fire('click'), 140);
       });
     }
-    setTimeout(() => { map.invalidateSize(); cargarZonasGuardadas(); }, 200);
+    setTimeout(() => {
+      map.invalidateSize();
+      cargarZonasGuardadas();
+    }, 150);
   }
 
+  // Eventos de Controles y Barras Desplegables
   document.getElementById('cpo-btn-toggle-panel').onclick = () => {
-    const p = document.getElementById('cpo-panel-desplegable'); const abierto = p.style.display === 'flex';
+    const p = document.getElementById('cpo-panel-desplegable');
+    const abierto = p.style.display === 'flex';
     p.style.display = abierto ? 'none' : 'flex';
-    document.getElementById('cpo-btn-toggle-panel').textContent = abierto ? '🎛️ Controles y Filtros [ ▼ ]' : '🎛️ Ocultar Controles [ ▲ ]';
+    document.getElementById('cpo-btn-toggle-panel').textContent = abierto
+      ? '🎛️ Controles, Secciones y Pines [ ▼ ]'
+      : '🎛️ Ocultar Controles [ ▲ ]';
     if (map) setTimeout(() => map.invalidateSize(), 150);
   };
 
+  document.getElementById('cpo-btn-toggle-side').onclick = () => {
+    const s = document.getElementById('cpo-sidebar');
+    const b = document.getElementById('cpo-btn-toggle-side');
+    s.classList.toggle('oculto');
+    b.classList.toggle('plegado');
+    b.textContent = s.classList.contains('oculto') ? '◀ Ver Lista' : 'Ocultar Lista ▶';
+    if (map) setTimeout(() => map.invalidateSize(), 260);
+  };
+
+  document.querySelectorAll('.cpo-pin-btn').forEach(btn => {
+    btn.onclick = () => activarModoPin(btn.getAttribute('data-pin'));
+  });
+
+  document.getElementById('cpo-btn-crear-pin').onclick = () => {
+    const emoji = prompt('1/2 - Escribí o pegá el Emoji para el nuevo Pin (Ej: 🏥, 🚓, 💡, 💧, 🚌, ⚽):', '📍');
+    if (!emoji) return;
+    const nombre = prompt('2/2 - Nombre del tipo de Pin (Ej: "Centro de Salud", "Luminaria Rota", "Parada Colectivo"):', 'Punto Clave');
+    if (!nombre || !nombre.trim()) return;
+    const lista = obtenerPinesCustom();
+    lista.push({ emoji: emoji.trim(), nombre: nombre.trim() });
+    guardarPinesCustom(lista);
+    renderPinesCustomEnBarra();
+    activarModoPin(`${emoji.trim()}|${nombre.trim()}`);
+  };
+
+  // Hacer clic en "Meta Votos" o "Manzanas" abre el Simulador & D'Hondt para que nunca parezcan botones muertos
+  ['kpi-pill-zonas', 'kpi-pill-padron', 'kpi-pill-meta', 'kpi-pill-manzanas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.onclick = abrirWarRoom;
+  });
+
   document.getElementById('cpo-filtro-seccion').addEventListener('change', poblarSelectorMunicipios);
-  document.getElementById('cpo-mapa-municipio').addEventListener('change', e => actualizarFichaMuni(e.target.value));
-  document.getElementById('kpi-muni-padron-input').addEventListener('input', e => { localStorage.setItem(clavePadronMuni(muniActualObj.n), e.target.value); actualizarPanelYKPIs(); });
-  document.getElementById('cpo-mapa-capa').addEventListener('change', e => { if (tileLayerActual) map.removeLayer(tileLayerActual); tileLayerActual = L.tileLayer(CAPAS_TILES[e.target.value].url, { maxZoom: 19 }).addTo(map); });
+  document.getElementById('cpo-mapa-municipio').addEventListener('change', e => actualizarFichaMunicipio(e.target.value));
+  document.getElementById('kpi-muni-padron-input').addEventListener('input', e => {
+    if (muniActualObj) localStorage.setItem(clavePadronMuni(muniActualObj.n), e.target.value);
+    actualizarPanelYKPIs();
+  });
+
+  document.getElementById('cpo-mapa-capa').addEventListener('change', e => {
+    if (!map) return;
+    const conf = CAPAS_TILES[e.target.value] || CAPAS_TILES.osm;
+    if (tileLayerActual) map.removeLayer(tileLayerActual);
+    tileLayerActual = L.tileLayer(conf.url, { maxZoom: 19, attribution: conf.attr }).addTo(map);
+  });
+
   document.getElementById('cpo-modo-pintado').addEventListener('change', actualizarPanelYKPIs);
   document.getElementById('cpo-chk-labels').addEventListener('change', actualizarPanelYKPIs);
   document.getElementById('cpo-filtro-zonas').addEventListener('input', actualizarPanelYKPIs);
 
-  document.querySelectorAll('.cpo-pin-btn').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('.cpo-pin-btn').forEach(b => b.style.borderColor = '#475569');
-      btn.style.borderColor = '#fbbf24'; pinActivoModo = btn.getAttribute('data-pin');
-      document.getElementById('cpo-leaflet-map').style.cursor = pinActivoModo === 'ninguno' ? '' : 'crosshair';
-    };
-  });
+  document.getElementById('cpo-btn-gestor-cats').onclick = () => {
+    const cats = obtenerCategorias();
+    const listado = cats.map((c, i) => `${i + 1}. ${c.nombre} (${c.color})`).join('\n');
+    const nuevo = prompt(`Categorías políticas actuales:\n${listado}\n\nEscribí el nombre de una nueva categoría para agregar:`);
+    if (nuevo && nuevo.trim()) {
+      const col = prompt('Código de color Hex (Ej: #8b5cf6, #ec4899, #14b8a6):', '#8b5cf6') || '#8b5cf6';
+      cats.push({ nombre: nuevo.trim(), color: col.trim() });
+      guardarCategorias(cats);
+      alert(`Categoría "${nuevo.trim()}" guardada.`);
+    }
+  };
 
-  document.getElementById('cpo-mapa-btn-buscar').addEventListener('click', () => {
-    const q = document.getElementById('cpo-mapa-buscar').value.trim(); if (!q) return;
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ', ' + muniActualObj.n.split(' (')[0] + ', Buenos Aires')}`)
-      .then(r => r.json()).then(res => { if (res && res.length > 0 && map) map.setView([parseFloat(res[0].lat), parseFloat(res[0].lon)], 16); else alert('Ubicación no encontrada.'); });
-  });
+  function buscarCalleEnMunicipio() {
+    const q = document.getElementById('cpo-mapa-buscar').value.trim();
+    if (!q) return;
+    const muniLimpio = muniActualObj ? muniActualObj.n.split(' (')[0] : '';
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ', ' + muniLimpio + ', Buenos Aires, Argentina')}`)
+      .then(r => r.json())
+      .then(res => {
+        if (res && res.length > 0 && map) {
+          map.setView([parseFloat(res[0].lat), parseFloat(res[0].lon)], 16);
+        } else {
+          alert(`No se encontró "${q}" en ${muniLimpio}. Probá escribiendo "Nombre de calle, Localidad".`);
+        }
+      });
+  }
 
+  document.getElementById('cpo-mapa-btn-buscar').addEventListener('click', buscarCalleEnMunicipio);
+  document.getElementById('cpo-mapa-buscar').addEventListener('keydown', e => { if (e.key === 'Enter') buscarCalleEnMunicipio(); });
   document.getElementById('cpo-btn-warroom').addEventListener('click', abrirWarRoom);
   document.getElementById('cpo-mapa-excel').addEventListener('click', exportarExcelCSV);
+
   document.getElementById('cpo-mapa-exportar').addEventListener('click', () => {
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([localStorage.getItem(claveStorage()) || '{"type":"FeatureCollection","features":[]}'], { type: 'application/json' }));
-    a.download = `cartografia_${obtenerClienteActual()}.geojson`; a.click();
+    const raw = localStorage.getItem(claveStorage()) || '{"type":"FeatureCollection","features":[]}';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
+    a.download = `cartografia_${obtenerClienteActual()}.geojson`;
+    a.click();
   });
+
   document.getElementById('cpo-mapa-importar').addEventListener('click', () => document.getElementById('cpo-mapa-file-in').click());
   document.getElementById('cpo-mapa-file-in').addEventListener('change', e => {
-    const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
-    reader.onload = ev => { try { const p = JSON.parse(ev.target.result); if (p && p.features) { localStorage.setItem(claveStorage(), JSON.stringify(p)); cargarZonasGuardadas(); alert('¡Importado!'); } } catch (err) { alert('Archivo inválido.'); } };
-    reader.readAsText(file); e.target.value = '';
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (parsed && parsed.features) {
+          localStorage.setItem(claveStorage(), JSON.stringify(parsed));
+          cargarZonasGuardadas();
+          alert('¡Cartografía importada con éxito!');
+        }
+      } catch (err) { alert('El archivo no es un GeoJSON válido.'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   });
-  document.getElementById('cpo-mapa-cerrar').addEventListener('click', () => { document.getElementById('cpo-mapa-modal').style.display = 'none'; });
+
+  document.getElementById('cpo-mapa-cerrar').addEventListener('click', () => {
+    document.getElementById('cpo-mapa-modal').style.display = 'none';
+  });
 
   function inyectarBotonMenu() {
     if (document.getElementById('cpo-btn-abrir-mapa')) return;
-    const ref = Array.from(document.querySelectorAll('a, button, div')).find(el => el.textContent.trim() === 'Menciones');
+    const elementos = Array.from(document.querySelectorAll('a, button, div, li'));
+    const refMenciones = elementos.find(el => el.children.length === 0 && el.textContent.trim() === 'Menciones');
     const btn = document.createElement('div');
     btn.id = 'cpo-btn-abrir-mapa';
     btn.innerHTML = '🗺️ Mapa Territorial';
     btn.style.cssText = 'cursor:pointer; padding:8px 12px; margin:6px 8px; border-radius:6px; background:rgba(16,185,129,0.16); color:#10b981; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px; border:1px solid rgba(16,185,129,0.3);';
-    btn.onclick = () => { document.getElementById('cpo-mapa-modal').style.display = 'flex'; iniciarMapa(); };
-    if (ref && ref.parentElement) ref.parentElement.insertAdjacentElement('afterend', btn);
-    else { btn.style.cssText += 'position:fixed; bottom:16px; left:16px; z-index:9999; background:#0c8a5e; color:#fff;'; document.body.appendChild(btn); }
+    btn.onclick = () => {
+      document.getElementById('cpo-mapa-modal').style.display = 'flex';
+      iniciarMapa();
+    };
+    if (refMenciones && refMenciones.parentElement) {
+      refMenciones.parentElement.insertAdjacentElement('afterend', btn);
+    } else {
+      btn.style.cssText += 'position:fixed; bottom:16px; left:16px; z-index:9999; background:#0c8a5e; color:#fff;';
+      document.body.appendChild(btn);
+    }
   }
 
-  // --- GESTIÓN DE CLIENTES ---
+  /* =========================================================================
+     10. GESTIÓN DE CLIENTES (DESCARGAR HISTORIAL Y OCULTAR SIN BORRAR FIREBASE)
+     ========================================================================= */
   const CLAVE_OCULTOS = 'cpo_clientes_ocultos_tablero';
   function obtenerOcultos() { try { return JSON.parse(localStorage.getItem(CLAVE_OCULTOS) || '[]'); } catch (e) { return []; } }
   function guardarOcultos(l) { localStorage.setItem(CLAVE_OCULTOS, JSON.stringify(l)); }
 
   function aplicarFiltroOcultos() {
-    const sel = obtenerSelectorCliente(); if (!sel) return;
+    const sel = obtenerSelectorCliente();
+    if (!sel) return;
     const ocultos = obtenerOcultos();
     const btnRes = document.getElementById('cpo-btn-res-cli');
-    if (btnRes) btnRes.style.display = ocultos.length > 0 ? 'inline-flex' : 'none';
+    if (btnRes) {
+      btnRes.style.display = ocultos.length > 0 ? 'inline-flex' : 'none';
+      btnRes.textContent = `👁️ Restaurar (${ocultos.length})`;
+    }
     if (ocultos.length === 0) return;
     Array.from(sel.options).forEach(opt => {
       if (ocultos.some(o => o.id === opt.value || o.nombre === opt.textContent.trim())) {
-        opt.style.display = 'none'; opt.disabled = true;
+        opt.style.display = 'none';
+        opt.disabled = true;
         if (sel.value === opt.value) {
           const libre = Array.from(sel.options).find(o => !o.disabled);
           if (libre) { sel.value = libre.value; sel.dispatchEvent(new Event('change', { bubbles: true })); }
@@ -3303,44 +4292,104 @@ if (!permitidos.includes(correo)) {
   function inyectarBotonesCliente() {
     aplicarFiltroOcultos();
     if (document.getElementById('cpo-cliente-tools')) return;
-    const sel = obtenerSelectorCliente(); if (!sel || !sel.parentElement) return;
-    const wrap = document.createElement('span'); wrap.id = 'cpo-cliente-tools';
-    wrap.innerHTML = `<button type="button" class="cpo-btn-tool cpo-btn-dl" id="cpo-btn-dl-cli">⬇ Descargar</button>
-                      <button type="button" class="cpo-btn-tool cpo-btn-del" id="cpo-btn-del-cli">🗑️ Ocultar</button>
-                      <button type="button" class="cpo-btn-tool cpo-btn-res" id="cpo-btn-res-cli" style="display:none;">👁️ Restaurar</button>`;
+    const sel = obtenerSelectorCliente();
+    if (!sel || !sel.parentElement) return;
+
+    const wrap = document.createElement('span');
+    wrap.id = 'cpo-cliente-tools';
+    wrap.setAttribute('translate', 'no');
+    wrap.innerHTML = `
+      <button type="button" class="cpo-btn-tool cpo-btn-dl" id="cpo-btn-dl-cli" title="Descargar respaldo completo del cliente">⬇ Descargar historial</button>
+      <button type="button" class="cpo-btn-tool cpo-btn-del" id="cpo-btn-del-cli" title="Ocultar del tablero sin borrar de Firebase">🗑️ Ocultar cliente</button>
+      <button type="button" class="cpo-btn-tool cpo-btn-res" id="cpo-btn-res-cli" style="display:none;">👁️ Restaurar</button>
+    `;
     sel.insertAdjacentElement('afterend', wrap);
+
     document.getElementById('cpo-btn-dl-cli').onclick = () => {
-      const cli = obtenerClienteActual(); const p = { cliente: cli, fecha: new Date().toLocaleString(), cartografia: JSON.parse(localStorage.getItem(claveStorage()) || 'null') };
+      const cli = obtenerClienteActual();
+      const paquete = {
+        cliente: cli,
+        fecha_exportacion: new Date().toLocaleString('es-AR'),
+        cartografia_electoral: JSON.parse(localStorage.getItem(claveStorage()) || 'null'),
+        categorias_mapa: JSON.parse(localStorage.getItem(claveCategorias()) || 'null')
+      };
       for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i); if (k !== CLAVE_OCULTOS && k.includes(cli)) p[k] = localStorage.getItem(k);
+        const k = localStorage.key(i);
+        if (k !== CLAVE_OCULTOS && k.includes(cli)) paquete[k] = localStorage.getItem(k);
       }
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(p, null, 2)], { type: 'application/json' }));
-      a.download = `Historial_${cli}.json`; a.click();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(paquete, null, 2)], { type: 'application/json' }));
+      a.download = `Historial_${cli}_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
     };
+
     document.getElementById('cpo-btn-del-cli').onclick = () => {
-      const s = obtenerSelectorCliente(); if (!s || !s.value) return;
+      const s = obtenerSelectorCliente();
+      if (!s || !s.value) return;
       const nom = s.options[s.selectedIndex].textContent.trim();
-      if (confirm(`¿Ocultar a "${nom}" del tablero? Los datos siguen en Firebase.`)) {
-        const oc = obtenerOcultos(); if (!oc.some(o => o.id === s.value)) { oc.push({ id: s.value, nombre: nom }); guardarOcultos(oc); aplicarFiltroOcultos(); }
+      if (confirm(`¿Ocultar a "${nom}" de la vista del tablero?\n\n✅ Sus datos siguen resguardados en Firebase.`)) {
+        const oc = obtenerOcultos();
+        if (!oc.some(o => o.id === s.value)) {
+          oc.push({ id: s.value, nombre: nom });
+          guardarOcultos(oc);
+          aplicarFiltroOcultos();
+        }
       }
     };
+
     document.getElementById('cpo-btn-res-cli').onclick = () => {
-      const oc = obtenerOcultos(); if (oc.length === 0) return;
-      const r = prompt(`Clientes ocultos:\n${oc.map((o,i) => `${i+1}. ${o.nombre}`).join('\n')}\nEscribí número para restaurar (o TODOS):`);
-      if (r && r.trim().toUpperCase() === 'TODOS') { guardarOcultos([]); window.location.reload(); }
-      else { const n = parseInt(r, 10); if (n >= 1 && n <= oc.length) { oc.splice(n-1, 1); guardarOcultos(oc); window.location.reload(); } }
+      const oc = obtenerOcultos();
+      if (oc.length === 0) return;
+      const r = prompt(`Clientes ocultos:\n${oc.map((o, i) => `${i + 1}. ${o.nombre}`).join('\n')}\n\nEscribí el número para restaurar (o TODOS):`);
+      if (!r) return;
+      if (r.trim().toUpperCase() === 'TODOS') { guardarOcultos([]); window.location.reload(); return; }
+      const n = parseInt(r.trim(), 10);
+      if (!isNaN(n) && n >= 1 && n <= oc.length) {
+        oc.splice(n - 1, 1);
+        guardarOcultos(oc);
+        window.location.reload();
+      }
     };
-    sel.addEventListener('change', () => { if (document.getElementById('cpo-mapa-modal').style.display === 'flex') cargarZonasGuardadas(); });
+
+    sel.addEventListener('change', () => {
+      if (document.getElementById('cpo-mapa-modal').style.display === 'flex') {
+        renderPinesCustomEnBarra();
+        cargarZonasGuardadas();
+      }
+    });
   }
 
   setInterval(() => { inyectarBotonMenu(); inyectarBotonesCliente(); }, 1200);
 
-  // --- PUERTO DE EXPANSIÓN Y FUTURAS MEJORAS (API DE PLUGINS) ---
+  /* =========================================================================
+     11. PUERTO DE EXPANSIÓN ABIERTA (API DE PLUGINS PARA FUTURAS MEJORAS)
+     ========================================================================= */
   window.CPO_Mapa = {
-    obtenerMapa: () => map,
-    obtenerZonas: () => fg,
-    registrarPlugin: function(nombre, initFn) { console.log(`[Plugin CPO] Cargando: ${nombre}`); setTimeout(() => initFn(this), 500); }
+    obtenerInstanciaMapa: () => map,
+    obtenerCapaZonas: () => fg,
+    obtenerMunicipios: () => MUNICIPIOS_PBA,
+    calcularDHondt: ejecutarRepartoDHondt,
+    guardar: guardarZonas,
+    refrescarUI: actualizarPanelYKPIs,
+    agregarBotonSuperior: function(texto, colorFondo, alHacerClic) {
+      const barra = document.querySelector('.cpo-top-bar > div:last-child');
+      if (!barra) return;
+      const b = document.createElement('button');
+      b.textContent = texto;
+      b.style.cssText = `background:${colorFondo || '#3b82f6'} !important; color:#fff !important; border:none !important; font-weight:700; cursor:pointer;`;
+      b.onclick = () => alHacerClic(window.CPO_Mapa);
+      barra.insertBefore(b, barra.firstChild);
+    },
+    registrarPlugin: function(nombrePlugin, funcionInicializadora) {
+      console.log(`[Creativa Política] Plugin cargado: ${nombrePlugin}`);
+      setTimeout(() => funcionInicializadora(window.CPO_Mapa), 500);
+    }
   };
+
+  /* === ZONA DE EXPANSIÓN Y FUTURAS MEJORAS DEL MAPA ===
+     Pegá acá abajo cualquier mini-bloque futuro usando window.CPO_Mapa.registrarPlugin(...)
+  */
+
 })();
 </script>
-<!-- === FIN SUITE CARTOGRAFÍA ELECTORAL PRO (VERSIÓN MASTER) === -->
+<!-- === FIN SUITE MASTER CARTOGRAFÍA ELECTORAL PBA === -->

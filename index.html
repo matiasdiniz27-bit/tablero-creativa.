@@ -4396,7 +4396,7 @@ if (!permitidos.includes(correo)) {
 <!-- === MÓDULO INDEPENDIENTE · SISTEMA DE ANÁLISIS Y REDACCIÓN POLÍTICA · v3 (SCROLL CORREGIDO) === -->
 
 <style>
-  /* ---------- Base del módulo ---------- */
+  /* ---------- Base del módulo (todo encerrado en el id para no tocar el resto de la página) ---------- */
   #cpo-redaccion-modal {
     --sar-fondo: #0b1120; --sar-panel: #111a2e; --sar-panel2: #16213a; --sar-borde: #24324d;
     --sar-texto: #e7ecf5; --sar-suave: #a3b1c6; --sar-tenue: #64748b;
@@ -4448,7 +4448,6 @@ if (!permitidos.includes(correo)) {
   #cpo-redaccion-modal .sar-top {
     display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
     padding: 10px 18px; background: #0f172a; border-bottom: 1px solid var(--sar-borde);
-    flex-shrink: 0; /* Evita que el header se achique */
   }
   #cpo-redaccion-modal .sar-top-izq, #cpo-redaccion-modal .sar-top-der { display: flex; align-items: center; gap: 10px; }
   #cpo-redaccion-modal .sar-logo { font-size: 22px; }
@@ -4459,8 +4458,8 @@ if (!permitidos.includes(correo)) {
   #cpo-redaccion-modal .sar-estado.sar-ok { color: var(--sar-verde); }
   #cpo-redaccion-modal .sar-estado.sar-falta { color: var(--sar-ambar); }
 
-  /* ---------- Panel del motor IA ---------- */
-  #cpo-sar-motor-config { display: none; background: #131d33; border-bottom: 2px solid #4c1d95; padding: 14px 18px; flex-shrink: 0; }
+  /* ---------- Panel del motor IA (desplegable) ---------- */
+  #cpo-sar-motor-config { display: none; background: #131d33; border-bottom: 2px solid #4c1d95; padding: 14px 18px; }
   #cpo-sar-motor-config.cpo-abierto { display: block; }
   #cpo-redaccion-modal .sar-motor-grid { display: grid; grid-template-columns: minmax(220px, 1.2fr) minmax(220px, 1fr) auto; gap: 14px; align-items: end; }
   #cpo-redaccion-modal .sar-fila { display: flex; gap: 8px; align-items: center; }
@@ -4468,7 +4467,7 @@ if (!permitidos.includes(correo)) {
   @media (max-width: 860px) { #cpo-redaccion-modal .sar-motor-grid { grid-template-columns: 1fr; } }
 
   /* ---------- Selector de modos ---------- */
-  #cpo-redaccion-modal .sar-modos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px 18px; background: #0d1527; border-bottom: 1px solid var(--sar-borde); flex-shrink: 0; }
+  #cpo-redaccion-modal .sar-modos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px 18px; background: #0d1527; border-bottom: 1px solid var(--sar-borde); }
   @media (max-width: 980px) { #cpo-redaccion-modal .sar-modos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   #cpo-redaccion-modal .sar-modo {
     display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer; padding: 10px 12px !important;
@@ -4480,22 +4479,12 @@ if (!permitidos.includes(correo)) {
   #cpo-redaccion-modal .sar-modo b { display: block; font-size: 13px; color: var(--sar-texto); }
   #cpo-redaccion-modal .sar-modo small { display: block; font-size: 11px; color: var(--sar-suave); font-weight: 400; }
 
-  /* ---------- Cuerpo en dos columnas (SCROLL CORREGIDO) ---------- */
-  #cpo-redaccion-modal .sar-cuerpo { 
-    display: grid; grid-template-columns: 420px minmax(0, 1fr); flex: 1; 
-    overflow: hidden; /* Evita que el contenedor global rompa la pantalla */
-  }
-  #cpo-redaccion-modal .sar-izq { 
-    background: var(--sar-panel); border-right: 1px solid var(--sar-borde); 
-    overflow-y: auto; -webkit-overflow-scrolling: touch; 
-    padding: 14px 14px 20px; display: flex; flex-direction: column; gap: 10px; 
-  }
-  #cpo-redaccion-modal .sar-der { 
-    overflow-y: auto; -webkit-overflow-scrolling: touch; 
-    padding: 0 20px 60px; display: flex; flex-direction: column; gap: 12px; 
-  }
+  /* ---------- Cuerpo en dos columnas (ACÁ ESTÁ LA CORRECCIÓN DEL SCROLL PARA TABLET) ---------- */
+  #cpo-redaccion-modal .sar-cuerpo { display: grid; grid-template-columns: 420px minmax(0, 1fr); flex: 1; min-height: 0; }
+  #cpo-redaccion-modal .sar-izq { background: var(--sar-panel); border-right: 1px solid var(--sar-borde); overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 14px 14px 0; display: flex; flex-direction: column; gap: 10px; }
+  #cpo-redaccion-modal .sar-der { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; }
   @media (max-width: 980px) {
-    #cpo-redaccion-modal .sar-cuerpo { grid-template-columns: 1fr; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    #cpo-redaccion-modal .sar-cuerpo { grid-template-columns: minmax(0, 1fr); overflow-y: auto; -webkit-overflow-scrolling: touch; }
     #cpo-redaccion-modal .sar-izq, #cpo-redaccion-modal .sar-der { overflow: visible; }
   }
 
@@ -4531,7 +4520,7 @@ if (!permitidos.includes(correo)) {
   #cpo-redaccion-modal .sar-accion-fija {
     position: sticky; bottom: 0; margin-top: auto; padding: 14px 0 14px;
     background: linear-gradient(to bottom, rgba(17,26,46,0), var(--sar-panel) 30%);
-    display: flex; flex-direction: column; gap: 6px; text-align: center; z-index: 10;
+    display: flex; flex-direction: column; gap: 6px; text-align: center;
   }
 
   /* ---------- Biblioteca y listas ---------- */
@@ -4624,7 +4613,7 @@ if (!permitidos.includes(correo)) {
       <div class="sar-campo">
         <label for="cpo-sar-apikey">🔑 Tu clave de Gemini</label>
         <input type="password" id="cpo-sar-apikey" placeholder="Pegá acá la clave (empieza con AIza...)" autocomplete="off" spellcheck="false" />
-        <small>¿No tenés? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Sacala gratis en Google AI Studio</a>.</small>
+        <small>¿No tenés? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Sacala gratis en Google AI Studio</a>. Queda guardada solo en este navegador.</small>
       </div>
       <div class="sar-campo">
         <label for="cpo-sar-modelo">🤖 Modelo</label>
@@ -4642,14 +4631,18 @@ if (!permitidos.includes(correo)) {
         <button type="button" id="cpo-sar-borrar-key" class="sar-btn sar-btn-texto" title="Borrar la clave de este navegador">🗑️ Borrar clave</button>
       </div>
     </div>
+    <details class="sar-mini">
+      <summary>ℹ️ Privacidad de lo que enviás a la IA</summary>
+      <p>Con la clave gratuita, Google puede usar lo que envíes para mejorar sus modelos y su personal puede revisarlo. Para material confidencial de clientes conviene activar la facturación en el proyecto de Google, así esos datos no se usan para entrenamiento.</p>
+    </details>
   </section>
 
   <!-- ===== SELECTOR DE MODOS ===== -->
   <nav class="sar-modos" aria-label="Modo de trabajo">
-    <button type="button" class="sar-modo activa" data-modo="DISCURSO"><span class="sar-modo-ico">🎙️</span><span><b>Discursos y guiones</b><small>Actos, reels, streaming</small></span></button>
-    <button type="button" class="sar-modo" data-modo="LEGISLATIVO"><span class="sar-modo-ico">⚖️</span><span><b>Analizar proyectos</b><small>Auditar o dictaminar</small></span></button>
-    <button type="button" class="sar-modo" data-modo="INCONGRUENCIAS"><span class="sar-modo-ico">🔍</span><span><b>Incongruencias</b><small>Dichos vs archivo</small></span></button>
-    <button type="button" class="sar-modo" data-modo="FUNDAMENTOS"><span class="sar-modo-ico">🏛️</span><span><b>Redactar proyectos</b><small>Vistos y considerandos</small></span></button>
+    <button type="button" class="sar-modo activa" data-modo="DISCURSO"><span class="sar-modo-ico">🎙️</span><span><b>Discursos y guiones</b><small>Actos, reels, streaming, copys, entrevistas</small></span></button>
+    <button type="button" class="sar-modo" data-modo="LEGISLATIVO"><span class="sar-modo-ico">⚖️</span><span><b>Analizar proyectos</b><small>Auditar, defender o dictaminar</small></span></button>
+    <button type="button" class="sar-modo" data-modo="INCONGRUENCIAS"><span class="sar-modo-ico">🔍</span><span><b>Incongruencias</b><small>Dichos de hoy contra archivo y presupuesto</small></span></button>
+    <button type="button" class="sar-modo" data-modo="FUNDAMENTOS"><span class="sar-modo-ico">🏛️</span><span><b>Redactar proyectos</b><small>Visto, considerandos y articulado</small></span></button>
   </nav>
 
   <div class="sar-cuerpo">
@@ -4661,7 +4654,7 @@ if (!permitidos.includes(correo)) {
       <details class="sar-seccion" open>
         <summary><span class="sar-paso">1</span> Fuentes y bibliografía <span class="sar-contador" id="cpo-sar-count-pdfs">0</span></summary>
         <div class="sar-seccion-cuerpo">
-          <div class="sar-ayuda">Libros, presupuestos o discursos previos. Marcá ✔️ los que querés usar.</div>
+          <div class="sar-ayuda">Libros, presupuestos, ordenanzas o discursos previos. Marcá ✔️ los que querés usar en esta redacción.</div>
           <input type="file" id="cpo-sar-pdf-input" accept=".pdf,.txt,.md" multiple hidden />
           <button type="button" id="cpo-sar-btn-subir-pdf" class="sar-btn sar-btn-azul">📄 Subir PDF, TXT o MD</button>
           <div id="cpo-sar-lista-pdfs" class="sar-lista"></div>
@@ -4679,8 +4672,8 @@ if (!permitidos.includes(correo)) {
             <textarea id="cpo-sar-input-principal" rows="6"></textarea>
           </div>
           <div class="sar-campo sar-contraste" id="cpo-sar-contraste-wrap" hidden>
-            <label for="cpo-sar-input-contraste">⚖️ Texto B · archivo, votación anterior o presupuesto</label>
-            <textarea id="cpo-sar-input-contraste" rows="4" placeholder="Pegá lo que dijeron o votaron antes..."></textarea>
+            <label for="cpo-sar-input-contraste">⚖️ Texto B · archivo, votación anterior o presupuesto real</label>
+            <textarea id="cpo-sar-input-contraste" rows="4" placeholder="Pegá lo que dijeron o votaron antes, el artículo de la norma o los datos reales del presupuesto..."></textarea>
           </div>
         </div>
       </details>
@@ -4691,17 +4684,19 @@ if (!permitidos.includes(correo)) {
         <div class="sar-seccion-cuerpo">
           <div class="sar-campo">
             <label for="cpo-sar-jurisdiccion">📍 Jurisdicción del caso</label>
-            <input type="text" id="cpo-sar-jurisdiccion" placeholder="Ej. Partido de General Pueyrredon" />
+            <input type="text" id="cpo-sar-jurisdiccion" placeholder="Ej. Partido de General Pueyrredon, Provincia de Buenos Aires" />
+            <small>Define qué normas puede citar la IA. Se recuerda por cliente.</small>
           </div>
           <div class="sar-campo">
             <label for="cpo-sar-criterio-usuario">🎯 Tu criterio o instrucción puntual</label>
-            <input type="text" id="cpo-sar-criterio-usuario" placeholder="Ej. citar a Sartori, foco en el bolsillo..." />
+            <input type="text" id="cpo-sar-criterio-usuario" placeholder="Ej. citar a Sartori, foco en el bolsillo, tono institucional" />
           </div>
         </div>
       </details>
 
       <div class="sar-accion-fija">
         <button type="button" id="cpo-sar-btn-ejecutar" class="sar-btn sar-btn-violeta sar-btn-grande">⚡ Generar bloques editables</button>
+        <span class="sar-ayuda">Todo lo que genere la IA queda editable en la mesa de la derecha.</span>
       </div>
     </aside>
 
@@ -4710,11 +4705,11 @@ if (!permitidos.includes(correo)) {
       <div class="sar-barra-mesa">
         <div class="sar-barra-mesa-titulo">
           <b>🛠️ Mesa de edición</b>
-          <span id="cpo-sar-tiempo-lectura" class="sar-chip-verde" title="Solo suman los bloques marcados">⏱ ~0 seg · 0 palabras</span>
+          <span id="cpo-sar-tiempo-lectura" class="sar-chip-verde" title="Solo suman los bloques con ⏱ marcado">⏱ ~0 seg · 0 palabras</span>
         </div>
         <div class="sar-grupo">
-          <button type="button" id="cpo-sar-btn-expandir" class="sar-btn sar-btn-texto sar-btn-mini">⤢ Abrir todo</button>
-          <button type="button" id="cpo-sar-btn-contraer" class="sar-btn sar-btn-texto sar-btn-mini">⤡ Plegar todo</button>
+          <button type="button" id="cpo-sar-btn-expandir" class="sar-btn sar-btn-texto sar-btn-mini" title="Abrir todos los bloques">⤢ Abrir todo</button>
+          <button type="button" id="cpo-sar-btn-contraer" class="sar-btn sar-btn-texto sar-btn-mini" title="Plegar todos los bloques">⤡ Plegar todo</button>
           <span class="sar-separador"></span>
           <button type="button" id="cpo-sar-btn-add-bloque" class="sar-btn sar-btn-borde sar-btn-mini">＋ Bloque</button>
           <button type="button" id="cpo-sar-btn-guardar-borrador" class="sar-btn sar-btn-azul sar-btn-mini">💾 Guardar</button>
@@ -4744,14 +4739,17 @@ if (!permitidos.includes(correo)) {
   window.__cpoSarCargado = true;
 
   const modal = document.getElementById('cpo-redaccion-modal');
-  if (!modal) return;
+  if (!modal) { console.warn('[Redacción] Falta el HTML del módulo.'); return; }
 
+  /* =====================================================================
+     0. CONFIGURACIÓN
+     ===================================================================== */
   const CFG = {
-    ID_SELECTOR_CLIENTE: '',            
+    ID_SELECTOR_CLIENTE: '',            // Si el selector de clientes del tablero tiene id, escribilo acá
     PDFJS_VERSION: '3.11.174',
     MAX_PAGINAS_PDF: 300,
     MAX_CARACTERES_POR_DOC: 400000,
-    PRESUPUESTO_CARACTERES_IA: 300000,  
+    PRESUPUESTO_CARACTERES_IA: 300000,  // Texto total de fuentes por consulta
     TIMEOUT_IA_MS: 180000,
     PALABRAS_POR_MINUTO: 130,
     MODELO_POR_DEFECTO: 'gemini-flash-latest',
@@ -4765,13 +4763,17 @@ if (!permitidos.includes(correo)) {
   const PREFIJO_JURISDICCION = 'cpo_sar_jurisdiccion_';
   const REGEX_NO_LECTURA = /(redes|copy|visual|placa|prensa|edici[oó]n|hashtag)/i;
 
+  /* =====================================================================
+     UTILIDADES
+     ===================================================================== */
   const $ = (id) => document.getElementById(id);
 
   function lsGet(k, def) { try { const v = localStorage.getItem(k); return v === null ? def : v; } catch (e) { return def; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
-  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { } }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* nada */ } }
   function lsGetJSON(k, def) { try { const v = JSON.parse(lsGet(k, '') || 'null'); return v === null ? def : v; } catch (e) { return def; } }
 
+  // Crea elementos sin innerHTML para que ningún texto externo pueda romper la página
   function el(tag, props, ...hijos) {
     const n = document.createElement(tag);
     if (props) {
@@ -4805,10 +4807,13 @@ if (!permitidos.includes(correo)) {
     try { await navigator.clipboard.writeText(texto); return true; }
     catch (e) {
       const ta = el('textarea', { style: 'position:fixed; top:-1000px; opacity:0;' });
-      ta.value = texto; document.body.appendChild(ta); ta.select();
+      ta.value = texto;
+      document.body.appendChild(ta);
+      ta.select();
       let ok = false;
       try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
-      ta.remove(); return ok;
+      ta.remove();
+      return ok;
     }
   }
 
@@ -4819,6 +4824,9 @@ if (!permitidos.includes(correo)) {
     btn._cpoTimer = setTimeout(() => { btn.textContent = btn.dataset.textoOriginal; }, ms || 1500);
   }
 
+  /* =====================================================================
+     CLIENTE ACTIVO
+     ===================================================================== */
   function leerCliente() {
     let sel = CFG.ID_SELECTOR_CLIENTE ? document.getElementById(CFG.ID_SELECTOR_CLIENTE) : null;
     if (!sel || sel.tagName !== 'SELECT') {
@@ -4834,6 +4842,9 @@ if (!permitidos.includes(correo)) {
     return { clave: 'general', nombre: 'General (sin cliente)' };
   }
 
+  /* =====================================================================
+     1. BIBLIOTECA DE PDFS (IndexedDB, aguanta libros enteros)
+     ===================================================================== */
   const DB_NOMBRE = 'cpo_sar_db';
   const DB_STORE = 'biblioteca';
   let dbPromesa = null;
@@ -4871,6 +4882,7 @@ if (!permitidos.includes(correo)) {
   const dbGuardar = (doc) => transaccion('readwrite', s => s.put(doc));
   const dbBorrar = (id) => transaccion('readwrite', s => s.delete(id));
 
+  // Pasa los PDFs de la versión anterior (localStorage) a IndexedDB, una sola vez
   async function migrarBibliotecaVieja() {
     const vieja = lsGetJSON(CLAVE_BIBLIOTECA_VIEJA, null);
     if (!Array.isArray(vieja) || vieja.length === 0) return;
@@ -4907,7 +4919,7 @@ if (!permitidos.includes(correo)) {
     catch (e) {
       if (!avisoPersistenciaMostrado) {
         avisoPersistenciaMostrado = true;
-        toast('El navegador no dejó guardar en forma permanente. Va a estar disponible hasta que recargues.', 'aviso');
+        toast('El navegador no dejó guardar "' + doc.nombre + '" en forma permanente. Va a estar disponible hasta que recargues la página.', 'aviso');
       }
     }
   }
@@ -4932,7 +4944,8 @@ if (!permitidos.includes(correo)) {
 
       const badge = el('span', {
         class: 'sar-badge' + (sinTexto || doc.truncado ? ' sar-alerta' : ''),
-        title: sinTexto ? 'Sin texto seleccionable.' : doc.truncado ? 'Era muy largo.' : 'Caracteres leídos'
+        title: sinTexto ? 'Sin texto seleccionable. Probablemente es un escaneo y la IA no puede leerlo.'
+             : doc.truncado ? 'Era muy largo y se guardó una parte.' : 'Caracteres leídos'
       }, sinTexto ? '⚠ sin texto' : enMiles((doc.texto || '').length) + (doc.truncado ? ' ✂' : ''));
 
       const btnDel = el('button', {
@@ -4941,7 +4954,7 @@ if (!permitidos.includes(correo)) {
           if (!confirm('¿Quitar "' + doc.nombre + '" de la biblioteca?')) return;
           biblioteca = biblioteca.filter(d => d.id !== doc.id);
           renderListaPDFs();
-          if (persistenciaOK) { try { await dbBorrar(doc.id); } catch (e) { } }
+          if (persistenciaOK) { try { await dbBorrar(doc.id); } catch (e) { /* nada */ } }
         }
       }, '🗑️');
 
@@ -4970,7 +4983,8 @@ if (!permitidos.includes(correo)) {
   function normalizar(t) { return (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 
   function palabrasClave(consulta) {
-    const vacias = new Set(['sobre', 'entre', 'desde', 'hasta', 'donde', 'cuando', 'porque', 'estos', 'estas', 'tiene', 'tienen', 'hacer', 'todos', 'todas', 'proyecto', 'texto', 'quiero', 'tambien', 'puede', 'pueden', 'debe', 'deben']);
+    const vacias = new Set(['sobre', 'entre', 'desde', 'hasta', 'donde', 'cuando', 'porque', 'estos', 'estas', 'tiene', 'tienen',
+      'hacer', 'todos', 'todas', 'proyecto', 'texto', 'quiero', 'tambien', 'puede', 'pueden', 'debe', 'deben']);
     const lista = normalizar(consulta).match(/[a-z0-9]{5,}/g) || [];
     return Array.from(new Set(lista)).filter(p => !vacias.has(p)).slice(0, 60);
   }
@@ -4983,13 +4997,15 @@ if (!permitidos.includes(correo)) {
     return trozos;
   }
 
+  // Si un libro no entra completo, manda las páginas más relacionadas con el pedido (y siempre la primera)
   function seleccionarFragmentos(texto, cuota, claves) {
     if (texto.length <= cuota) return { texto, recortado: false };
     const paginas = dividirEnPaginas(texto);
     let orden;
     if (claves.length) {
       orden = paginas.map((p, i) => {
-        const t = normalizar(p); let puntos = 0;
+        const t = normalizar(p);
+        let puntos = 0;
         for (const c of claves) { let pos = t.indexOf(c); while (pos !== -1) { puntos++; pos = t.indexOf(c, pos + c.length); } }
         return { i, puntos: puntos / Math.sqrt(p.length + 200) };
       }).sort((a, b) => b.puntos - a.puntos).map(x => x.i);
@@ -5001,11 +5017,14 @@ if (!permitidos.includes(correo)) {
       for (let i = 0; i < paginas.length; i++) if (!ya.has(i)) orden.push(i);
     }
     orden = [0].concat(orden.filter(i => i !== 0));
-    const elegidas = []; let usado = 0;
+
+    const elegidas = [];
+    let usado = 0;
     for (const i of orden) {
       const largo = paginas[i].length;
       if (usado + largo > cuota) continue;
-      elegidas.push(i); usado += largo;
+      elegidas.push(i);
+      usado += largo;
       if (usado > cuota * 0.97) break;
     }
     if (elegidas.length === 0) return { texto: texto.slice(0, cuota), recortado: true };
@@ -5020,7 +5039,7 @@ if (!permitidos.includes(correo)) {
       const total = activos.reduce((a, d) => a + (d.texto || '').length, 0);
       msg = total <= CFG.PRESUPUESTO_CARACTERES_IA
         ? '✅ Se envían completos los ' + activos.length + ' documento(s) marcados.'
-        : '✂ Los documentos marcados son largos. De cada uno se mandan las páginas más relacionadas.';
+        : '✂ Los documentos marcados son largos. De cada uno se mandan las páginas más relacionadas con tu pedido. Cuantos menos marques, más lee de cada uno.';
     } else if (biblioteca.length) {
       msg = 'Ningún documento marcado. La IA va a trabajar solo con lo que escribas.';
     }
@@ -5036,6 +5055,7 @@ if (!permitidos.includes(correo)) {
       lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/' + v + '/pdf.worker.min.' + (parseInt(v, 10) >= 4 ? 'mjs' : 'js');
     }
   }
+  // Descarga pdf.js recién la primera vez que subís un PDF
   function cargarPdfJs() {
     if (window.pdfjsLib) { configurarWorker(); return Promise.resolve(window.pdfjsLib); }
     if (pdfjsPromesa) return pdfjsPromesa;
@@ -5055,6 +5075,7 @@ if (!permitidos.includes(correo)) {
   async function extraerTexto(file, alAvanzar) {
     if (!file.name.toLowerCase().endsWith('.pdf')) return { texto: await file.text(), paginas: null, paginasLeidas: null };
     const lib = await cargarPdfJs();
+    // isEvalSupported en false bloquea una falla de seguridad conocida de pdf.js
     const pdf = await lib.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false }).promise;
     try {
       const total = pdf.numPages;
@@ -5099,8 +5120,8 @@ if (!permitidos.includes(correo)) {
           let texto = r.texto || '';
           const truncado = texto.length > CFG.MAX_CARACTERES_POR_DOC || !!(r.paginas && r.paginasLeidas < r.paginas);
           texto = texto.slice(0, CFG.MAX_CARACTERES_POR_DOC);
-          if (largoUtil(texto) < 200) avisos.push('• "' + f.name + '" casi no tiene texto (parece un escaneo).');
-          else if (truncado) avisos.push('• "' + f.name + '" es muy largo. Se guardó una parte.');
+          if (largoUtil(texto) < 200) avisos.push('• "' + f.name + '" casi no tiene texto (parece un escaneo). Pasalo por un OCR antes de usarlo.');
+          else if (truncado) avisos.push('• "' + f.name + '" es muy largo. Se guardó hasta la página ' + (r.paginasLeidas || '?') + (r.paginas ? ' de ' + r.paginas : '') + '.');
           const doc = { id: nuevoId(), orden: Date.now() + n, nombre: f.name, fecha: new Date().toLocaleDateString('es-AR'), texto, activo: true, truncado };
           biblioteca.push(doc);
           await persistirDoc(doc);
@@ -5118,47 +5139,52 @@ if (!permitidos.includes(correo)) {
     else toast('✅ ' + cargados + ' documento(s) cargados en la biblioteca.');
   });
 
+  /* =====================================================================
+     2. MODOS DE TRABAJO
+     Para sumar uno nuevo, agregá una entrada en MODOS y un botón
+     con el mismo data-modo en el selector de modos.
+     ===================================================================== */
   const ESTRUCTURA_DISCURSO = {
     'Discurso Político de Recinto / Acto': {
-      extension: 'Bloques 1 a 5 entre 600 y 900 palabras en total.',
-      bloques: ['Gancho de Apertura (3 variantes)', 'Diagnóstico y Dato Duro', 'Respaldo Teórico', 'Giro Político', 'Llamado a la Acción', 'Bajada para Redes']
+      extension: 'Bloques 1 a 5 entre 600 y 900 palabras en total (5 a 7 minutos). El bloque 1 trae 3 variantes cortas a elección.',
+      bloques: ['Gancho de Apertura (3 variantes a elección)', 'Diagnóstico y Dato Duro', 'Marco Conceptual / Respaldo Teórico', 'Propuesta / Giro Político', 'Remate y Llamado a la Acción', 'Bajada para Redes (Copy + Ideas visuales)']
     },
     'Guion para Reel / TikTok / YouTube (60 seg)': {
-      extension: 'El texto hablado no puede superar las 140 palabras.',
-      bloques: ['Gancho de los primeros 3 segundos', 'Desarrollo hablado', 'Cierre y Llamado a la Acción', 'Indicaciones de Edición', 'Copy para la Publicación']
+      extension: 'El texto hablado (bloques 1 a 3, con una sola variante del gancho) no puede superar las 140 palabras. Frases cortas para decir a cámara.',
+      bloques: ['Gancho de los primeros 3 segundos (3 variantes)', 'Desarrollo hablado', 'Cierre y Llamado a la Acción', 'Indicaciones de Edición (planos, textos en pantalla, ritmo)', 'Copy para la Publicación']
     },
     'Editorial para Programa de Streaming Político': {
       extension: 'Entre 400 y 650 palabras habladas (3 a 5 minutos).',
-      bloques: ['Apertura Editorial', 'Contexto y Dato Duro', 'Argumento Central', 'Contrapunto', 'Cierre y Pase al Debate']
+      bloques: ['Apertura Editorial', 'Contexto y Dato Duro', 'Argumento Central', 'Contrapunto (qué diría el adversario y cómo responderle)', 'Cierre y Pase al Debate o Invitados']
     },
     'Pack de 3 Copys para Instagram / X (Twitter)': {
       extension: 'Copy de Instagram de hasta 150 palabras. Copy de X de hasta 280 caracteres.',
-      bloques: ['Copy 1 · Instagram', 'Copy 2 · X / Twitter', 'Copy 3 · Hilo Corto', 'Ideas Visuales']
+      bloques: ['Copy 1 · Instagram (con hashtags)', 'Copy 2 · X / Twitter (máx. 280 caracteres)', 'Copy 3 · Alternativo o Hilo Corto', 'Ideas Visuales y Textos para Placa']
     },
     'Preguntas y Respuestas para Entrevista': {
-      extension: 'Respuestas de 40 a 80 palabras cada una.',
-      bloques: ['Mensajes Clave', 'Preguntas Probables', 'Preguntas Incómodas', 'Temas a Evitar', 'Datos para Tener a Mano']
+      extension: 'Respuestas de 40 a 80 palabras cada una, aptas para decir en voz alta.',
+      bloques: ['Mensajes Clave (3 ideas fuerza)', 'Preguntas Probables y Respuestas Sugeridas', 'Preguntas Incómodas y Cómo Puentear', 'Frases y Temas a Evitar', 'Datos para Tener a Mano']
     }
   };
 
   const ARTICULADO_FUNDAMENTOS = {
-    'Proyecto de Ordenanza Municipal': 'ARTICULADO (Art. 1°, 2°...)',
-    'Pedido de Informes / Comunicación': 'ARTICULADO DE LA COMUNICACIÓN',
-    'Proyecto de Ley Provincial / Nacional': 'TEXTO RESOLUTIVO'
+    'Proyecto de Ordenanza Completo (Visto, Considerando y Artículos)': 'ARTICULADO (Art. 1°, 2°... y artículo de forma)',
+    'Proyecto de Comunicación / Pedido de Informes': 'ARTICULADO DE LA COMUNICACIÓN (puntos concretos del pedido y plazo de respuesta)',
+    'Proyecto de Declaración / Beneplácito / Repudio': 'TEXTO RESOLUTIVO DE LA DECLARACIÓN'
   };
 
   const MODOS = {
     DISCURSO: {
       titulo: 'Discurso, guion o copy',
-      label: 'Tema central o hecho político',
-      placeholder: 'Contá el tema, el hecho político, el público...',
+      label: 'Tema central, hecho político o eje que querés comunicar',
+      placeholder: 'Contá el tema, el hecho político, el público y lo que querés que la gente se lleve...',
       contraste: false,
       formato: { label: 'Formato', opciones: [
         ['Discurso Político de Recinto / Acto', '🎙️ Discurso de recinto o acto'],
-        ['Guion para Reel / TikTok / YouTube (60 seg)', '📱 Guion de reel o TikTok'],
+        ['Guion para Reel / TikTok / YouTube (60 seg)', '📱 Guion de reel o TikTok (60s)'],
         ['Editorial para Programa de Streaming Político', '🎧 Editorial de streaming'],
         ['Pack de 3 Copys para Instagram / X (Twitter)', '✍️ Pack de copys para redes'],
-        ['Preguntas y Respuestas para Entrevista', '🗞️ Entrevista']
+        ['Preguntas y Respuestas para Entrevista', '🗞️ Media training o entrevista']
       ] },
       tono: { label: 'Tono', opciones: [
         ['Institucional, Estadista y con Datos Duros', '🏛️ Institucional'],
@@ -5170,60 +5196,60 @@ if (!permitidos.includes(correo)) {
     },
     LEGISLATIVO: {
       titulo: 'Análisis de un proyecto',
-      label: 'Texto del proyecto',
-      placeholder: 'Pegá el articulado y los fundamentos...',
+      label: 'Texto del proyecto (o una nota indicando qué PDF analizar)',
+      placeholder: 'Pegá el articulado y los fundamentos, o indicá qué documento de la biblioteca analizar...',
       contraste: false,
       formato: { label: 'Tipo de pieza', opciones: [
-        ['Proyecto de Ordenanza Municipal', '🏛️ Ordenanza municipal'],
+        ['Proyecto de Ordenanza Municipal', '🏛️ Ordenanza municipal (HCD)'],
         ['Proyecto de Ley Provincial / Nacional', '🏦 Proyecto de ley'],
-        ['Pedido de Informes / Comunicación', '📋 Pedido de informes'],
-        ['Presupuesto Municipal / Rendición de Cuentas', '💰 Presupuesto']
+        ['Pedido de Informes / Comunicación', '📋 Pedido de informes o decreto'],
+        ['Presupuesto Municipal / Rendición de Cuentas', '💰 Presupuesto o fiscal impositiva']
       ] },
       tono: { label: 'Nuestro rol', opciones: [
-        ['Oposición Crítica (Encontrar trampas)', '🔍 Auditar y encontrar puntos débiles'],
-        ['Autor / Defensor (Blindar argumentos)', '🛡️ Blindar y defender en recinto'],
-        ['Dictamen Técnico Imparcial (Viabilidad)', '⚖️ Dictamen técnico']
+        ['Oposición Crítica (Encontrar trampas, vicios y vacíos)', '🔍 Auditar y encontrar puntos débiles'],
+        ['Autor / Defensor (Blindar argumentos y anticipar críticas)', '🛡️ Blindar y defender en recinto'],
+        ['Dictamen Técnico Imparcial (Viabilidad jurídica y fiscal)', '⚖️ Dictamen técnico y presupuestario']
       ] },
       estructura: () => ({
-        extension: 'Análisis completo y directo.',
-        bloques: ['Radiografía Ejecutiva', 'Artículos Ambiguos o Trampas', 'Impacto Fiscal', 'Argumentos', 'Puntos Débiles']
+        extension: 'Análisis completo y directo, sin relleno. Desarrollá más los bloques que más sirven al rol elegido.',
+        bloques: ['Radiografía Ejecutiva del Proyecto', 'Artículos Ambiguos, Vicios o Discrecionalidades', 'Impacto Fiscal y Presupuestario', 'Argumentos para Defenderlo', 'Puntos Débiles por donde Atacarlo en el Recinto']
       })
     },
     INCONGRUENCIAS: {
       titulo: 'Detector de incongruencias',
-      label: 'Texto A · lo que dice o propone hoy',
-      placeholder: 'Pegá la declaración o proyecto actual...',
+      label: 'Texto A · lo que el actor político dice o propone hoy',
+      placeholder: 'Pegá la declaración, el discurso o el proyecto actual...',
       contraste: true,
       formato: { label: 'Tipo de auditoría', opciones: [
-        ['Contradicción entre Discurso Actual y Archivo', '🔄 Discurso actual vs archivo'],
-        ['Contradicción Interna', '⚠️ Contradicción interna'],
-        ['Promesa Electoral vs. Ejecución Presupuestaria', '💸 Promesa vs presupuesto']
+        ['Contradicción entre Discurso Actual y Archivo / Votaciones Previas', '🔄 Discurso actual contra archivo o votación'],
+        ['Contradicción Interna (Los Considerandos dicen una cosa y el Articulado hace otra)', '⚠️ Contradicción interna del documento'],
+        ['Promesa Electoral vs. Ejecución Presupuestaria Real', '💸 Promesa contra presupuesto real']
       ] },
       tono: null,
       necesitaContraste: (f) => !/Interna/.test(f),
       estructura: () => ({
-        extension: 'Citas textuales de ambos lados.',
-        bloques: ['Veredicto de Coherencia', 'Contradicciones Detectadas', 'Cruce con Archivo', 'Frases Listas']
+        extension: 'Cada contradicción con cita textual de ambos lados. Si no hay contradicción real, decilo sin forzarla.',
+        bloques: ['Veredicto de Coherencia', 'Contradicciones Detectadas (con citas de ambos textos)', 'Cruce con Archivo / Normativa / Presupuesto', 'Frases Listas para Exponer la Contradicción en Debate o Medios']
       })
     },
     FUNDAMENTOS: {
-      titulo: 'Redactar proyecto',
-      label: 'Problema a resolver',
-      placeholder: 'Describí el problema y la solución...',
+      titulo: 'Redacción de un proyecto',
+      label: 'Qué problema querés resolver y qué propone el proyecto',
+      placeholder: 'Describí el problema, a quién afecta, qué datos tenés y qué querés que disponga el proyecto...',
       contraste: false,
       formato: { label: 'Formato técnico', opciones: [
-        ['Proyecto de Ordenanza Municipal', '📜 Ordenanza'],
-        ['Pedido de Informes / Comunicación', '📩 Pedido de informes'],
-        ['Proyecto de Ley Provincial / Nacional', '📣 Proyecto de ley']
+        ['Proyecto de Ordenanza Completo (Visto, Considerando y Artículos)', '📜 Ordenanza completa'],
+        ['Proyecto de Comunicación / Pedido de Informes', '📩 Pedido de informes'],
+        ['Proyecto de Declaración / Beneplácito / Repudio', '📣 Proyecto de declaración']
       ] },
       tono: { label: 'Fundamentación', opciones: [
-        ['Con Respaldo Académico de los PDFs', '📚 Académica'],
-        ['Con Foco en Impacto Vecinal Directo', '📊 Vecinal']
+        ['Con Respaldo Académico de los PDFs adjuntos + Normativa de la jurisdicción', '📚 Con citas de los PDFs y normativa'],
+        ['Con Foco en Impacto Vecinal Directo y Estadísticas', '📊 Empírica y vecinal']
       ] },
       necesitaPDFs: (t) => /PDFs/.test(t || ''),
       estructura: (f) => ({
-        extension: 'Lenguaje técnico legislativo.',
-        bloques: ['VISTO', 'CONSIDERANDO', ARTICULADO_FUNDAMENTOS[f] || 'ARTICULADO', 'Resumen de Prensa']
+        extension: 'Lenguaje técnico legislativo y registro formal. El resumen de prensa en lenguaje llano, hasta 120 palabras.',
+        bloques: ['VISTO', 'CONSIDERANDO (fundamentos con citas de las fuentes y marco legal de la jurisdicción)', ARTICULADO_FUNDAMENTOS[f] || 'ARTICULADO RESOLUTIVO', 'Resumen de Prensa del Proyecto']
       })
     }
   };
@@ -5265,6 +5291,9 @@ if (!permitidos.includes(correo)) {
 
   modal.querySelectorAll('.sar-modo').forEach(b => b.addEventListener('click', () => renderFormularioModo(b.dataset.modo)));
 
+  /* =====================================================================
+     3. MESA DE EDICIÓN POR BLOQUES (plegables)
+     ===================================================================== */
   function contarPalabras(t) { const s = (t || '').trim(); return s ? s.split(/\s+/).length : 0; }
   function segundosLectura(p) { return Math.round((p / CFG.PALABRAS_POR_MINUTO) * 60); }
   function formatearTiempo(seg) { const m = Math.floor(seg / 60), s = seg % 60; return m > 0 ? m + ' min ' + s + ' seg' : s + ' seg'; }
@@ -5272,7 +5301,7 @@ if (!permitidos.includes(correo)) {
   function tarjetas() { return Array.from(modal.querySelectorAll('#cpo-sar-contenedor-bloques .cpo-bloque-card')); }
 
   function ajustarAltura(ta) {
-    if (!ta.offsetParent) return; 
+    if (!ta.offsetParent) return; // si está plegado no se puede medir
     ta.style.height = 'auto';
     ta.style.height = Math.max(90, Math.min(ta.scrollHeight + 2, 560)) + 'px';
   }
@@ -5318,7 +5347,7 @@ if (!permitidos.includes(correo)) {
     btnCopiar.addEventListener('click', async () => feedbackBoton(btnCopiar, (await copiarTexto(ta.value)) ? '✅' : '⚠'));
     const btnDel = el('button', { type: 'button', class: 'sar-icono sar-peligro', title: 'Eliminar bloque',
       onclick: () => {
-        if (ta.value.trim() && !confirm('¿Eliminar el bloque "' + (inpTitulo.value || 'sin título') + '"?')) return;
+        if (ta.value.trim() && !confirm('¿Eliminar el bloque "' + (inpTitulo.value || 'sin título') + '"? Tiene texto escrito.')) return;
         card.remove();
         actualizarMesa();
       } }, '✕');
@@ -5351,6 +5380,7 @@ if (!permitidos.includes(correo)) {
   }
   function mesaTieneTexto() { return leerBloques().some(b => b.contenido.trim()); }
 
+  // Antes de pisar la mesa pregunta, para no perder lo editado a mano
   function decidirCarga() {
     if (!mesaTieneTexto()) return 'reemplazar';
     return confirm('La mesa ya tiene texto.\n\nAceptar → reemplazar los bloques actuales.\nCancelar → agregar los nuevos debajo, sin borrar nada.') ? 'reemplazar' : 'agregar';
@@ -5363,13 +5393,13 @@ if (!permitidos.includes(correo)) {
   }
 
   const BLOQUES_INICIALES = [
-    { titulo: 'Gancho de Apertura / Idea Fuerza', contenido: '', placeholder: 'Generá los bloques con el botón violeta de la izquierda...' },
-    { titulo: 'Desarrollo, Datos Duros y Respaldo', contenido: '' },
+    { titulo: 'Gancho de Apertura / Idea Fuerza', contenido: '', placeholder: 'Generá los bloques con el botón violeta de la izquierda, o escribí y editá libremente acá...' },
+    { titulo: 'Desarrollo, Datos Duros y Respaldo Académico', contenido: '' },
     { titulo: 'Cierre Político y Llamado a la Acción', contenido: '' }
   ];
 
   $('cpo-sar-btn-add-bloque').addEventListener('click', () => {
-    const card = crearTarjetaBloque('Nuevo bloque', '');
+    const card = crearTarjetaBloque('Nuevo bloque / Argumento propio', '');
     actualizarMesa();
     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     card.querySelector('.cpo-bloque-textarea').focus();
@@ -5387,11 +5417,14 @@ if (!permitidos.includes(correo)) {
     if (ok) toast('📋 Texto completo copiado al portapapeles.');
   });
 
+  /* =====================================================================
+     4. MOTOR ANALÍTICO (GEMINI API)
+     ===================================================================== */
   function claveValida(k) { return typeof k === 'string' && k.trim().length >= 30; }
 
   function modeloGuardado() {
     let m = lsGet(CLAVE_MODELO, '') || CFG.MODELO_POR_DEFECTO;
-    if (/^gemini-(1\.0|1\.5|2\.0)/.test(m)) { m = CFG.MODELO_POR_DEFECTO; lsSet(CLAVE_MODELO, m); } 
+    if (/^gemini-(1\.0|1\.5|2\.0)/.test(m)) { m = CFG.MODELO_POR_DEFECTO; lsSet(CLAVE_MODELO, m); } // ya dados de baja por Google
     return m;
   }
 
@@ -5411,25 +5444,69 @@ if (!permitidos.includes(correo)) {
     span.className = 'sar-estado ' + (ok ? 'sar-ok' : 'sar-falta');
   }
 
+  function mensajeErrorAPI(status, data) {
+    const msg = (data && data.error && data.error.message) || '';
+    if (status === 400 && /api key/i.test(msg)) return 'La clave de API no es válida. Revisala en el panel del Motor IA.';
+    if (status === 401 || status === 403) return 'La clave no tiene permiso para este modelo o la API no está habilitada en tu proyecto de Google.';
+    if (status === 404) return 'El modelo elegido no existe o tu clave no tiene acceso. Abrí el Motor IA, tocá "Detectar" y elegí otro.';
+    if (status === 429) return 'Se agotó la cuota gratuita de Gemini (por minuto o por día). Esperá un rato, pasá a Flash-Lite o desmarcá documentos para mandar menos texto.';
+    if (status >= 500) return 'Los servidores de Google están con problemas. Probá de nuevo en unos minutos.';
+    return msg || ('Error ' + status + ' en la consulta.');
+  }
+
   $('cpo-sar-btn-motor').addEventListener('click', () => $('cpo-sar-motor-config').classList.toggle('cpo-abierto'));
   $('cpo-sar-modelo').addEventListener('change', (e) => lsSet(CLAVE_MODELO, e.target.value));
 
   $('cpo-sar-guardar-key').addEventListener('click', () => {
     const val = $('cpo-sar-apikey').value.trim();
-    if (!claveValida(val)) { toast('Clave incompleta. Copiala desde Google AI Studio.', 'error'); return; }
+    if (!claveValida(val)) { toast('Esa clave parece incompleta. Copiala de nuevo desde Google AI Studio.', 'error'); return; }
+    if (!val.startsWith('AIza') && !confirm('La clave no empieza con "AIza" como las de Google AI Studio. ¿Guardarla igual?')) return;
     const ok = lsSet(CLAVE_API, val) && lsSet(CLAVE_MODELO, $('cpo-sar-modelo').value);
     actualizarEstadoVisualMotor();
-    if (!ok) { toast('El navegador no dejó guardar la clave.', 'error'); return; }
+    if (!ok) { toast('El navegador no dejó guardar la clave (memoria llena o navegación privada).', 'error'); return; }
     $('cpo-sar-motor-config').classList.remove('cpo-abierto');
-    toast('✅ Motor IA conectado y guardado.');
+    toast('✅ Motor IA conectado y guardado en este navegador.');
   });
 
   $('cpo-sar-borrar-key').addEventListener('click', () => {
-    if (!confirm('¿Borrar la clave de Gemini?')) return;
+    if (!confirm('¿Borrar la clave de Gemini de este navegador?')) return;
     lsDel(CLAVE_API);
     $('cpo-sar-apikey').value = '';
     actualizarEstadoVisualMotor();
-    toast('🗑️ Clave borrada.');
+    toast('🗑️ Clave borrada de este navegador.');
+  });
+
+  $('cpo-sar-detectar-modelos').addEventListener('click', async () => {
+    const btn = $('cpo-sar-detectar-modelos');
+    const key = $('cpo-sar-apikey').value.trim() || lsGet(CLAVE_API, '');
+    if (!claveValida(key)) { toast('Pegá primero tu clave de Google AI Studio.', 'aviso'); return; }
+    btn.disabled = true;
+    btn.textContent = '⏳';
+    try {
+      const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000', { headers: { 'x-goog-api-key': key } });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(mensajeErrorAPI(resp.status, data));
+      const modelos = (data.models || [])
+        .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+        .map(m => ({ id: String(m.name || '').replace(/^models\//, ''), nombre: m.displayName || m.name }))
+        .filter(m => /gemini/i.test(m.id) && !/(image|tts|audio|live|embedding|robotics|computer|transcribe|veo|imagen|lyria|omni)/i.test(m.id));
+      if (modelos.length === 0) throw new Error('Google no devolvió modelos de texto para esta clave.');
+      const sel = $('cpo-sar-modelo');
+      const actual = sel.value;
+      sel.replaceChildren(
+        el('option', { value: 'gemini-flash-latest' }, '⚡ Flash · última versión (recomendado)'),
+        el('option', { value: 'gemini-flash-lite-latest' }, '🪶 Flash-Lite · más rápido, más cuota gratis'),
+        ...modelos.filter(m => m.id !== 'gemini-flash-latest' && m.id !== 'gemini-flash-lite-latest')
+                  .map(m => el('option', { value: m.id }, m.nombre + ' (' + m.id + ')'))
+      );
+      asegurarOpcionModelo(actual);
+      toast('✅ ' + modelos.length + ' modelos disponibles para tu clave. Elegí uno y tocá Guardar.');
+    } catch (err) {
+      toast(err instanceof TypeError ? 'No hubo conexión con Google. Revisá internet o algún bloqueador de anuncios.' : err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🔄 Detectar';
+    }
   });
 
   const ESQUEMA_BLOQUES = {
@@ -5449,36 +5526,67 @@ if (!permitidos.includes(correo)) {
     };
   }
 
+  function restaurarEntradas(e) {
+    if (!e || !MODOS[e.modo]) return;
+    seleccionPorModo[e.modo] = { formato: e.formato, tono: e.tono };
+    renderFormularioModo(e.modo);
+    $('cpo-sar-input-principal').value = e.principal || '';
+    $('cpo-sar-input-contraste').value = e.contraste || '';
+    $('cpo-sar-criterio-usuario').value = e.criterio || '';
+    if (e.jurisdiccion) $('cpo-sar-jurisdiccion').value = e.jurisdiccion;
+  }
+
   function construirPrompt(entradas, fuentes) {
     const def = MODOS[entradas.modo];
     const est = def.estructura(entradas.formato);
 
     const sistema = [
-      'Sos Consultor Político de Creativa Política.',
-      '1. Citá autores, páginas o artículos SOLO si aparecen en las fuentes adjuntas.',
-      '2. Si un argumento necesita un dato que no está en las fuentes, marcalo con [VERIFICAR].',
+      'Sos el Consultor Político Senior, Politólogo y Analista Legislativo principal del equipo "Creativa Política" (Argentina).',
+      'Producís análisis rigurosos y piezas de comunicación listas para que el consultor humano las edite con su propio criterio.',
+      'Escribís en español rioplatense. En piezas legislativas e institucionales usás registro formal.',
+      '',
+      'REGLAS DE RIGOR (obligatorias)',
+      '1. Citá autores, obras, páginas, artículos de normas o cifras SOLO si aparecen en las fuentes adjuntas o en el texto del caso. Al citar una fuente adjunta indicá el nombre del archivo y la página.',
+      '2. Si un argumento necesita un dato, norma o cifra que no está en las fuentes, escribilo igual pero marcado con [VERIFICAR].',
+      '3. Nunca inventes votaciones, declaraciones, números de expediente ni artículos de ley.',
+      '4. El marco normativo es el de la jurisdicción indicada. No mezcles normas de otras jurisdicciones.',
+      '',
       'FORMATO DE RESPUESTA',
-      'Respondé únicamente con un arreglo JSON de objetos con "titulo" y "contenido". Nada de texto fuera del JSON.'
+      'Respondé únicamente con un arreglo JSON de objetos con las propiedades "titulo" y "contenido". Nada de texto fuera del JSON. Dentro de "contenido" podés usar saltos de línea.'
     ].join('\n');
 
     const partes = [];
     if (fuentes.length) {
-      partes.push('FUENTES DOCUMENTALES:');
-      fuentes.forEach(f => partes.push('=== FUENTE "' + f.nombre + '" ===\n' + f.texto));
+      partes.push('FUENTES DOCUMENTALES ADJUNTAS (usalas para fundamentar)');
+      fuentes.forEach(f => partes.push('=== FUENTE "' + f.nombre + '"' + (f.recortado ? ' (selección de páginas relevantes)' : '') + ' ===\n' + f.texto));
+      partes.push('=== FIN DE LAS FUENTES ===');
     }
-    partes.push('TEXTO BASE\n' + (entradas.principal.trim() || '(Basarse en las fuentes)'));
-    if (def.contraste && entradas.contraste.trim()) partes.push('TEXTO B · ARCHIVO PARA CONTRASTAR\n' + entradas.contraste.trim());
+    partes.push('TEXTO / CASO PRINCIPAL\n' + (entradas.principal.trim() || '(Basarse en las fuentes adjuntas)'));
+    if (def.contraste && entradas.contraste.trim()) partes.push('TEXTO B · ARCHIVO / REALIDAD PARA CONTRASTAR\n' + entradas.contraste.trim());
     partes.push([
       'PEDIDO',
-      'Modo → ' + entradas.modo,
-      'Formato → ' + entradas.formato,
-      entradas.tono ? 'Tono → ' + entradas.tono : '',
-      'Criterio → ' + entradas.criterio,
-      'Armá estos bloques:',
+      'Modo de trabajo → ' + entradas.modo,
+      'Formato solicitado → ' + entradas.formato,
+      entradas.tono ? 'Tono / enfoque → ' + entradas.tono : '',
+      'Jurisdicción → ' + (entradas.jurisdiccion.trim() || 'No especificada (marcá con [VERIFICAR] toda norma que cites)'),
+      'Criterio del consultor → ' + (entradas.criterio.trim() || 'Máximo rigor politológico, claridad expositiva y anclaje territorial.'),
+      'Extensión → ' + est.extension,
+      '',
+      'Armá exactamente estos bloques, en este orden y con estos títulos',
       est.bloques.map((b, i) => (i + 1) + '. ' + b).join('\n')
     ].filter(Boolean).join('\n'));
 
     return { sistema, usuario: partes.join('\n\n') };
+  }
+
+  function extraerTextoRespuesta(data) {
+    const cand = data && data.candidates && data.candidates[0];
+    if (!cand) {
+      const motivo = data && data.promptFeedback && data.promptFeedback.blockReason;
+      throw new Error(motivo ? 'Google bloqueó la consulta (' + motivo + '). Reformulá el texto o quitá alguna fuente.' : 'La IA no devolvió ninguna respuesta.');
+    }
+    const texto = ((cand.content && cand.content.parts) || []).filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join('');
+    return { texto, motivoFin: cand.finishReason };
   }
 
   function normalizarBloques(raw) {
@@ -5489,11 +5597,14 @@ if (!permitidos.includes(correo)) {
       const m = limpio.match(/\[[\s\S]*\]/);
       if (m) { try { datos = JSON.parse(m[0]); } catch (__) { datos = null; } }
     }
+    if (datos && !Array.isArray(datos) && typeof datos === 'object') datos = datos.bloques || datos.blocks || Object.values(datos).find(Array.isArray) || null;
     if (!Array.isArray(datos)) return null;
     const bloques = datos.map((b, i) => {
       if (typeof b === 'string') return { titulo: 'Bloque ' + (i + 1), contenido: b };
       const titulo = (b && (b.titulo || b.title)) || ('Bloque ' + (i + 1));
       let contenido = b ? (b.contenido ?? b.content ?? b.texto ?? '') : '';
+      if (Array.isArray(contenido)) contenido = contenido.join('\n\n');
+      else if (contenido && typeof contenido === 'object') contenido = JSON.stringify(contenido, null, 2);
       return { titulo: String(titulo), contenido: String(contenido) };
     }).filter(b => b.titulo.trim() || b.contenido.trim());
     return bloques.length ? bloques : null;
@@ -5501,9 +5612,11 @@ if (!permitidos.includes(correo)) {
 
   async function ejecutarAnalisisConIA() {
     const apiKey = lsGet(CLAVE_API, '').trim();
+    const modelo = modeloGuardado();
+
     if (!claveValida(apiKey)) {
       $('cpo-sar-motor-config').classList.add('cpo-abierto');
-      toast('🔑 Primero conectá tu clave de Gemini arriba.', 'aviso');
+      toast('🔑 Primero conectá tu clave de Gemini en el panel que se abrió arriba.', 'aviso');
       return;
     }
 
@@ -5513,8 +5626,14 @@ if (!permitidos.includes(correo)) {
     const activos = biblioteca.filter(d => d.activo !== false && largoUtil(d.texto) >= 200);
 
     if (!entradas.principal.trim() && activos.length === 0) {
-      toast('Escribí un tema en el paso 2, o marcá un documento en el paso 1.', 'aviso');
+      toast('Escribí un tema o texto en el paso 2, o marcá al menos un documento en el paso 1.', 'aviso');
       return;
+    }
+    if (def.necesitaContraste && def.necesitaContraste(entradas.formato) && !entradas.contraste.trim() && activos.length === 0) {
+      if (!confirm('Para esta auditoría hace falta el Texto B o un documento marcado. Sin eso la IA no tiene contra qué comparar. ¿Seguir igual?')) return;
+    }
+    if (def.necesitaPDFs && def.necesitaPDFs(entradas.tono) && activos.length === 0) {
+      if (!confirm('Elegiste fundamentar con los PDFs pero no hay ninguno marcado. La IA va a marcar con [VERIFICAR] lo que no pueda respaldar. ¿Seguir igual?')) return;
     }
 
     const claves = palabrasClave([entradas.principal, entradas.contraste, entradas.criterio].join(' '));
@@ -5527,33 +5646,42 @@ if (!permitidos.includes(correo)) {
 
     const btn = $('cpo-sar-btn-ejecutar');
     const textoOriginal = btn.textContent;
-    btn.textContent = '⏳ Analizando...';
+    btn.textContent = '⏳ Analizando y redactando...';
     btn.disabled = true;
 
+    const controlador = new AbortController();
+    const temporizador = setTimeout(() => controlador.abort(), CFG.TIMEOUT_IA_MS);
+
     try {
-      const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + CFG.MODELO_POR_DEFECTO + ':generateContent', {
+      const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(modelo) + ':generateContent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: prompt.sistema }] },
           contents: [{ role: 'user', parts: [{ text: prompt.usuario }] }],
           generationConfig: { responseMimeType: 'application/json', responseSchema: ESQUEMA_BLOQUES }
-        })
+        }),
+        signal: controlador.signal
       });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error?.message || 'Error de Google');
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(mensajeErrorAPI(resp.status, data));
 
-      let rawText = data.candidates[0].content.parts[0].text;
-      const bloques = normalizarBloques(rawText);
+      const { texto, motivoFin } = extraerTextoRespuesta(data);
+      const bloques = normalizarBloques(texto);
       if (bloques) {
         cargarBloquesEnMesa(bloques, decidirCarga());
         toast('✅ Listo. Se armaron ' + bloques.length + ' bloques editables.');
       } else {
-        toast('La IA respondió sin formato.', 'aviso');
+        cargarBloquesEnMesa([{ titulo: 'Resultado sin formato (revisar)', contenido: texto || '(La IA devolvió una respuesta vacía)' }], decidirCarga());
+        toast(motivoFin === 'MAX_TOKENS' ? 'La respuesta se cortó por larga. Probá con menos documentos marcados o un pedido más acotado.' : 'La IA respondió sin el formato esperado. Quedó todo en un solo bloque para revisar.', 'aviso');
       }
     } catch (err) {
-      toast('⚠️ Error IA: ' + err.message, 'error');
+      let detalle = err && err.message ? err.message : String(err);
+      if (err && err.name === 'AbortError') detalle = 'La consulta tardó demasiado. Probá con menos documentos marcados o con Flash.';
+      else if (err instanceof TypeError) detalle = 'No hubo conexión con Google. Revisá internet o algún bloqueador de anuncios.';
+      toast('⚠️ No se pudo procesar con la IA.\n' + detalle, 'error');
     } finally {
+      clearTimeout(temporizador);
       btn.textContent = textoOriginal;
       btn.disabled = false;
     }
@@ -5561,11 +5689,14 @@ if (!permitidos.includes(correo)) {
 
   $('cpo-sar-btn-ejecutar').addEventListener('click', ejecutarAnalisisConIA);
 
+  /* =====================================================================
+     5. BORRADORES Y JURISDICCIÓN POR CLIENTE
+     ===================================================================== */
   function claveBorradores() { return PREFIJO_BORRADORES + leerCliente().clave; }
   function obtenerBorradores() { const l = lsGetJSON(claveBorradores(), []); return Array.isArray(l) ? l : []; }
   function guardarListaBorradores(lista) {
     if (!lsSet(claveBorradores(), JSON.stringify(lista))) {
-      toast('No hay espacio en la memoria del navegador.', 'error');
+      toast('No hay espacio en la memoria del navegador. Borrá borradores viejos e intentá de nuevo.', 'error');
       return false;
     }
     return true;
@@ -5576,18 +5707,19 @@ if (!permitidos.includes(correo)) {
     const cont = $('cpo-sar-lista-borradores');
     $('cpo-sar-count-borradores').textContent = lista.length;
     cont.replaceChildren();
-    if (lista.length === 0) { cont.append(el('div', { class: 'sar-vacio' }, 'No hay borradores guardados.')); return; }
+    if (lista.length === 0) { cont.append(el('div', { class: 'sar-vacio' }, 'Todavía no hay borradores guardados para este cliente.')); return; }
 
     lista.forEach((b, idx) => {
       const abrir = el('span', { class: 'sar-borrador-abrir', title: 'Cargar en la mesa' },
         '📝 ' + (b.titulo || 'Sin nombre') + ' ', el('small', null, '· ' + (b.modo || '-') + ' · ' + (b.fecha || '')));
       abrir.addEventListener('click', () => {
         cargarBloquesEnMesa(b.bloques || [], decidirCarga());
-        toast('📂 Borrador cargado en la mesa.');
+        restaurarEntradas(b.entradas);
+        toast('📂 Borrador "' + (b.titulo || '') + '" cargado en la mesa.');
       });
-      const borrar = el('button', { type: 'button', class: 'sar-icono sar-peligro',
+      const borrar = el('button', { type: 'button', class: 'sar-icono sar-peligro', title: 'Eliminar borrador',
         onclick: () => {
-          if (!confirm('¿Eliminar el borrador?')) return;
+          if (!confirm('¿Eliminar el borrador "' + (b.titulo || '') + '"?')) return;
           const actual = obtenerBorradores();
           actual.splice(idx, 1);
           if (guardarListaBorradores(actual)) renderBorradores();
@@ -5598,39 +5730,99 @@ if (!permitidos.includes(correo)) {
 
   $('cpo-sar-btn-guardar-borrador').addEventListener('click', () => {
     const bloques = leerBloques();
-    if (!bloques.some(b => b.contenido.trim())) { toast('La mesa está vacía.', 'aviso'); return; }
-    const nombre = prompt('Nombre para guardar este trabajo:', 'Análisis ' + new Date().toLocaleDateString('es-AR'));
+    if (!bloques.some(b => b.contenido.trim())) { toast('La mesa está vacía, no hay nada para guardar.', 'aviso'); return; }
+    const cliente = leerCliente();
+    if (cliente.clave === 'general' && !confirm('No detecté un cliente elegido en el tablero. Se va a guardar en "General". ¿Seguir?')) return;
+    const nombre = prompt('Nombre para guardar este trabajo en el archivo de ' + cliente.nombre, 'Análisis / Discurso ' + new Date().toLocaleDateString('es-AR'));
     if (!nombre || !nombre.trim()) return;
     const lista = obtenerBorradores();
-    lista.unshift({ titulo: nombre.trim(), modo: modoActual, fecha: new Date().toLocaleString('es-AR'), bloques });
+    lista.unshift({ titulo: nombre.trim(), modo: modoActual, fecha: new Date().toLocaleString('es-AR'), bloques, entradas: leerEntradas() });
     if (guardarListaBorradores(lista)) {
       renderBorradores();
-      toast('💾 Guardado.');
+      toast('💾 Guardado en el archivo de ' + cliente.nombre + '.');
     }
   });
 
-  document.getElementById('cpo-sar-jurisdiccion').value = lsGet(PREFIJO_JURISDICCION + leerCliente().clave, CFG.JURISDICCION_POR_DEFECTO);
-  document.getElementById('cpo-sar-jurisdiccion').addEventListener('change', (e) => lsSet(PREFIJO_JURISDICCION + leerCliente().clave, e.target.value.trim()));
+  function cargarJurisdiccion() { $('cpo-sar-jurisdiccion').value = lsGet(PREFIJO_JURISDICCION + leerCliente().clave, CFG.JURISDICCION_POR_DEFECTO); }
+  $('cpo-sar-jurisdiccion').addEventListener('change', (e) => lsSet(PREFIJO_JURISDICCION + leerCliente().clave, e.target.value.trim()));
 
-  const btnAbrirRedaccion = document.getElementById('cpo-btn-abrir-redaccion');
-  if(btnAbrirRedaccion) {
-    btnAbrirRedaccion.addEventListener('click', () => {
-      modal.classList.add('cpo-abierto');
-      document.documentElement.classList.add('cpo-sar-sin-scroll');
-      if (!formularioListo) { renderFormularioModo(modoActual); formularioListo = true; }
-      actualizarEstadoVisualMotor();
-      cargarBiblioteca();
-      renderBorradores();
-      if ($('cpo-sar-contenedor-bloques').children.length === 0) cargarBloquesEnMesa(BLOQUES_INICIALES);
-      else tarjetas().forEach(c => ajustarAltura(c.querySelector('.cpo-bloque-textarea')));
-    });
+  function refrescarCliente() {
+    $('cpo-sar-cliente-activo').textContent = leerCliente().nombre;
+    renderBorradores();
+    cargarJurisdiccion();
   }
 
-  $('cpo-sar-cerrar').addEventListener('click', () => {
+  document.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t && t.tagName === 'SELECT' && !modal.contains(t) && modal.classList.contains('cpo-abierto')) refrescarCliente();
+  }, true);
+
+  /* =====================================================================
+     6. APERTURA, CIERRE Y BOTÓN EN EL MENÚ DEL TABLERO
+     ===================================================================== */
+  function abrirModal() {
+    modal.classList.add('cpo-abierto');
+    document.documentElement.classList.add('cpo-sar-sin-scroll');
+    if (!formularioListo) { renderFormularioModo(modoActual); formularioListo = true; }
+    actualizarEstadoVisualMotor();
+    refrescarCliente();
+    cargarBiblioteca();
+    if ($('cpo-sar-contenedor-bloques').children.length === 0) cargarBloquesEnMesa(BLOQUES_INICIALES);
+    else tarjetas().forEach(c => ajustarAltura(c.querySelector('.cpo-bloque-textarea')));
+  }
+
+  function cerrarModal() {
     modal.classList.remove('cpo-abierto');
     document.documentElement.classList.remove('cpo-sar-sin-scroll');
-  });
+  }
 
+  $('cpo-sar-cerrar').addEventListener('click', cerrarModal);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('cpo-abierto')) cerrarModal(); });
+
+  window.cpoAbrirRedaccion = abrirModal; // para abrirlo desde otros módulos
+
+  const ESTILO_BOTON_MENU = 'cursor:pointer; padding:8px 12px; margin:6px 8px; border-radius:6px; background:rgba(124,58,237,0.18); color:#c4b5fd; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px; border:1px solid rgba(139,92,246,0.4);';
+  const ESTILO_BOTON_FLOTANTE = ESTILO_BOTON_MENU + ' position:fixed; bottom:60px; left:16px; z-index:9999; background:#5b21b6; color:#fff;';
+  let botonMenu = null;
+  let ticksSinMenu = 0;
+
+  function buscarAnclaMenu() {
+    const btnMapa = document.getElementById('cpo-btn-abrir-mapa');
+    if (btnMapa && btnMapa.parentElement) return btnMapa;
+    const ref = Array.from(document.querySelectorAll('a, button, div, li')).find(n =>
+      n.children.length === 0 && n.textContent.trim() === 'Menciones' && !modal.contains(n));
+    return ref && ref.parentElement ? ref.parentElement : null;
+  }
+
+  function ubicarBotonMenu() {
+    if (!botonMenu) {
+      botonMenu = document.getElementById('cpo-btn-abrir-redaccion') ||
+        el('div', { id: 'cpo-btn-abrir-redaccion', class: 'notranslate', role: 'button', tabIndex: 0 }, '✍️ Análisis y Redacción');
+      botonMenu.setAttribute('translate', 'no');
+      botonMenu.addEventListener('click', abrirModal);
+      botonMenu.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirModal(); } });
+    }
+    if (botonMenu.isConnected && botonMenu.dataset.ubicacion === 'menu') return;
+    if (botonMenu.isConnected && botonMenu.dataset.ubicacion === 'flotante' && ticksSinMenu > 100) return;
+
+    const ancla = buscarAnclaMenu();
+    if (ancla) {
+      botonMenu.style.cssText = ESTILO_BOTON_MENU;
+      botonMenu.dataset.ubicacion = 'menu';
+      ancla.insertAdjacentElement('afterend', botonMenu);
+      ticksSinMenu = 0;
+      return;
+    }
+    ticksSinMenu++;
+    if (!botonMenu.isConnected && ticksSinMenu >= 8) { // espera unos 10 segundos al menú
+      botonMenu.style.cssText = ESTILO_BOTON_FLOTANTE;
+      botonMenu.dataset.ubicacion = 'flotante';
+      document.body.appendChild(botonMenu);
+    }
+  }
+
+  ubicarBotonMenu();
+  setInterval(ubicarBotonMenu, 1200);
 })();
 </script>
-<!-- === FIN MÓDULO SCROLL CORREGIDO === -->
+<!-- === FIN MÓDULO SISTEMA DE ANÁLISIS Y REDACCIÓN POLÍTICA · v3 === -->

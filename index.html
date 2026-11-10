@@ -4394,7 +4394,7 @@ if (!permitidos.includes(correo)) {
 </script>
 <!-- === FIN SUITE MASTER CARTOGRAFÍA ELECTORAL PBA === -->
 <!-- =========================================================================
-     CREATIVA POLÍTICA - OS V4 (MENÚ CIRCULAR + DRAG & DROP + IA ESTABLE)
+     CREATIVA POLÍTICA - OS V5 (ANTI-COLISIONES, DRAG & DROP E IA REFORZADA)
      ========================================================================= -->
 <style>
   /* --- TEMA CLARO / OSCURO --- */
@@ -4514,10 +4514,10 @@ if (!permitidos.includes(correo)) {
     </div>
     <div class="cpo-window-body" style="display: flex; flex-direction: column; gap: 16px;">
       
-      <div class="cpo-card" id="cpo-ia-config" style="flex-direction:row; align-items:center;">
+      <div class="cpo-card" id="cpo-os-ia-config" style="flex-direction:row; align-items:center;">
         <h5 style="margin:0; color:var(--cpo-primary); width:150px;">🔑 Conectar IA:</h5>
-        <input type="password" id="cpo-sar-apikey" class="cpo-input" placeholder="Pegá tu clave de Google AI Studio (AIzaSy...)" style="flex:1;">
-        <button id="cpo-sar-guardar-key" class="cpo-btn cpo-btn-primary">Guardar Enlace</button>
+        <input type="password" id="cpo-os-apikey" class="cpo-input" placeholder="Pegá tu clave de Google AI Studio (AIzaSy...)" style="flex:1;">
+        <button id="cpo-os-guardar-key" class="cpo-btn cpo-btn-primary">Guardar Enlace</button>
       </div>
 
       <div style="display:grid; grid-template-columns: 350px 1fr; gap: 16px; flex:1; overflow:hidden;">
@@ -4698,7 +4698,7 @@ if (!permitidos.includes(correo)) {
       if (target === 'cpo-mapa-modal') {
         const mapa = document.getElementById('cpo-mapa-modal');
         if (mapa) { mapa.style.display = 'flex'; if (typeof iniciarMapa === 'function') iniciarMapa(); } 
-        else { alert("Asegurate de mantener el código original del mapa."); }
+        else { alert("Asegurate de mantener el código original del mapa arriba."); }
       } else {
         const win = document.getElementById(target);
         if (win) { win.classList.add('open'); overlay.classList.add('open'); }
@@ -4710,33 +4710,36 @@ if (!permitidos.includes(correo)) {
   overlay.addEventListener('click', closeAllWindows);
 
   /* =========================================================================
-     2. GESTIÓN DE API KEY Y GEMINI
+     2. GESTIÓN DE API KEY Y GEMINI (REFORZADA ANTI-COLISIONES)
      ========================================================================= */
-  const apiKeyInput = document.getElementById('cpo-sar-apikey');
-  if (localStorage.getItem('cpo_gemini_key')) {
+  const apiKeyInput = document.getElementById('cpo-os-apikey');
+  if (localStorage.getItem('cpo_gemini_key') && apiKeyInput) {
     apiKeyInput.value = localStorage.getItem('cpo_gemini_key');
-    document.getElementById('cpo-ia-config').style.display = 'none';
+    document.getElementById('cpo-os-ia-config').style.display = 'none';
   }
 
-  document.getElementById('cpo-sar-guardar-key').addEventListener('click', () => {
-    const val = apiKeyInput.value.trim();
+  document.getElementById('cpo-os-guardar-key').addEventListener('click', () => {
+    const inputEl = document.getElementById('cpo-os-apikey');
+    if (!inputEl) { alert("Error crítico: No se encuentra el campo."); return; }
+    const val = inputEl.value.trim();
     if (val.startsWith('AIza')) {
       localStorage.setItem('cpo_gemini_key', val);
-      alert('Cerebro IA conectado.');
-      document.getElementById('cpo-ia-config').style.display = 'none';
-    } else { alert("La clave debe empezar con AIza..."); }
+      alert('✅ Cerebro IA conectado correctamente.');
+      document.getElementById('cpo-os-ia-config').style.display = 'none';
+    } else { 
+      alert("⚠️ La clave está vacía o es incorrecta.\nAsegurate de pegarla bien (debe empezar con AIza...)."); 
+    }
   });
 
   async function llamarGemini(systemPrompt, userPrompt, btnElement) {
     const key = localStorage.getItem('cpo_gemini_key');
-    if (!key) { alert("Falta API Key. Conectá el ecosistema en el Laboratorio de Redacción."); return null; }
+    if (!key) { alert("⚠️ Falta la API Key. Conectá el ecosistema en la ventana del Laboratorio de Redacción."); return null; }
     
     const originalText = btnElement.innerHTML;
     btnElement.innerHTML = '⏳ Pensando...';
     btnElement.disabled = true;
 
     try {
-      // Usamos 1.5-flash para máxima compatibilidad
       const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + key, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -4748,7 +4751,10 @@ if (!permitidos.includes(correo)) {
       });
       
       const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error?.message || 'Error en IA');
+      if (!resp.ok) {
+          console.error("Error API:", data);
+          throw new Error(data.error?.message || 'Error desconocido en la API de Google');
+      }
       
       let rawText = data.candidates[0].content.parts[0].text;
       rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -4758,7 +4764,7 @@ if (!permitidos.includes(correo)) {
 
       return JSON.parse(rawText);
     } catch (e) {
-      alert("Error con Gemini: " + e.message);
+      alert("❌ Error de IA: " + e.message + "\n\nRevisá que tu clave sea válida y tengas conexión a internet.");
       return null;
     } finally {
       btnElement.innerHTML = originalText;
@@ -4801,7 +4807,7 @@ if (!permitidos.includes(correo)) {
     
     const bloques = await llamarGemini(sysPrompt, userP, e.currentTarget);
     if(bloques) {
-      addActorManual(n, t, inf); // Lo agregamos también al fichero
+      addActorManual(n, t, inf);
       const res = document.getElementById('cpo-crm-resultado');
       res.innerHTML = '';
       bloques.forEach(b => {
@@ -4830,7 +4836,6 @@ if (!permitidos.includes(correo)) {
     t.draggable = true;
     t.id = 'task-' + taskIdCounter;
     
-    // Determinar color por responsable
     let color = 'var(--cpo-primary)';
     if(resp.toLowerCase().includes('territorio')) color = 'var(--cpo-accent)';
     else if(resp.toLowerCase().includes('candidato')) color = 'var(--cpo-warning)';
@@ -4843,13 +4848,11 @@ if (!permitidos.includes(correo)) {
       <div style="font-size:11px; color:var(--cpo-text-muted); margin-top:2px;">${detalle}</div>
     `;
 
-    // Evento de borrado
     t.querySelector('.cpo-task-delete').addEventListener('click', () => {
       t.remove();
       updateKanbanCounters();
     });
 
-    // Eventos Drag & Drop
     t.addEventListener('dragstart', (e) => {
       e.dataTransfer.setData('text/plain', t.id);
       setTimeout(() => t.style.opacity = '0.5', 0);
@@ -4859,9 +4862,8 @@ if (!permitidos.includes(correo)) {
     return t;
   }
 
-  // Configurar zonas para soltar (Dropzones)
   document.querySelectorAll('.cpo-kanban-col').forEach(col => {
-    col.addEventListener('dragover', (e) => e.preventDefault()); // Necesario para permitir drop
+    col.addEventListener('dragover', (e) => e.preventDefault());
     col.addEventListener('drop', (e) => {
       e.preventDefault();
       const id = e.dataTransfer.getData('text/plain');
@@ -4873,7 +4875,6 @@ if (!permitidos.includes(correo)) {
     });
   });
 
-  // Agregar Tarea Manual
   document.getElementById('cpo-kanban-add-manual').addEventListener('click', () => {
     const input = document.getElementById('cpo-kanban-objetivo');
     const txt = input.value.trim();
@@ -4885,7 +4886,6 @@ if (!permitidos.includes(correo)) {
     updateKanbanCounters();
   });
 
-  // Desglosar con IA
   document.getElementById('cpo-kanban-generar').addEventListener('click', async (e) => {
     const obj = document.getElementById('cpo-kanban-objetivo').value.trim();
     if(!obj) { alert("Escribí un objetivo para desglosar con IA."); return; }
@@ -4901,10 +4901,13 @@ if (!permitidos.includes(correo)) {
         col.appendChild(taskNode);
       });
       updateKanbanCounters();
+      document.getElementById('cpo-kanban-objetivo').value = '';
     }
   });
 
-  /* --- 5. IA EN LABORATORIO DE REDACCIÓN --- */
+  /* =========================================================================
+     5. IA EN LABORATORIO DE REDACCIÓN
+     ========================================================================= */
   document.getElementById('cpo-sar-ejecutar').addEventListener('click', async (e) => {
     const modulo = document.getElementById('cpo-sar-modulo-select').value;
     const prompt = document.getElementById('cpo-sar-prompt').value.trim();
@@ -4944,5 +4947,5 @@ if (!permitidos.includes(correo)) {
 })();
 </script>
 <!-- =========================================================================
-     FIN CREATIVA POLÍTICA - OS V4
+     FIN CREATIVA POLÍTICA - OS V5
      ========================================================================= -->

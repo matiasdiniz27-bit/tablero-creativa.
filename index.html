@@ -4394,262 +4394,158 @@ if (!permitidos.includes(correo)) {
 </script>
 <!-- === FIN SUITE MASTER CARTOGRAFÍA ELECTORAL PBA === -->
 <!-- =========================================================================
-     CREATIVA POLÍTICA - CAMPAIGN OS (SISTEMA OPERATIVO DE CAMPAÑA)
-     Versión: 1.0 Master | UI: Glassmorphism | Tema: Claro/Oscuro Nativo
+     CREATIVA POLÍTICA - OS V4 (MENÚ CIRCULAR + DRAG & DROP + IA ESTABLE)
      ========================================================================= -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
 <style>
-  /* --- VARIABLES GLOBALES (TEMA CLARO POR DEFECTO) --- */
+  /* --- TEMA CLARO / OSCURO --- */
   :root {
-    --cpo-bg: #f3f4f6;
-    --cpo-glass: rgba(255, 255, 255, 0.85);
-    --cpo-glass-border: rgba(255, 255, 255, 0.4);
-    --cpo-panel: #ffffff;
-    --cpo-text-main: #1e293b;
-    --cpo-text-muted: #64748b;
-    --cpo-border: #e2e8f0;
-    --cpo-shadow: rgba(0, 0, 0, 0.08);
-    --cpo-primary: #5b21b6;
-    --cpo-primary-hover: #4c1d95;
-    --cpo-accent: #10b981;
-    --cpo-danger: #ef4444;
-    --cpo-warning: #f59e0b;
-    color-scheme: light;
+    --cpo-bg: #f8fafc; --cpo-glass: rgba(255, 255, 255, 0.9); --cpo-glass-border: rgba(255, 255, 255, 0.6);
+    --cpo-panel: #ffffff; --cpo-text-main: #1e293b; --cpo-text-muted: #64748b;
+    --cpo-border: #e2e8f0; --cpo-shadow: rgba(0, 0, 0, 0.1);
+    --cpo-primary: #5b21b6; --cpo-primary-hover: #4c1d95; --cpo-accent: #10b981;
+    --cpo-danger: #ef4444; --cpo-warning: #f59e0b; color-scheme: light;
   }
-
-  /* --- VARIABLES TEMA OSCURO --- */
   html.cpo-dark-theme {
-    --cpo-bg: #0b1120;
-    --cpo-glass: rgba(17, 24, 39, 0.85);
-    --cpo-glass-border: rgba(255, 255, 255, 0.1);
-    --cpo-panel: #1e293b;
-    --cpo-text-main: #f8fafc;
-    --cpo-text-muted: #94a3b8;
-    --cpo-border: #334155;
-    --cpo-shadow: rgba(0, 0, 0, 0.5);
-    --cpo-primary: #8b5cf6;
-    --cpo-primary-hover: #a78bfa;
-    color-scheme: dark;
+    --cpo-bg: #0b1120; --cpo-glass: rgba(15, 23, 42, 0.85); --cpo-glass-border: rgba(255, 255, 255, 0.15);
+    --cpo-panel: #1e293b; --cpo-text-main: #f8fafc; --cpo-text-muted: #94a3b8;
+    --cpo-border: #334155; --cpo-shadow: rgba(0, 0, 0, 0.5);
+    --cpo-primary: #8b5cf6; --cpo-primary-hover: #a78bfa; color-scheme: dark;
   }
 
-  /* --- RESET Y UTILIDADES OS --- */
-  .cpo-os-container * {
-    box-sizing: border-box;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  }
-  .cpo-os-container {
-    position: fixed; inset: 0; pointer-events: none; z-index: 99990;
-  }
+  .cpo-os-container * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+  .cpo-os-container { position: fixed; inset: 0; pointer-events: none; z-index: 99990; }
 
-  /* --- DOCK PRINCIPAL (Barra tipo Mac) --- */
-  .cpo-dock {
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    background: var(--cpo-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--cpo-glass-border); border-radius: 20px;
-    padding: 8px 12px; display: flex; gap: 10px; align-items: center;
-    box-shadow: 0 10px 25px var(--cpo-shadow); pointer-events: auto;
-    transition: all 0.3s ease;
+  /* --- MENÚ CIRCULAR FLOTANTE (FAB) --- */
+  #cpo-fab-container {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    z-index: 99999; display: flex; flex-direction: column; align-items: center; pointer-events: auto;
   }
-  .cpo-dock-item {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width: 60px; height: 60px; border-radius: 14px; background: transparent;
-    border: none; cursor: pointer; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    color: var(--cpo-text-main); position: relative;
+  #cpo-fab-menu {
+    display: flex; gap: 8px; background: var(--cpo-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    padding: 10px 20px; border-radius: 50px; border: 1px solid var(--cpo-glass-border);
+    box-shadow: 0 10px 30px var(--cpo-shadow); opacity: 0; transform: translateY(20px) scale(0.9);
+    pointer-events: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); margin-bottom: 15px;
   }
-  .cpo-dock-item:hover {
-    background: rgba(139, 92, 246, 0.1); transform: translateY(-8px) scale(1.1);
+  #cpo-fab-container.open #cpo-fab-menu { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+  .cpo-fab-item {
+    background: transparent; border: none; font-size: 22px; width: 45px; height: 45px; border-radius: 50%;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative;
+    transition: all 0.2s ease; color: var(--cpo-text-main);
   }
-  .cpo-dock-item.active::after {
-    content: ''; position: absolute; bottom: 4px; width: 6px; height: 6px;
-    background: var(--cpo-primary); border-radius: 50%;
+  .cpo-fab-item:hover { background: rgba(139, 92, 246, 0.15); transform: translateY(-4px); }
+  .cpo-fab-item::after {
+    content: attr(data-title); position: absolute; top: -30px; background: var(--cpo-panel);
+    color: var(--cpo-text-main); font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px;
+    border: 1px solid var(--cpo-border); box-shadow: 0 4px 10px var(--cpo-shadow); opacity: 0;
+    pointer-events: none; transition: opacity 0.2s; white-space: nowrap;
   }
-  .cpo-dock-icon { font-size: 24px; margin-bottom: 2px; }
-  .cpo-dock-label { font-size: 9px; font-weight: 700; opacity: 0; transition: opacity 0.2s; position: absolute; bottom: -20px; white-space: nowrap; background: var(--cpo-panel); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--cpo-border); box-shadow: 0 2px 5px var(--cpo-shadow); }
-  .cpo-dock-item:hover .cpo-dock-label { opacity: 1; }
-  .cpo-dock-divider { width: 1px; height: 40px; background: var(--cpo-border); margin: 0 4px; }
+  .cpo-fab-item:hover::after { opacity: 1; }
+  
+  #cpo-fab-main {
+    width: 60px; height: 60px; border-radius: 50%; background: var(--cpo-primary); color: white;
+    border: none; font-size: 28px; cursor: pointer; box-shadow: 0 8px 20px rgba(91, 33, 182, 0.4);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; justify-content: center; align-items: center;
+  }
+  #cpo-fab-container.open #cpo-fab-main { transform: rotate(135deg); background: var(--cpo-danger); box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4); }
 
-  /* --- VENTANAS MODALES (Estilo App) --- */
+  /* --- VENTANAS ESTILO APP --- */
   .cpo-window {
     display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -45%) scale(0.95);
-    width: 90%; max-width: 1200px; height: 85vh; background: var(--cpo-panel);
-    border: 1px solid var(--cpo-border); border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); z-index: 99995; pointer-events: auto;
-    opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 92%; max-width: 1100px; height: 85vh; background: var(--cpo-panel);
+    border: 1px solid var(--cpo-border); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    z-index: 99995; pointer-events: auto; opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     flex-direction: column; overflow: hidden; color: var(--cpo-text-main);
   }
-  .cpo-window.open {
-    display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1);
-  }
-  .cpo-window-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 20px; background: var(--cpo-glass); backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--cpo-border);
-  }
+  .cpo-window.open { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .cpo-window-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: var(--cpo-glass); border-bottom: 1px solid var(--cpo-border); }
   .cpo-window-title { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-  .cpo-window-controls button {
-    background: transparent; border: none; font-size: 18px; color: var(--cpo-text-muted);
-    cursor: pointer; padding: 4px; border-radius: 6px; transition: background 0.2s;
-  }
+  .cpo-window-controls button { background: transparent; border: none; font-size: 18px; color: var(--cpo-text-muted); cursor: pointer; padding: 4px; border-radius: 6px; transition: background 0.2s; }
   .cpo-window-controls button:hover { background: rgba(239, 68, 68, 0.1); color: var(--cpo-danger); }
   .cpo-window-body { flex: 1; overflow-y: auto; padding: 20px; position: relative; }
 
-  /* --- ELEMENTOS UI GENÉRICOS --- */
-  .cpo-btn {
-    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700;
-    cursor: pointer; transition: all 0.2s; border: 1px solid transparent;
-  }
+  /* --- COMPONENTES UI --- */
+  .cpo-btn { padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
   .cpo-btn-primary { background: var(--cpo-primary); color: #fff; }
   .cpo-btn-primary:hover { background: var(--cpo-primary-hover); transform: translateY(-1px); }
   .cpo-btn-outline { background: transparent; border-color: var(--cpo-border); color: var(--cpo-text-main); }
-  .cpo-btn-outline:hover { background: var(--cpo-bg); }
-
-  .cpo-input, .cpo-select, .cpo-textarea {
-    width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--cpo-border);
-    background: var(--cpo-bg); color: var(--cpo-text-main); font-size: 13px; outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
+  .cpo-btn-accent { background: var(--cpo-accent); color: #fff; }
+  .cpo-input, .cpo-select, .cpo-textarea { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--cpo-border); background: var(--cpo-bg); color: var(--cpo-text-main); font-size: 13px; outline: none; transition: border-color 0.2s; }
   .cpo-input:focus, .cpo-textarea:focus { border-color: var(--cpo-primary); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
+  .cpo-card { background: var(--cpo-bg); border: 1px solid var(--cpo-border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 
-  .cpo-card {
-    background: var(--cpo-bg); border: 1px solid var(--cpo-border); border-radius: 12px;
-    padding: 16px; display: flex; flex-direction: column; gap: 10px;
-  }
-  
-  /* --- GRID Y LAYOUTS --- */
-  .cpo-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
-  .cpo-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
-
-  /* --- COMPONENTES ESPECÍFICOS: KANBAN --- */
+  /* --- KANBAN Y CRM TABLAS --- */
   .cpo-kanban-board { display: flex; gap: 16px; height: 100%; overflow-x: auto; padding-bottom: 10px; }
-  .cpo-kanban-col {
-    flex: 1; min-width: 260px; background: var(--cpo-bg); border-radius: 12px;
-    padding: 12px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--cpo-border);
-  }
-  .cpo-kanban-col h4 { margin: 0; font-size: 13px; color: var(--cpo-text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; }
-  .cpo-kanban-task {
-    background: var(--cpo-panel); border: 1px solid var(--cpo-border); border-radius: 8px;
-    padding: 12px; font-size: 12px; cursor: grab; box-shadow: 0 2px 4px var(--cpo-shadow);
-  }
+  .cpo-kanban-col { flex: 1; min-width: 260px; background: var(--cpo-bg); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--cpo-border); }
+  .cpo-kanban-task { background: var(--cpo-panel); border: 1px solid var(--cpo-border); border-left: 4px solid var(--cpo-primary); border-radius: 8px; padding: 12px; font-size: 12px; box-shadow: 0 2px 5px var(--cpo-shadow); display: flex; flex-direction: column; gap: 6px; cursor: grab; position: relative; }
   .cpo-kanban-task:active { cursor: grabbing; }
+  .cpo-task-delete { position: absolute; top: 6px; right: 6px; background: transparent; border: none; color: var(--cpo-danger); cursor: pointer; font-size: 10px; }
 
-  /* --- COMPONENTES ESPECÍFICOS: PROTOCOLO CRISIS --- */
-  .cpo-crisis-step {
-    display: flex; gap: 16px; padding: 16px; background: var(--cpo-bg);
-    border: 1px solid var(--cpo-border); border-radius: 12px; margin-bottom: 12px;
-    align-items: flex-start;
-  }
-  .cpo-crisis-num {
-    width: 32px; height: 32px; background: var(--cpo-danger); color: #fff;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 14px; flex-shrink: 0;
-  }
+  .cpo-crm-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .cpo-crm-item { background: var(--cpo-panel); border: 1px solid var(--cpo-border); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
 
-  /* Overlay para cerrar haciendo clic afuera */
-  .cpo-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(2px); z-index: 99994; pointer-events: auto;
-  }
+  .cpo-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); z-index: 99994; pointer-events: auto; }
   .cpo-overlay.open { display: block; }
 </style>
 
 <div class="cpo-os-container" translate="no" class="notranslate">
-  
-  <!-- BACKGROUND OVERLAY -->
   <div id="cpo-overlay" class="cpo-overlay"></div>
 
-  <!-- DOCK PRINCIPAL -->
-  <div class="cpo-dock">
-    <button class="cpo-dock-item" data-target="cpo-win-mapa">
-      <span class="cpo-dock-icon">🗺️</span>
-      <span class="cpo-dock-label">Territorio</span>
-    </button>
-    <button class="cpo-dock-item" data-target="cpo-win-redaccion">
-      <span class="cpo-dock-icon">✍️</span>
-      <span class="cpo-dock-label">Laboratorio IA</span>
-    </button>
-    <button class="cpo-dock-item" data-target="cpo-win-crm">
-      <span class="cpo-dock-icon">👥</span>
-      <span class="cpo-dock-label">Actores</span>
-    </button>
-    <div class="cpo-dock-divider"></div>
-    <button class="cpo-dock-item" data-target="cpo-win-tablero">
-      <span class="cpo-dock-icon">📋</span>
-      <span class="cpo-dock-label">Plan Operativo</span>
-    </button>
-    <button class="cpo-dock-item" data-target="cpo-win-crisis" style="color: var(--cpo-danger);">
-      <span class="cpo-dock-icon">🚨</span>
-      <span class="cpo-dock-label">Protocolo Crisis</span>
-    </button>
-    <div class="cpo-dock-divider"></div>
-    <button class="cpo-dock-item" id="cpo-theme-toggle">
-      <span class="cpo-dock-icon" id="cpo-theme-icon">🌙</span>
-      <span class="cpo-dock-label">Tema</span>
-    </button>
+  <!-- MENÚ CIRCULAR FLOTANTE (FAB) -->
+  <div id="cpo-fab-container">
+    <div id="cpo-fab-menu">
+      <button class="cpo-fab-item" data-target="cpo-mapa-modal" data-title="Mapa Territorial">🗺️</button>
+      <button class="cpo-fab-item" data-target="cpo-win-redaccion" data-title="Lab IA">✍️</button>
+      <button class="cpo-fab-item" data-target="cpo-win-crm" data-title="Actores">👥</button>
+      <button class="cpo-fab-item" data-target="cpo-win-tablero" data-title="Kanban">📋</button>
+      <button class="cpo-fab-item" data-target="cpo-win-crisis" data-title="Protocolo Crisis" style="color:var(--cpo-danger);">🚨</button>
+      <div style="width:1px; background:var(--cpo-border); margin:0 4px;"></div>
+      <button class="cpo-fab-item" id="cpo-theme-toggle" data-title="Modo Claro/Oscuro"><span id="cpo-theme-icon">🌙</span></button>
+    </div>
+    <button id="cpo-fab-main">⊞</button>
   </div>
 
   <!-- ==========================================
-       VENTANA 1: LABORATORIO DE REDACCIÓN (IA)
+       VENTANA 1: LABORATORIO DE REDACCIÓN
        ========================================== -->
   <div id="cpo-win-redaccion" class="cpo-window">
     <div class="cpo-window-header">
-      <div class="cpo-window-title">✍️ Sistema de Análisis y Redacción (Motor Gemini)</div>
-      <div class="cpo-window-controls">
-        <button class="cpo-win-close">✕</button>
-      </div>
+      <div class="cpo-window-title">✍️ Laboratorio de Redacción y Análisis (Gemini IA)</div>
+      <div class="cpo-window-controls"><button class="cpo-win-close">✕</button></div>
     </div>
-    <div class="cpo-window-body" style="display: flex; flex-direction: column; gap: 20px;">
+    <div class="cpo-window-body" style="display: flex; flex-direction: column; gap: 16px;">
       
-      <!-- Panel API Key (Siempre visible si no hay clave) -->
-      <div class="cpo-card" id="cpo-ia-config">
-        <h4 style="margin:0; color:var(--cpo-primary);">🔑 Conectar Cerebro IA</h4>
-        <p style="margin:0; font-size:12px; color:var(--cpo-text-muted);">Para procesar discursos y auditar proyectos necesitás tu clave gratuita de Google AI Studio.</p>
-        <div style="display:flex; gap:10px;">
-          <input type="password" id="cpo-sar-apikey" class="cpo-input" placeholder="Pegá tu clave AIza..." style="flex:1;">
-          <button id="cpo-sar-guardar-key" class="cpo-btn cpo-btn-primary">Guardar Enlace</button>
-        </div>
+      <div class="cpo-card" id="cpo-ia-config" style="flex-direction:row; align-items:center;">
+        <h5 style="margin:0; color:var(--cpo-primary); width:150px;">🔑 Conectar IA:</h5>
+        <input type="password" id="cpo-sar-apikey" class="cpo-input" placeholder="Pegá tu clave de Google AI Studio (AIzaSy...)" style="flex:1;">
+        <button id="cpo-sar-guardar-key" class="cpo-btn cpo-btn-primary">Guardar Enlace</button>
       </div>
 
-      <div class="cpo-grid-2" style="flex:1; overflow:hidden;">
-        <!-- Columna Izquierda: Parámetros -->
-        <div style="display:flex; flex-direction:column; gap:16px; overflow-y:auto; padding-right:10px;">
+      <div style="display:grid; grid-template-columns: 350px 1fr; gap: 16px; flex:1; overflow:hidden;">
+        <div style="display:flex; flex-direction:column; gap:16px; overflow-y:auto; padding-right:8px;">
           <div class="cpo-card">
-            <h4 style="margin:0;">1. Seleccioná el Módulo</h4>
+            <h5 style="margin:0 0 8px 0;">1. Módulo Operativo</h5>
             <select id="cpo-sar-modulo-select" class="cpo-select">
-              <option value="DISCURSO">🎙️ Discursos, Guiones y Copys (Fase 4)</option>
-              <option value="LEGISLATIVO">⚖️ Auditar Proyecto Legislativo (Fase 3)</option>
-              <option value="INCONGRUENCIAS">🔍 Detector de Incongruencias (Fase 1)</option>
+              <option value="DISCURSO">🎙️ Discursos, Guiones y Copys</option>
+              <option value="LEGISLATIVO">⚖️ Auditar Proyecto Legislativo</option>
+              <option value="INCONGRUENCIAS">🔍 Detector de Incongruencias</option>
             </select>
           </div>
-
           <div class="cpo-card">
-            <h4 style="margin:0;">2. Archivos Base (Opcional)</h4>
-            <input type="file" id="cpo-sar-pdf" class="cpo-input" accept=".pdf" style="padding: 4px;">
-            <small style="color:var(--cpo-text-muted);">Subí ordenanzas, presupuestos o papers para fundamentar.</small>
-          </div>
-
-          <div class="cpo-card">
-            <h4 style="margin:0;">3. Ingreso de Datos</h4>
-            <textarea id="cpo-sar-prompt" class="cpo-textarea" rows="4" placeholder="Escribí la idea central, el problema vecinal o pegá el texto del proyecto..."></textarea>
-            <textarea id="cpo-sar-contraste" class="cpo-textarea" rows="2" placeholder="Opcional: Pegá archivo previo o presupuesto para buscar contradicciones..." style="display:none;"></textarea>
-            <input type="text" id="cpo-sar-criterio" class="cpo-input" placeholder="Tono: Ej. Empático, institucional, citar datos de PBA...">
-            <button id="cpo-sar-ejecutar" class="cpo-btn cpo-btn-primary" style="margin-top:8px;">⚡ Generar Borrador Inteligente</button>
+            <h5 style="margin:0 0 8px 0;">2. Datos de Entrada</h5>
+            <textarea id="cpo-sar-prompt" class="cpo-textarea" rows="4" placeholder="Idea central, reclamo vecinal o texto del proyecto..."></textarea>
+            <input type="text" id="cpo-sar-criterio" class="cpo-input" placeholder="Tono: Ej. Cercano, agresivo, académico...">
+            <button id="cpo-sar-ejecutar" class="cpo-btn cpo-btn-primary" style="margin-top:8px;">⚡ Generar con IA</button>
           </div>
         </div>
 
-        <!-- Columna Derecha: Mesa de Edición -->
-        <div class="cpo-card" style="display:flex; flex-direction:column; background:var(--cpo-panel);">
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--cpo-border); padding-bottom:10px; margin-bottom:10px;">
-            <h4 style="margin:0; color:var(--cpo-primary);">🛠️ Mesa de Edición Abierta</h4>
-            <div style="display:flex; gap:6px;">
-               <button id="cpo-sar-copiar" class="cpo-btn cpo-btn-outline" style="padding:4px 8px; font-size:11px;">📋 Copiar Todo</button>
-               <button id="cpo-sar-word" class="cpo-btn cpo-btn-primary" style="padding:4px 8px; font-size:11px;">📄 Descargar Word</button>
-            </div>
+        <div class="cpo-card" style="background:var(--cpo-panel); display:flex; flex-direction:column;">
+          <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--cpo-border); padding-bottom:8px; margin-bottom:10px;">
+            <h5 style="margin:0; color:var(--cpo-primary);">🛠️ Mesa de Edición</h5>
+            <button id="cpo-sar-copiar" class="cpo-btn cpo-btn-outline" style="padding:4px 8px; font-size:11px;">📋 Copiar Todo</button>
           </div>
           <div id="cpo-sar-resultados" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px;">
-            <div style="text-align:center; padding:40px 20px; color:var(--cpo-text-muted);">
-              👈 Configurá los parámetros a la izquierda y tocá "Generar".
-              <br><br>La IA armará la estructura en bloques editables para que apliques tu criterio politológico.
+            <div style="text-align:center; padding:40px; color:var(--cpo-text-muted);">
+              Cargá los datos a la izquierda y tocá "Generar". La IA armará los bloques editables.
             </div>
           </div>
         </div>
@@ -4658,136 +4554,101 @@ if (!permitidos.includes(correo)) {
   </div>
 
   <!-- ==========================================
-       VENTANA 2: GESTOR DE ACTORES (CRM FASE 3)
+       VENTANA 2: GESTOR DE ACTORES (CRM)
        ========================================== -->
   <div id="cpo-win-crm" class="cpo-window">
     <div class="cpo-window-header">
-      <div class="cpo-window-title">👥 Matriz de Relacionamiento y Territorio (Fase 3)</div>
+      <div class="cpo-window-title">👥 Gestor de Actores & Briefs de Alianza</div>
       <div class="cpo-window-controls"><button class="cpo-win-close">✕</button></div>
     </div>
-    <div class="cpo-window-body">
-      <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
-        <p style="margin:0; color:var(--cpo-text-muted);">Gestioná clubes, sindicatos, referentes y punteros para tejer alianzas.</p>
-        <button id="cpo-crm-add" class="cpo-btn cpo-btn-primary">+ Nuevo Actor</button>
+    <div class="cpo-window-body" style="display:flex; gap:20px;">
+      <div style="flex: 1; display:flex; flex-direction:column; gap:16px;">
+        <div class="cpo-card">
+          <h4 style="margin:0; color:var(--cpo-primary);">Nuevo Perfil de Actor</h4>
+          <input type="text" id="cpo-crm-nombre" class="cpo-input" placeholder="Nombre (Ej: Sindicato de Choferes)">
+          <div style="display:flex; gap:10px;">
+            <select id="cpo-crm-tipo" class="cpo-select"><option value="Sindicato">Sindicato</option><option value="Club">Club / Sociedad de Fomento</option><option value="Empresa">Cámara Empresarial</option><option value="Referente">Referente Político/Social</option></select>
+            <select id="cpo-crm-influencia" class="cpo-select"><option value="Alta">Influencia Alta</option><option value="Media">Influencia Media</option><option value="Baja">Influencia Baja</option></select>
+          </div>
+          <textarea id="cpo-crm-contexto" class="cpo-textarea" rows="2" placeholder="Contexto: ¿Tienen fiscales? ¿Mueven gente?"></textarea>
+          
+          <div style="display:flex; gap:10px; margin-top:8px;">
+            <button id="cpo-crm-add-manual" class="cpo-btn cpo-btn-outline" style="flex:1;">+ Agregar Manual</button>
+            <button id="cpo-crm-generar" class="cpo-btn cpo-btn-primary" style="flex:1;">✨ Analizar con IA</button>
+          </div>
+        </div>
+
+        <div class="cpo-card" style="flex:1; overflow-y:auto;">
+          <h4 style="margin:0;">Fichero de Actores</h4>
+          <div id="cpo-crm-lista" class="cpo-crm-list">
+            <!-- Actores guardados manuales o por IA van acá -->
+          </div>
+        </div>
       </div>
-      
-      <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">
-          <thead>
-            <tr style="border-bottom:2px solid var(--cpo-border);">
-              <th style="padding:10px;">Actor / Institución</th>
-              <th style="padding:10px;">Territorio</th>
-              <th style="padding:10px;">Influencia</th>
-              <th style="padding:10px;">Exposición Sugerida</th>
-              <th style="padding:10px;">Último Compromiso</th>
-              <th style="padding:10px;">Acción</th>
-            </tr>
-          </thead>
-          <tbody id="cpo-crm-tbody">
-            <!-- Datos de ejemplo según manual -->
-            <tr style="border-bottom:1px solid var(--cpo-border);">
-              <td style="padding:10px;"><b>Club Vecinal Zona Norte</b><br><small style="color:var(--cpo-text-muted);">Pdte: Carlos M.</small></td>
-              <td style="padding:10px;">Zona Norte</td>
-              <td style="padding:10px;"><span style="background:var(--cpo-accent); color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">Alta</span></td>
-              <td style="padding:10px;">Pública (Fotos)</td>
-              <td style="padding:10px;">Reclamo luminarias</td>
-              <td style="padding:10px;"><button class="cpo-btn cpo-btn-outline" style="padding:4px 8px;">Editar</button></td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--cpo-border);">
-              <td style="padding:10px;"><b>Sindicato Transporte</b><br><small style="color:var(--cpo-text-muted);">Sec. Gral.</small></td>
-              <td style="padding:10px;">Todo el municipio</td>
-              <td style="padding:10px;"><span style="background:var(--cpo-primary); color:#fff; padding:2px 6px; border-radius:4px; font-size:10px;">Muy Alta</span></td>
-              <td style="padding:10px; color:var(--cpo-warning);">Reservada (Costo político)</td>
-              <td style="padding:10px;">Apoyo logístico</td>
-              <td style="padding:10px;"><button class="cpo-btn cpo-btn-outline" style="padding:4px 8px;">Editar</button></td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="cpo-card" style="flex: 1.5; background:var(--cpo-panel); display:flex; flex-direction:column;">
+        <h4 style="margin:0; border-bottom:1px solid var(--cpo-border); padding-bottom:10px;">📋 Brief Estratégico (IA)</h4>
+        <div id="cpo-crm-resultado" style="flex:1; overflow-y:auto; padding-top:10px; color:var(--cpo-text-muted);">
+          La IA analizará el actor y te dirá qué pedirle, qué ofrecerle y el riesgo político de exposición.
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ==========================================
-       VENTANA 3: TABLERO OPERATIVO KANBAN (FASE 5)
+       VENTANA 3: TABLERO OPERATIVO (KANBAN)
        ========================================== -->
   <div id="cpo-win-tablero" class="cpo-window">
     <div class="cpo-window-header">
-      <div class="cpo-window-title">📋 Plan Operativo de Campaña (Fase 5)</div>
+      <div class="cpo-window-title">📋 Plan Operativo y Desglose de Tareas</div>
       <div class="cpo-window-controls"><button class="cpo-win-close">✕</button></div>
     </div>
-    <div class="cpo-window-body" style="display:flex; flex-direction:column;">
-      <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
-        <p style="margin:0; color:var(--cpo-text-muted);">Ejecución de la estrategia. Cada tarea requiere un responsable y fecha.</p>
-        <button id="cpo-kanban-add" class="cpo-btn cpo-btn-primary">+ Nueva Tarea</button>
+    <div class="cpo-window-body" style="display:flex; flex-direction:column; gap:16px;">
+      
+      <div class="cpo-card" style="flex-direction:row; align-items:center; gap:12px;">
+        <div style="flex:1;">
+          <h5 style="margin:0 0 6px 0; color:var(--cpo-primary);">Agregar tareas:</h5>
+          <input type="text" id="cpo-kanban-objetivo" class="cpo-input" placeholder="Ej: Instalar al candidato en zona norte / o nombre de tarea manual">
+        </div>
+        <button id="cpo-kanban-add-manual" class="cpo-btn cpo-btn-outline" style="margin-top:20px;">+ Tarea Manual</button>
+        <button id="cpo-kanban-generar" class="cpo-btn cpo-btn-accent" style="margin-top:20px;">✨ Desglosar con IA</button>
       </div>
 
       <div class="cpo-kanban-board">
-        <!-- Pendientes -->
-        <div class="cpo-kanban-col">
-          <h4>Pendiente <span style="background:var(--cpo-border); padding:2px 6px; border-radius:10px; color:var(--cpo-text-main);">2</span></h4>
-          <div class="cpo-kanban-task">
-            <b>Filmar Spot Norte</b><br>
-            <small style="color:var(--cpo-text-muted);">Resp: Edición / Audiovisual</small><br>
-            <div style="margin-top:6px; font-size:10px; color:var(--cpo-warning);">Falta guion aprobado</div>
-          </div>
-          <div class="cpo-kanban-task">
-            <b>Cruce de Encuestas (SPSS)</b><br>
-            <small style="color:var(--cpo-text-muted);">Resp: Procesamiento Datos</small>
-          </div>
+        <div class="cpo-kanban-col" id="col-pendiente">
+          <h4 style="margin:0; font-size:12px; color:var(--cpo-text-muted); border-bottom:2px solid var(--cpo-border); padding-bottom:6px;">PENDIENTE <span class="cpo-task-count">0</span></h4>
         </div>
-        <!-- En Proceso -->
-        <div class="cpo-kanban-col">
-          <h4>En Proceso <span style="background:var(--cpo-primary); color:#fff; padding:2px 6px; border-radius:10px;">1</span></h4>
-          <div class="cpo-kanban-task" style="border-left:3px solid var(--cpo-primary);">
-            <b>Redacción de Ordenanza Tasa Vial</b><br>
-            <small style="color:var(--cpo-text-muted);">Resp: Estrategia</small>
-          </div>
+        <div class="cpo-kanban-col" id="col-proceso">
+          <h4 style="margin:0; font-size:12px; color:var(--cpo-text-muted); border-bottom:2px solid var(--cpo-primary); padding-bottom:6px;">EN PROCESO <span class="cpo-task-count">0</span></h4>
         </div>
-        <!-- Realizadas -->
-        <div class="cpo-kanban-col">
-          <h4>Realizada <span style="background:var(--cpo-accent); color:#fff; padding:2px 6px; border-radius:10px;">1</span></h4>
-          <div class="cpo-kanban-task" style="opacity:0.7;">
-            <s style="color:var(--cpo-text-muted);"><b>Reunión Club Sur</b></s><br>
-            <small style="color:var(--cpo-text-muted);">Resp: Candidato</small>
-          </div>
-        </div>
-        <!-- Demoradas -->
-        <div class="cpo-kanban-col">
-          <h4>Demorada <span style="background:var(--cpo-danger); color:#fff; padding:2px 6px; border-radius:10px;">1</span></h4>
-          <div class="cpo-kanban-task" style="border-left:3px solid var(--cpo-danger);">
-            <b>Entrega de Diagnóstico (Fase 1)</b><br>
-            <small style="color:var(--cpo-danger);">Vencido hace 2 días</small>
-          </div>
+        <div class="cpo-kanban-col" id="col-realizada">
+          <h4 style="margin:0; font-size:12px; color:var(--cpo-text-muted); border-bottom:2px solid var(--cpo-accent); padding-bottom:6px;">REALIZADA <span class="cpo-task-count">0</span></h4>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ==========================================
-       VENTANA 4: PROTOCOLO CRISIS (FASE 4 Y 6)
+       VENTANA 4: PROTOCOLO CRISIS
        ========================================== -->
   <div id="cpo-win-crisis" class="cpo-window">
     <div class="cpo-window-header" style="background: rgba(239, 68, 68, 0.1); border-bottom-color: var(--cpo-danger);">
-      <div class="cpo-window-title" style="color: var(--cpo-danger);">🚨 Protocolo de Gestión de Crisis (10 Pasos)</div>
+      <div class="cpo-window-title" style="color: var(--cpo-danger);">🚨 Protocolo de Gestión de Crisis</div>
       <div class="cpo-window-controls"><button class="cpo-win-close">✕</button></div>
     </div>
     <div class="cpo-window-body">
-      <p style="font-weight:700; color:var(--cpo-text-muted); margin-top:0;">Aplicá este protocolo antes de que la presión deforme las decisiones. No toda crítica requiere respuesta.</p>
-      
-      <div class="cpo-grid-2">
-        <div style="display:flex; flex-direction:column;">
-          <div class="cpo-crisis-step"><div class="cpo-crisis-num">1</div><div><b>Detectar:</b> Identificar la situación por monitoreo.</div></div>
-          <div class="cpo-crisis-step"><div class="cpo-crisis-num">2</div><div><b>Verificar:</b> Comprobar que lo que circula es cierto y de fuente identificable.</div></div>
-          <div class="cpo-crisis-step"><div class="cpo-crisis-num">3</div><div><b>Evaluar Gravedad:</b> Estimar alcance y daño sobre atributos centrales.</div></div>
-          <div class="cpo-crisis-step"><div class="cpo-crisis-num">4</div><div><b>Decidir si requiere respuesta:</b> Responder puede amplificar lo que se quiere neutralizar.</div></div>
-          <div class="cpo-crisis-step"><div class="cpo-crisis-num">5</div><div><b>Definir quién decide:</b> Designar quién autoriza la respuesta.</div></div>
+      <p style="font-weight:700; color:var(--cpo-text-muted); margin-top:0;">Fase 4: Aplicá el protocolo antes de tuitear impulsivamente.</p>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="cpo-card" style="gap:12px;">
+          <div style="display:flex; align-items:center;"><div style="width:26px;height:26px;background:var(--cpo-danger);color:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:bold;margin-right:10px;">1</div><b>Detectar:</b> Monitoreo y Alerta.</div>
+          <div style="display:flex; align-items:center;"><div style="width:26px;height:26px;background:var(--cpo-danger);color:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:bold;margin-right:10px;">2</div><b>Verificar:</b> Fuentes e impacto real.</div>
+          <div style="display:flex; align-items:center;"><div style="width:26px;height:26px;background:var(--cpo-danger);color:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:bold;margin-right:10px;">3</div><b>Evaluar Gravedad:</b> Daño sobre atributos centrales.</div>
+          <div style="display:flex; align-items:center;"><div style="width:26px;height:26px;background:var(--cpo-danger);color:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:bold;margin-right:10px;">4</div><b>Decidir respuesta:</b> No amplificar.</div>
         </div>
-        <div style="display:flex; flex-direction:column;">
-          <div class="cpo-crisis-step"><div class="cpo-crisis-num">6</div><div><b>Establecer mensaje:</b> Breve, verificable y coherente con la línea.</div></div>
-          <div class="cpo-crisis-step"><div class="cpo-crisis-num">7</div><div><b>Determinar canal:</b> Dónde y a través de quién se responde.</div></div>
-          <div class="cpo-crisis-step"><div class="cpo-crisis-num">8</div><div><b>Publicar:</b> Ejecución sin apartarse del mensaje.</div></div>
-          <div class="cpo-crisis-step"><div class="cpo-crisis-num">9</div><div><b>Monitorear:</b> Evaluación de contención o crecimiento.</div></div>
-          <div class="cpo-crisis-step"><div class="cpo-crisis-num">10</div><div><b>Registrar:</b> Documentar qué ocurrió y qué se aprendió.</div></div>
+        <div class="cpo-card" style="gap:12px;">
+          <div style="display:flex; align-items:center;"><div style="width:26px;height:26px;background:var(--cpo-danger);color:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:bold;margin-right:10px;">5</div><b>Establecer Mensaje:</b> Breve y unificado.</div>
+          <div style="display:flex; align-items:center;"><div style="width:26px;height:26px;background:var(--cpo-danger);color:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:bold;margin-right:10px;">6</div><b>Determinar Canal:</b> Dónde se responde.</div>
+          <div style="display:flex; align-items:center;"><div style="width:26px;height:26px;background:var(--cpo-danger);color:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:bold;margin-right:10px;">7</div><b>Publicar y Monitorear:</b> Evaluar contención.</div>
+          <div style="display:flex; align-items:center;"><div style="width:26px;height:26px;background:var(--cpo-danger);color:#fff;border-radius:50%;display:flex;justify-content:center;align-items:center;font-weight:bold;margin-right:10px;">8</div><b>Registrar:</b> Documentar qué se aprendió.</div>
         </div>
       </div>
     </div>
@@ -4798,239 +4659,290 @@ if (!permitidos.includes(correo)) {
 <script>
 (function() {
   /* =========================================================================
-     LÓGICA DEL SISTEMA OPERATIVO (UI y Navegación)
+     1. SISTEMA UI (Tema y FAB)
      ========================================================================= */
-  
-  // Gestión de Tema Claro/Oscuro
   const themeToggle = document.getElementById('cpo-theme-toggle');
   const themeIcon = document.getElementById('cpo-theme-icon');
-  
   function applyTheme(isDark) {
-    if (isDark) {
-      document.documentElement.classList.add('cpo-dark-theme');
-      themeIcon.textContent = '☀️';
-    } else {
-      document.documentElement.classList.remove('cpo-dark-theme');
-      themeIcon.textContent = '🌙';
-    }
+    if (isDark) { document.documentElement.classList.add('cpo-dark-theme'); themeIcon.textContent = '☀️'; } 
+    else { document.documentElement.classList.remove('cpo-dark-theme'); themeIcon.textContent = '🌙'; }
     localStorage.setItem('cpo_os_theme', isDark ? 'dark' : 'light');
   }
+  applyTheme(localStorage.getItem('cpo_os_theme') === 'dark');
+  themeToggle.addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('cpo-dark-theme')));
 
-  // Cargar tema guardado
-  const savedTheme = localStorage.getItem('cpo_os_theme') === 'dark';
-  applyTheme(savedTheme);
-
-  themeToggle.addEventListener('click', () => {
-    const isDark = document.documentElement.classList.contains('cpo-dark-theme');
-    applyTheme(!isDark);
-  });
-
-  // Gestión de Ventanas Modales (App Style)
-  const dockItems = document.querySelectorAll('.cpo-dock-item[data-target]');
-  const windows = document.querySelectorAll('.cpo-window');
-  const closeBtns = document.querySelectorAll('.cpo-win-close');
+  const fabMain = document.getElementById('cpo-fab-main');
+  const fabContainer = document.getElementById('cpo-fab-container');
   const overlay = document.getElementById('cpo-overlay');
+  const windows = document.querySelectorAll('.cpo-window');
+
+  fabMain.addEventListener('click', () => {
+    fabContainer.classList.toggle('open');
+    if(fabContainer.classList.contains('open')) { overlay.classList.add('open'); } 
+    else { closeAllWindows(); }
+  });
 
   function closeAllWindows() {
     windows.forEach(w => w.classList.remove('open'));
-    dockItems.forEach(i => i.classList.remove('active'));
+    fabContainer.classList.remove('open');
     overlay.classList.remove('open');
+    const mapaViejo = document.getElementById('cpo-mapa-modal');
+    if (mapaViejo) mapaViejo.style.display = 'none';
   }
 
-  function openWindow(targetId, dockItem) {
-    closeAllWindows();
-    const win = document.getElementById(targetId);
-    if (win) {
-      win.classList.add('open');
-      dockItem.classList.add('active');
-      overlay.classList.add('open');
-    }
-  }
-
-  dockItems.forEach(item => {
+  document.querySelectorAll('.cpo-fab-item[data-target]').forEach(item => {
     item.addEventListener('click', () => {
       const target = item.getAttribute('data-target');
-      // Si es el mapa, y ya tenías una función vieja iniciarMapa(), podés dispararla acá.
-      // Si no, abre la ventana normal.
-      if (target === 'cpo-win-mapa') {
-        const mapaViejo = document.getElementById('cpo-mapa-modal');
-        if (mapaViejo) {
-          closeAllWindows();
-          mapaViejo.style.display = 'flex';
-          if(typeof iniciarMapa === 'function') iniciarMapa();
-          return;
-        }
+      closeAllWindows();
+      
+      if (target === 'cpo-mapa-modal') {
+        const mapa = document.getElementById('cpo-mapa-modal');
+        if (mapa) { mapa.style.display = 'flex'; if (typeof iniciarMapa === 'function') iniciarMapa(); } 
+        else { alert("Asegurate de mantener el código original del mapa."); }
+      } else {
+        const win = document.getElementById(target);
+        if (win) { win.classList.add('open'); overlay.classList.add('open'); }
       }
-      openWindow(target, item);
     });
   });
 
-  closeBtns.forEach(btn => {
-    btn.addEventListener('click', closeAllWindows);
-  });
+  document.querySelectorAll('.cpo-win-close').forEach(btn => btn.addEventListener('click', closeAllWindows));
   overlay.addEventListener('click', closeAllWindows);
 
-
   /* =========================================================================
-     LÓGICA DEL LABORATORIO DE REDACCIÓN (INTEGRACIÓN IA GEMINI)
+     2. GESTIÓN DE API KEY Y GEMINI
      ========================================================================= */
-  
-  const sarModulo = document.getElementById('cpo-sar-modulo-select');
-  const sarContraste = document.getElementById('cpo-sar-contraste');
-  const sarBtnEjecutar = document.getElementById('cpo-sar-ejecutar');
-  const sarResultados = document.getElementById('cpo-sar-resultados');
-  const sarKeyInput = document.getElementById('cpo-sar-apikey');
-  const sarKeySave = document.getElementById('cpo-sar-guardar-key');
-
-  // Cargar Key Guardada
+  const apiKeyInput = document.getElementById('cpo-sar-apikey');
   if (localStorage.getItem('cpo_gemini_key')) {
-    sarKeyInput.value = localStorage.getItem('cpo_gemini_key');
-    document.getElementById('cpo-ia-config').style.display = 'none'; // Ocultar si ya hay clave
+    apiKeyInput.value = localStorage.getItem('cpo_gemini_key');
+    document.getElementById('cpo-ia-config').style.display = 'none';
   }
 
-  sarKeySave.addEventListener('click', () => {
-    const val = sarKeyInput.value.trim();
+  document.getElementById('cpo-sar-guardar-key').addEventListener('click', () => {
+    const val = apiKeyInput.value.trim();
     if (val.startsWith('AIza')) {
       localStorage.setItem('cpo_gemini_key', val);
-      alert('Clave guardada exitosamente en el navegador.');
+      alert('Cerebro IA conectado.');
       document.getElementById('cpo-ia-config').style.display = 'none';
-    } else {
-      alert('La clave debe empezar con AIza...');
-    }
+    } else { alert("La clave debe empezar con AIza..."); }
   });
 
-  // Mostrar cuadro de contraste solo si se elige "Incongruencias"
-  sarModulo.addEventListener('change', () => {
-    if (sarModulo.value === 'INCONGRUENCIAS') {
-      sarContraste.style.display = 'block';
-    } else {
-      sarContraste.style.display = 'none';
-    }
-  });
-
-  sarBtnEjecutar.addEventListener('click', async () => {
+  async function llamarGemini(systemPrompt, userPrompt, btnElement) {
     const key = localStorage.getItem('cpo_gemini_key');
-    if (!key) {
-      document.getElementById('cpo-ia-config').style.display = 'block';
-      alert('Por favor, ingresá la API Key de Gemini primero.');
-      return;
-    }
-
-    const promptText = document.getElementById('cpo-sar-prompt').value.trim();
-    if (!promptText) {
-      alert('Escribí un tema o texto base para procesar.');
-      return;
-    }
-
-    const modulo = sarModulo.value;
-    const criterio = document.getElementById('cpo-sar-criterio').value.trim();
-    const contrasteText = sarContraste.value.trim();
-
-    sarBtnEjecutar.textContent = '⏳ Procesando (aplicando metodología)...';
-    sarBtnEjecutar.disabled = true;
-
-    // Armado del System Prompt basado estrictamente en el manual de Creativa Política
-    let systemInstruction = `Sos el Consultor Político Senior de "Creativa Política". Escribís en español de Argentina.
-Tu trabajo es armar borradores estructurados en bloques, separando claramente los datos de la interpretación. Nunca inventes cifras.`;
-
-    if (modulo === 'DISCURSO') {
-      systemInstruction += `\nGenerá la Arquitectura del Mensaje (Fase 4). 
-      Devolvé un JSON estricto: [{"titulo": "...", "contenido": "..."}]. 
-      Bloques obligatorios: 1. Gancho de apertura (3 opciones breves). 2. Diagnóstico. 3. Diferenciación. 4. Cierre y Llamado a la Acción. 5. Copy sugerido para Instagram.`;
-    } else if (modulo === 'LEGISLATIVO') {
-      systemInstruction += `\nGenerá una Auditoría Legislativa (Fase 3). 
-      Devolvé un JSON estricto: [{"titulo": "...", "contenido": "..."}]. 
-      Bloques obligatorios: 1. Radiografía Ejecutiva. 2. Artículos Ambiguos/Trampas. 3. Impacto Fiscal. 4. Puntos Débiles para atacarlo en recinto.`;
-    } else if (modulo === 'INCONGRUENCIAS') {
-      systemInstruction += `\nGenerá un Reporte de Incongruencias (Fase 1). 
-      Vas a recibir un TEXTO HOY y un TEXTO ARCHIVO.
-      Devolvé un JSON estricto: [{"titulo": "...", "contenido": "..."}]. 
-      Bloques obligatorios: 1. Veredicto de Coherencia. 2. Contradicciones detectadas (citas). 3. Frases sugeridas para debate/medios.`;
-    }
-
-    let userPrompt = `TEXTO BASE:\n${promptText}\n\n`;
-    if (modulo === 'INCONGRUENCIAS' && contrasteText) {
-      userPrompt += `TEXTO ARCHIVO/CONTRASTE:\n${contrasteText}\n\n`;
-    }
-    if (criterio) userPrompt += `CRITERIO DEL CONSULTOR (Tono/Estilo): ${criterio}\n\n`;
+    if (!key) { alert("Falta API Key. Conectá el ecosistema en el Laboratorio de Redacción."); return null; }
+    
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = '⏳ Pensando...';
+    btnElement.disabled = true;
 
     try {
-      const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + key, {
+      // Usamos 1.5-flash para máxima compatibilidad
+      const resp = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + key, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemInstruction }] },
+          systemInstruction: { parts: [{ text: systemPrompt }] },
           contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-          generationConfig: { temperature: 0.4 }
+          generationConfig: { temperature: 0.3 }
         })
       });
       
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error?.message || 'Error en IA');
-
-      let rawText = data.candidates[0].content.parts[0].text;
       
-      // Limpiar markdown residual de JSON
+      let rawText = data.candidates[0].content.parts[0].text;
       rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-      const bloques = JSON.parse(rawText);
+      
+      const match = rawText.match(/\[[\s\S]*\]/);
+      if(match) rawText = match[0];
 
-      // Renderizar bloques en la mesa de edición
-      sarResultados.innerHTML = '';
-      bloques.forEach(b => {
-        const card = document.createElement('div');
-        card.className = 'cpo-card';
-        card.style.background = 'var(--cpo-bg)';
-        card.innerHTML = `
-          <input type="text" value="${b.titulo}" class="cpo-input" style="font-weight:700; color:var(--cpo-primary); background:transparent; border:none; padding:4px 0;">
-          <textarea class="cpo-textarea cpo-bloque-editable" rows="4" style="font-size:13px; min-height:80px;">${b.contenido}</textarea>
-        `;
-        sarResultados.appendChild(card);
-      });
-
-    } catch (err) {
-      alert("Error procesando con Gemini: " + err.message);
+      return JSON.parse(rawText);
+    } catch (e) {
+      alert("Error con Gemini: " + e.message);
+      return null;
     } finally {
-      sarBtnEjecutar.textContent = '⚡ Generar Borrador Inteligente';
-      sarBtnEjecutar.disabled = false;
+      btnElement.innerHTML = originalText;
+      btnElement.disabled = false;
+    }
+  }
+
+  /* =========================================================================
+     3. CRM - AGREGAR MANUAL E IA
+     ========================================================================= */
+  function addActorManual(nombre, tipo, influencia) {
+    const lista = document.getElementById('cpo-crm-lista');
+    const color = influencia === 'Alta' ? 'var(--cpo-danger)' : influencia === 'Media' ? 'var(--cpo-warning)' : 'var(--cpo-text-muted)';
+    const item = document.createElement('div');
+    item.className = 'cpo-crm-item';
+    item.innerHTML = `
+      <div><b style="color:var(--cpo-primary);">${nombre}</b> <br><small style="color:var(--cpo-text-muted);">${tipo}</small></div>
+      <div style="font-size:11px; font-weight:bold; color:${color};">Influencia: ${influencia}</div>
+    `;
+    lista.appendChild(item);
+  }
+
+  document.getElementById('cpo-crm-add-manual').addEventListener('click', () => {
+    const n = document.getElementById('cpo-crm-nombre').value.trim();
+    if(!n) { alert("Escribí el nombre del actor primero."); return; }
+    addActorManual(n, document.getElementById('cpo-crm-tipo').value, document.getElementById('cpo-crm-influencia').value);
+    document.getElementById('cpo-crm-nombre').value = '';
+    document.getElementById('cpo-crm-contexto').value = '';
+  });
+
+  document.getElementById('cpo-crm-generar').addEventListener('click', async (e) => {
+    const n = document.getElementById('cpo-crm-nombre').value.trim();
+    const t = document.getElementById('cpo-crm-tipo').value;
+    const inf = document.getElementById('cpo-crm-influencia').value;
+    const ctx = document.getElementById('cpo-crm-contexto').value.trim();
+    if(!n || !ctx) { alert("Completá nombre y contexto para que la IA analice."); return; }
+
+    const sysPrompt = `Sos Consultor Político. Evaluás costo político y alianzas. Devolvé JSON estricto: [{"titulo": "Qué pedirle", "contenido": "..."}, {"titulo": "Qué ofrecerle", "contenido": "..."}, {"titulo": "Riesgo de Exposición", "contenido": "Justificar si foto pública o reunión reservada..."}]`;
+    const userP = `Actor: ${n}\nTipo: ${t}\nInfluencia: ${inf}\nContexto: ${ctx}`;
+    
+    const bloques = await llamarGemini(sysPrompt, userP, e.currentTarget);
+    if(bloques) {
+      addActorManual(n, t, inf); // Lo agregamos también al fichero
+      const res = document.getElementById('cpo-crm-resultado');
+      res.innerHTML = '';
+      bloques.forEach(b => {
+        res.innerHTML += `<div class="cpo-card" style="padding:12px; margin-bottom:8px;"><h5 style="margin:0 0 6px; color:var(--cpo-primary);">${b.titulo}</h5><p style="margin:0; font-size:13px;">${b.contenido}</p></div>`;
+      });
     }
   });
 
-  // Funciones de Copiado y Word
-  document.getElementById('cpo-sar-copiar').addEventListener('click', () => {
-    const textareas = document.querySelectorAll('.cpo-bloque-editable');
-    if(textareas.length === 0) return;
-    let textoFinal = '';
-    textareas.forEach(t => textoFinal += t.previousElementSibling.value + '\n' + t.value + '\n\n');
-    navigator.clipboard.writeText(textoFinal);
-    alert('Texto completo copiado.');
+  /* =========================================================================
+     4. KANBAN - DRAG & DROP, MANUAL E IA
+     ========================================================================= */
+  let taskIdCounter = 0;
+
+  function updateKanbanCounters() {
+    document.querySelectorAll('.cpo-kanban-col').forEach(col => {
+      const count = col.querySelectorAll('.cpo-kanban-task').length;
+      const counterSpan = col.querySelector('.cpo-task-count');
+      if (counterSpan) counterSpan.textContent = count;
+    });
+  }
+
+  function createTaskElement(tarea, resp, detalle) {
+    taskIdCounter++;
+    const t = document.createElement('div');
+    t.className = 'cpo-kanban-task';
+    t.draggable = true;
+    t.id = 'task-' + taskIdCounter;
+    
+    // Determinar color por responsable
+    let color = 'var(--cpo-primary)';
+    if(resp.toLowerCase().includes('territorio')) color = 'var(--cpo-accent)';
+    else if(resp.toLowerCase().includes('candidato')) color = 'var(--cpo-warning)';
+    t.style.borderLeftColor = color;
+
+    t.innerHTML = `
+      <button class="cpo-task-delete">✕</button>
+      <b style="color:var(--cpo-text-main); font-size:13px;">${tarea}</b>
+      <span style="color:${color}; font-size:10px; font-weight:bold;">Resp: ${resp}</span>
+      <div style="font-size:11px; color:var(--cpo-text-muted); margin-top:2px;">${detalle}</div>
+    `;
+
+    // Evento de borrado
+    t.querySelector('.cpo-task-delete').addEventListener('click', () => {
+      t.remove();
+      updateKanbanCounters();
+    });
+
+    // Eventos Drag & Drop
+    t.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', t.id);
+      setTimeout(() => t.style.opacity = '0.5', 0);
+    });
+    t.addEventListener('dragend', () => t.style.opacity = '1');
+
+    return t;
+  }
+
+  // Configurar zonas para soltar (Dropzones)
+  document.querySelectorAll('.cpo-kanban-col').forEach(col => {
+    col.addEventListener('dragover', (e) => e.preventDefault()); // Necesario para permitir drop
+    col.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const id = e.dataTransfer.getData('text/plain');
+      const draggedTask = document.getElementById(id);
+      if (draggedTask) {
+        col.appendChild(draggedTask);
+        updateKanbanCounters();
+      }
+    });
   });
 
-  document.getElementById('cpo-sar-word').addEventListener('click', () => {
-    const textareas = document.querySelectorAll('.cpo-bloque-editable');
-    if(textareas.length === 0) { alert('No hay texto generado'); return; }
+  // Agregar Tarea Manual
+  document.getElementById('cpo-kanban-add-manual').addEventListener('click', () => {
+    const input = document.getElementById('cpo-kanban-objetivo');
+    const txt = input.value.trim();
+    if(!txt) { alert("Escribí el nombre de la tarea en la caja de texto."); return; }
     
-    let html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-    <head><meta charset='utf-8'><title>Creativa Política - Documento</title></head>
-    <body style="font-family: Arial, sans-serif; color: #1e293b;">`;
+    const task = createTaskElement(txt, 'Equipo', 'Agregada manualmente');
+    document.getElementById('col-pendiente').appendChild(task);
+    input.value = '';
+    updateKanbanCounters();
+  });
+
+  // Desglosar con IA
+  document.getElementById('cpo-kanban-generar').addEventListener('click', async (e) => {
+    const obj = document.getElementById('cpo-kanban-objetivo').value.trim();
+    if(!obj) { alert("Escribí un objetivo para desglosar con IA."); return; }
+
+    const sysPrompt = `Sos Coordinador de Campaña. Devolvé JSON estricto: [{"tarea":"...","resp":"Comunicación / Territorio / Candidato","detalle":"..."}] con 3 tareas urgentes.`;
+    const userP = `Objetivo: "${obj}". Desglosar en tareas prácticas.`;
+
+    const tareas = await llamarGemini(sysPrompt, userP, e.currentTarget);
+    if(tareas) {
+      const col = document.getElementById('col-pendiente');
+      tareas.forEach(t => {
+        const taskNode = createTaskElement(t.tarea, t.resp, t.detalle);
+        col.appendChild(taskNode);
+      });
+      updateKanbanCounters();
+    }
+  });
+
+  /* --- 5. IA EN LABORATORIO DE REDACCIÓN --- */
+  document.getElementById('cpo-sar-ejecutar').addEventListener('click', async (e) => {
+    const modulo = document.getElementById('cpo-sar-modulo-select').value;
+    const prompt = document.getElementById('cpo-sar-prompt').value.trim();
+    const criterio = document.getElementById('cpo-sar-criterio').value.trim();
+    if(!prompt) { alert("Escribí un tema base."); return; }
+
+    let sysPrompt = `Sos el Consultor Senior de Creativa Política. Devolvé un JSON estricto: [{"titulo":"...","contenido":"..."}].\n`;
+    if (modulo === 'DISCURSO') sysPrompt += `Armá: 1. Gancho de apertura. 2. Diagnóstico. 3. Diferenciación. 4. Llamado a Acción.`;
+    else if (modulo === 'LEGISLATIVO') sysPrompt += `Armá: 1. Radiografía Ejecutiva. 2. Artículos Trampa. 3. Puntos Débiles.`;
+    else sysPrompt += `Armá: 1. Veredicto. 2. Contradicciones. 3. Frases sugeridas.`;
+
+    const userP = `TEXTO BASE: ${prompt}\nCRITERIO: ${criterio}`;
+    const bloques = await llamarGemini(sysPrompt, userP, e.currentTarget);
     
-    textareas.forEach(t => {
-      const titulo = t.previousElementSibling.value;
-      const contenido = t.value.replace(/\n/g, '<br>');
-      html += `<h2 style="color: #4f46e5; font-size: 14pt; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px;">${titulo}</h2><p style="font-size: 11pt; line-height: 1.5;">${contenido}</p>`;
-    });
-    html += `</body></html>`;
-    
-    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Doc_Creativa_Politica.doc';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if (bloques) {
+      const res = document.getElementById('cpo-sar-resultados');
+      res.innerHTML = '';
+      bloques.forEach(b => {
+        res.innerHTML += `
+          <div class="cpo-card" style="background:var(--cpo-bg); padding:10px;">
+            <input type="text" value="${b.titulo}" class="cpo-input" style="font-weight:700; color:var(--cpo-primary); background:transparent; border:none; padding:4px 0;">
+            <textarea class="cpo-textarea cpo-bloque-editable" rows="4" style="font-size:13px; min-height:80px;">${b.contenido}</textarea>
+          </div>
+        `;
+      });
+    }
+  });
+
+  document.getElementById('cpo-sar-copiar').addEventListener('click', () => {
+    let txt = '';
+    document.querySelectorAll('.cpo-bloque-editable').forEach(t => txt += t.previousElementSibling.value + '\n' + t.value + '\n\n');
+    if(!txt) { alert("Mesa vacía."); return; }
+    navigator.clipboard.writeText(txt);
+    alert('Texto completo copiado.');
   });
 
 })();
 </script>
 <!-- =========================================================================
-     FIN CREATIVA POLÍTICA - CAMPAIGN OS
+     FIN CREATIVA POLÍTICA - OS V4
      ========================================================================= -->

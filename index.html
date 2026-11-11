@@ -619,6 +619,9 @@ html.side-min{--sw:72px}
 .nmini span{display:block;height:100%;background:var(--accent)}
 .nbadge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-size:.7rem;font-weight:700;display:grid;place-items:center;flex:none}
 .side-foot{border-top:1px solid var(--line);padding-top:10px}
+.side-mods{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line);padding:10px 0 8px}
+.side-mods:empty{display:none}
+button.navi{background:none;border:0;font:inherit;font-size:.88rem;width:100%;cursor:pointer;text-align:left;box-sizing:border-box}
 .iconbtn{all:unset;box-sizing:border-box;cursor:pointer;width:36px;height:36px;display:grid;place-items:center;border-radius:var(--r-sm);color:var(--fg-2);flex:none}
 .iconbtn:hover{background:var(--surface-2);color:var(--fg)}
 .iconbtn:focus-visible{outline:2px solid var(--accent)}
@@ -907,6 +910,7 @@ html.fx-paused .bust *,html.fx-off .bust .b-hatch,html.fx-off .bust .b-scan,html
 <aside class="side" id="side" aria-label="Menú principal">
   <div class="side-top"><a class="logo" href="#panel"><span class="mark" aria-hidden="true">CP</span><span class="word">creat<i>iva</i> política</span></a><button class="iconbtn collapse" id="side-collapse" type="button" aria-label="Comprimir o expandir el menú" title="Comprimir o expandir el menú"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 10l5 5M15 5l-5 5 5 5"/></svg></button></div>
   <nav class="side-nav" id="sidenav" aria-label="Secciones"></nav>
+  <div class="side-mods" id="side-mods" aria-label="Herramientas"></div>
   <div class="side-foot"><a class="navi" id="nav-opciones" href="#opciones" title="Opciones"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="2.5"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4"/></svg><span class="nl">Opciones</span></a></div>
 </aside>
 <div class="shell">
@@ -1276,14 +1280,18 @@ async function resolveNames(){
 }
 
 /* ---------- Render ---------- */
-const view=$("#view"),tabs=$("#tabs");
+const view=$("#view");
 const dis=()=>canWrite&&db?"":" disabled";
 function routeOf(){const h=(location.hash||"#panel").slice(1);if(/^fase-[1-6]$/.test(h))return{v:"fase",n:+h.slice(5)};if(["panel","cliente","calendario","linea","menciones","equipo","tres-meses","reglas","opciones"].includes(h))return{v:h};return{v:"panel"}}
+/* Clientes ocultos solo en este navegador (los gestiona el módulo del mapa) */
+function ocultosLocales(){try{const l=JSON.parse(localStorage.getItem("cpo_clientes_ocultos_tablero")||"[]");return new Set((Array.isArray(l)?l:[]).map(o=>o&&o.id))}catch(e){return new Set()}}
 function drawTop(){
-  const act=st.clientes.filter(c=>c.estado!=="archivado");
+  const oc=ocultosLocales();
+  const act=st.clientes.filter(c=>c.estado!=="archivado"&&!oc.has(c.id));
+  if(st.cid&&oc.has(st.cid)&&act.length){const sig=act[0].id;queueMicrotask(()=>selectCliente(sig))}
   const cs=$("#cli");
   cs.innerHTML=act.length?act.map(c=>`<option value="${esc(c.id)}"${c.id===st.cid?" selected":""}>${esc(c.nombre||"Sin nombre")}</option>`).join(""):`<option value="">Sin clientes</option>`;
-  if(st.cid&&!act.some(c=>c.id===st.cid)){const c=cli();if(c)cs.insertAdjacentHTML("beforeend",`<option value="${esc(c.id)}" selected>${esc(c.nombre)} (archivado)</option>`)}
+  if(st.cid&&!act.some(c=>c.id===st.cid)){const c=cli();if(c)cs.insertAdjacentHTML("beforeend",`<option value="${esc(c.id)}" selected>${esc(c.nombre)}${c.estado==="archivado"?" (archivado)":""}</option>`)}
   $("#como").innerHTML=`<option value="">Elegir persona</option>`+st.equipo.map(m=>`<option value="${esc(m.k)}"${m.k===como?" selected":""}>${esc(m.nombre)}</option>`).join("");
   const r=routeOf();const id=r.v==="fase"?"fase-"+r.n:r.v;
   drawSide(id);
@@ -1297,7 +1305,7 @@ function banners(){
 }
 function pantallaAcceso(){
   const sin=sesion.estado==="sin-acceso";
-  return `<div class="empty"><h3>${sin?"Tu cuenta no tiene acceso":"Entrá con tu cuenta de Google"}</h3><p>${sin?`Entraste como ${esc(sesion.correo)}, pero ese correo no está en la lista del equipo. Pedile a quien administra el proyecto que lo agregue y volvé a intentarlo.`:"El registro del equipo está protegido. Solo pueden verlo y editarlo las cuentas autorizadas."}</p><div class="confirm"><button class="btn" type="button" data-act="login">${sin?"Entrar con otra cuenta":"Entrar con Google"}</button>${sin?`<button class="btn grey" type="button" data-act="reintentar">Reintentar</button>`:""}</div></div>`;
+  return `<div class="empty"><h3>${sin?"Tu cuenta no tiene acceso":"Entrá con tu cuenta de Google"}</h3><p>${sin?`Entraste como ${esc(sesion.correo)}, pero ese correo no está en la lista del equipo. Pedile a quien administra el proyecto que lo agregue y volvé a intentarlo.`:"El registro del equipo está protegido. Solo pueden verlo y editarlo las cuentas autorizadas."}</p><div class="confirm"><button class="btn" type="button" data-act="login">${sin?"Entrar con otra cuenta":"Entrar con Google"}</button>${sin?`<a class="btn grey" href="mailto:matiasdiniz27@gmail.com?subject=${encodeURIComponent("Solicitud de acceso al tablero Creativa")}&body=${encodeURIComponent("Pido acceso para la cuenta "+sesion.correo)}">Pedir acceso a Matías</a><button class="btn grey" type="button" data-act="reintentar">Reintentar</button>`:""}</div></div>`;
 }
 function render(){
   const a=document.activeElement;
@@ -2064,7 +2072,7 @@ view.addEventListener("change",e=>{if(e.target.id==="opt-como"){como=e.target.va
   ob.addEventListener("click",()=>open(!side.classList.contains("open")));
   scrim.addEventListener("click",()=>open(false));
   $("#side-collapse").addEventListener("click",()=>{setSide(!document.documentElement.classList.contains("side-min"));if(["linea","opciones"].includes(routeOf().v))render()});
-  side.addEventListener("click",e=>{if(e.target.closest("a")&&innerWidth<1100)open(false)});
+  side.addEventListener("click",e=>{if(e.target.closest("a,button.navi")&&innerWidth<1100)open(false)});
   addEventListener("keydown",e=>{if(e.key==="Escape"&&side.classList.contains("open"))open(false)});
   let rz=0;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(innerWidth>=1100)open(false);if(routeOf().v==="linea")render()},200)});
 })();
@@ -2425,6 +2433,10 @@ window.cpoConectar=async function(api){
   unsubBase.push(db.doc("config/equipo").onSnapshot(d=>{st.equipo=d.exists?(d.data().miembros||[]):[];render()},e=>console.error(e)));
 };
 window.cpoSinSesion=function(){clearTimeout(connTimer);desconectar();sesion={estado:"fuera",correo:"",nombre:""};st.ok.clientes=true;setSave("err","Sin sesión");render()};
+window.cpoSinAcceso=function(correo){clearTimeout(connTimer);desconectar();sesion={estado:"sin-acceso",correo:correo||"",nombre:""};st.ok.clientes=true;setSave("err","Sin acceso");render()};
+/* Para los módulos del final: cliente activo por id (estable aunque cambie el nombre) y re-dibujo */
+window.cpoClienteActual=function(){const c=cli();return c?{id:c.id,nombre:c.nombre||""}:null};
+window.cpoRefrescar=function(){render()};
 window.cpoFallo=function(msg){clearTimeout(connTimer);connErr=msg;st.ok.clientes=true;canWrite=false;setSave("err","Sin conexión");render()};
 
 /* ---------- Arranque ---------- */
@@ -2662,24 +2674,20 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     const correo = (u.email || "").toLowerCase();
 
     const permitidos = [
-    "aaronfigueroa2538@gmail.com",
-    "tush.retamoso@gmail.com",
-    "rampognac@gmail.com",
-    "matiasdiniz27@gmail.com",
-    "thyagott09@gmail.com"
-];
-if (!permitidos.includes(correo)) {
-    alert("Acceso bloqueado. Para ingresar a este tablero es obligatorio solicitar autorización a Matías.");
-    window.location.href = "mailto:matiasdiniz27@gmail.com?subject=Solicitud de acceso obligatoria al tablero Creativa";
-    signOut(auth);
-    return;
-}
+      "aaronfigueroa2538@gmail.com",
+      "tush.retamoso@gmail.com",
+      "rampognac@gmail.com",
+      "matiasdiniz27@gmail.com",
+      "thyagott09@gmail.com"
+    ];
+    // Filtro de cortesía en el navegador. La protección real de los datos
+    // tiene que estar en las reglas de seguridad de Firestore.
+    if (!permitidos.includes(correo)) { window.cpoSinAcceso(correo); return; }
     // Perfil público mínimo para mostrar quién hizo cada cambio
     setDoc(doc(fs, "usuarios", u.uid), { nombre: u.displayName || correo, correo, visto: Date.now() }, { merge: true }).catch(() => {});
     window.cpoConectar({ db, user: usuario(u), correo, nombre: u.displayName || "" });
   });
 </script>
-</body></html>
 <!-- === SUITE MASTER CARTOGRAFÍA ELECTORAL PBA + SISTEMA D'HONDT + GESTIÓN DE CLIENTES === -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.14.2/dist/leaflet-geoman.css" />
@@ -3053,27 +3061,54 @@ if (!permitidos.includes(correo)) {
     sat: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: '© Esri Satelital' }
   };
 
+  // Escapa texto antes de meterlo en HTML: un nombre con comillas o etiquetas
+  // (escrito a mano o importado en un GeoJSON) no puede romper la ficha ni ejecutar código.
+  const h = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // Número con valor por defecto solo si el campo está vacío (un 0 cargado a propósito se respeta)
+  const num = (v, def) => { if (v === '' || v === null || v === undefined) return def; const n = parseFloat(v); return isNaN(n) ? def : n; };
+  const colorSeguro = c => /^#[0-9a-fA-F]{3,8}$/.test(String(c || '')) ? c : '#64748b';
+
   const PALETA_RAPIDA = ['#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#14b8a6','#6366f1','#64748b'];
 
   /* =========================================================================
      2. CLAVES DE ALMACENAMIENTO POR CLIENTE Y GESTIÓN DE PLANTILLAS
      ========================================================================= */
   function obtenerSelectorCliente() {
-    const selects = Array.from(document.querySelectorAll('select'));
-    return selects.find(s =>
-      s.id !== 'opt-como' && !s.id.startsWith('cpo-') && !s.id.startsWith('pop-') && !s.id.startsWith('wr-')
-    );
+    return document.getElementById('cli');
+  }
+
+  // Antes los datos se guardaban con el nombre del cliente como clave. Eso mezclaba
+  // clientes con nombres parecidos (Gómez y Gámez quedaban los dos como "G_mez") y
+  // perdía el mapa al renombrar o archivar. Ahora la clave es el id del cliente y,
+  // la primera vez, se copian los datos viejos para no perder nada.
+  const PREFIJOS_MAPA = ['cpo_territorio_zonas_', 'cpo_categorias_custom_', 'cpo_plantilla_campos_', 'cpo_pines_custom_'];
+  const clientesMigrados = new Set();
+  function migrarClavesViejas(c, nuevo) {
+    if (clientesMigrados.has(c.id)) return;
+    clientesMigrados.add(c.id);
+    const viejo = (c.nombre || '').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (!viejo || viejo === nuevo) return;
+    PREFIJOS_MAPA.forEach(p => {
+      try {
+        if (localStorage.getItem(p + nuevo) !== null) return;
+        const v = localStorage.getItem(p + viejo);
+        if (v !== null) localStorage.setItem(p + nuevo, v);
+      } catch (e) {}
+    });
   }
 
   function obtenerClienteActual() {
-    const sel = obtenerSelectorCliente();
-    if (sel && sel.options[sel.selectedIndex]) {
-      const txt = sel.options[sel.selectedIndex].textContent.trim();
-      if (txt && !txt.toLowerCase().includes('sin cliente')) {
-        return txt.replace(/[^a-zA-Z0-9_-]/g, '_');
-      }
+    const c = window.cpoClienteActual && window.cpoClienteActual();
+    if (c && c.id) {
+      const clave = String(c.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+      migrarClavesViejas(c, clave);
+      return clave;
     }
     return 'general';
+  }
+  function nombreClienteActual() {
+    const c = window.cpoClienteActual && window.cpoClienteActual();
+    return c && c.nombre ? c.nombre.replace(/[^a-zA-Z0-9_-]+/g, '_') : 'general';
   }
 
   function claveStorage() { return 'cpo_territorio_zonas_' + obtenerClienteActual(); }
@@ -3096,11 +3131,15 @@ if (!permitidos.includes(correo)) {
     ];
   }
 
-  function guardarCategorias(lista) { localStorage.setItem(claveCategorias(), JSON.stringify(lista)); }
+  function guardarLS(clave, valor) {
+    try { localStorage.setItem(clave, valor); return true; }
+    catch (e) { alert('No se pudo guardar en este navegador (memoria llena o navegación privada). Exportá el GeoJSON para no perder los cambios.'); return false; }
+  }
+  function guardarCategorias(lista) { guardarLS(claveCategorias(), JSON.stringify(lista)); }
   function obtenerPlantillaCampos() { try { return JSON.parse(localStorage.getItem(clavePlantillaCampos()) || '[]'); } catch (e) { return []; } }
-  function guardarPlantillaCampos(lista) { localStorage.setItem(clavePlantillaCampos(), JSON.stringify(lista)); }
+  function guardarPlantillaCampos(lista) { guardarLS(clavePlantillaCampos(), JSON.stringify(lista)); }
   function obtenerPinesCustom() { try { return JSON.parse(localStorage.getItem(clavePinesCustom()) || '[]'); } catch (e) { return []; } }
-  function guardarPinesCustom(lista) { localStorage.setItem(clavePinesCustom(), JSON.stringify(lista)); }
+  function guardarPinesCustom(lista) { guardarLS(clavePinesCustom(), JSON.stringify(lista)); }
 
   /* =========================================================================
      3. CÁLCULOS GEOMÉTRICOS (HECTÁREAS, MANZANAS, HORAS DE TIMBREO) Y METAS
@@ -3137,8 +3176,8 @@ if (!permitidos.includes(correo)) {
 
   function calcularMetaZona(d, simPartDelta = 0, simObjDelta = 0) {
     const padron = parseInt(d.votantes || 0, 10) || 0;
-    const part = Math.min(100, Math.max(0, (parseFloat(d.participacion || 75) || 75) + simPartDelta));
-    const obj = Math.min(100, Math.max(0, (parseFloat(d.objetivoPct || 40) || 40) + simObjDelta));
+    const part = Math.min(100, Math.max(0, num(d.participacion, 75) + simPartDelta));
+    const obj = Math.min(100, Math.max(0, num(d.objetivoPct, 40) + simObjDelta));
     return Math.round(padron * (part / 100) * (obj / 100));
   }
 
@@ -3148,7 +3187,7 @@ if (!permitidos.includes(correo)) {
   function crearIconoPin(emoji, colorBorde) {
     return L.divIcon({
       className: 'cpo-custom-pin-icon',
-      html: `<span style="pointer-events:none;">${emoji || '📍'}</span>`,
+      html: `<span style="pointer-events:none;">${h(emoji || '📍')}</span>`,
       iconSize: [32, 32],
       iconAnchor: [16, 16],
       popupAnchor: [0, -16]
@@ -3203,7 +3242,7 @@ if (!permitidos.includes(correo)) {
     layer.unbindTooltip();
 
     if (d.esPin) {
-      layer.bindTooltip(`<span>${d.emojiPin || '📍'} ${d.nombre || 'Punto'}</span>`, {
+      layer.bindTooltip(`<span>${h(d.emojiPin || '📍')} ${h(d.nombre || 'Punto')}</span>`, {
         permanent: mostrarFijas,
         direction: 'top',
         offset: [0, -14],
@@ -3214,7 +3253,7 @@ if (!permitidos.includes(correo)) {
 
     const meta = calcularMetaZona(d);
     const pad = parseInt(d.votantes || 0, 10) || 0;
-    const html = `<div><b>${d.nombre || 'Circuito'}</b><br><span style="color:#38bdf8;">👥 ${pad.toLocaleString('es-AR')}</span> | <span style="color:#10b981;">🎯 ${meta.toLocaleString('es-AR')} v.</span></div>`;
+    const html = `<div><b>${h(d.nombre || 'Circuito')}</b><br><span style="color:#38bdf8;">👥 ${pad.toLocaleString('es-AR')}</span> | <span style="color:#10b981;">🎯 ${meta.toLocaleString('es-AR')} v.</span></div>`;
     layer.bindTooltip(html, {
       permanent: mostrarFijas,
       direction: 'center',
@@ -3280,13 +3319,13 @@ if (!permitidos.includes(correo)) {
       ).join('');
 
       const opcionesCatHtml = categorias.map(cat =>
-        `<option value="${cat.nombre}" data-col="${cat.color}" ${d.categoria===cat.nombre?'selected':''}>${cat.nombre}</option>`
+        `<option value="${h(cat.nombre)}" data-col="${h(colorSeguro(cat.color))}" ${d.categoria===cat.nombre?'selected':''}>${h(cat.nombre)}</option>`
       ).join('');
 
       container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:5px;">
           <strong style="font-size:12.5px; color:#38bdf8;">
-            ${d.esPin ? `${d.emojiPin || '📍'} ${d.tipoPin || 'Pin Estratégico'}` : '🗳️ Ficha Electoral de Zona'}
+            ${d.esPin ? `${h(d.emojiPin || '📍')} ${h(d.tipoPin || 'Pin Estratégico')}` : '🗳️ Ficha Electoral de Zona'}
           </strong>
           ${!d.esPin ? `<span style="font-size:10.5px; background:#1e293b; border:1px solid #475569; padding:2px 6px; border-radius:4px; color:#fbbf24; font-weight:700;">🧱 ~${geoCalc.manzanas} mz (${geoCalc.hectareas} ha)</span>` : ''}
         </div>
@@ -3295,12 +3334,12 @@ if (!permitidos.includes(correo)) {
           ${d.esPin ? `
           <div>
             <label>Ícono / Emoji</label>
-            <input type="text" id="pop-emoji" value="${d.emojiPin || '📍'}" style="text-align:center; font-size:14px;" />
+            <input type="text" id="pop-emoji" value="${h(d.emojiPin || '📍')}" style="text-align:center; font-size:14px;" />
           </div>
           ` : ''}
           <div>
             <label>Nombre Identificatorio</label>
-            <input type="text" id="pop-nombre" value="${d.nombre || ''}" placeholder="Ej: Circuito 364 / EP N° 12" />
+            <input type="text" id="pop-nombre" value="${h(d.nombre)}" placeholder="Ej: Circuito 364 / EP N° 12" />
           </div>
         </div>
 
@@ -3312,7 +3351,7 @@ if (!permitidos.includes(correo)) {
           </div>
           <div style="display:flex; gap:6px; margin-top:4px; align-items:center;">
             <select id="pop-categoria" style="flex:1;">${opcionesCatHtml}</select>
-            <input type="color" id="pop-color-picker" value="${d.color || '#10b981'}" style="width:38px !important; height:28px !important; padding:1px !important; cursor:pointer;" />
+            <input type="color" id="pop-color-picker" value="${h(colorSeguro(d.color || '#10b981'))}" style="width:38px !important; height:28px !important; padding:1px !important; cursor:pointer;" />
           </div>
           <div class="cpo-swatch-row">${swatchesHtml}</div>
         </div>
@@ -3322,15 +3361,15 @@ if (!permitidos.includes(correo)) {
         <div class="cpo-popup-grid3">
           <div>
             <label>Padrón Electores</label>
-            <input type="number" id="pop-votantes" value="${d.votantes || ''}" placeholder="Ej: 4500" />
+            <input type="number" id="pop-votantes" value="${h(d.votantes)}" placeholder="Ej: 4500" />
           </div>
           <div>
             <label>% Participación</label>
-            <input type="number" id="pop-part" value="${d.participacion || 75}" />
+            <input type="number" id="pop-part" value="${h(num(d.participacion, 75))}" />
           </div>
           <div>
             <label>% Voto Objetivo</label>
-            <input type="number" id="pop-obj" value="${d.objetivoPct || 40}" />
+            <input type="number" id="pop-obj" value="${h(num(d.objetivoPct, 40))}" />
           </div>
         </div>
 
@@ -3345,21 +3384,21 @@ if (!permitidos.includes(correo)) {
           <div class="cpo-popup-grid3" style="margin-top:6px;">
             <div>
               <label>% Nuestro (Ant.)</label>
-              <input type="number" id="pop-hist-prop" value="${d.histPropio || ''}" placeholder="Ej: 38" />
+              <input type="number" id="pop-hist-prop" value="${h(d.histPropio)}" placeholder="Ej: 38" />
             </div>
             <div>
               <label>% 1° Rival</label>
-              <input type="number" id="pop-hist-riv" value="${d.histRival || ''}" placeholder="Ej: 34" />
+              <input type="number" id="pop-hist-riv" value="${h(d.histRival)}" placeholder="Ej: 34" />
             </div>
             <div>
               <label>% 3ª Fuerza</label>
-              <input type="number" id="pop-hist-ter" value="${d.histTercero || ''}" placeholder="Ej: 18" />
+              <input type="number" id="pop-hist-ter" value="${h(d.histTercero)}" placeholder="Ej: 18" />
             </div>
           </div>
           <div class="cpo-popup-grid2" style="margin-top:5px;">
             <div>
               <label>Nombre Fuerza Rival</label>
-              <input type="text" id="pop-hist-nom" value="${d.histNombreRival || ''}" placeholder="Ej: Oficialismo / Rival" />
+              <input type="text" id="pop-hist-nom" value="${h(d.histNombreRival)}" placeholder="Ej: Oficialismo / Rival" />
             </div>
             <div>
               <label>Avance Rastrillaje</label>
@@ -3379,15 +3418,15 @@ if (!permitidos.includes(correo)) {
           <div class="cpo-popup-grid2" style="margin-top:6px;">
             <div>
               <label>Escuela / Centro Votación</label>
-              <input type="text" id="pop-escuela" value="${d.escuela || ''}" placeholder="EP N° / Dirección..." />
+              <input type="text" id="pop-escuela" value="${h(d.escuela)}" placeholder="EP N° / Dirección..." />
             </div>
             <div>
               <label>Referente y Teléfono</label>
-              <input type="text" id="pop-referente" value="${d.referente || ''}" placeholder="Nombre y WhatsApp..." />
+              <input type="text" id="pop-referente" value="${h(d.referente)}" placeholder="Nombre y WhatsApp..." />
             </div>
           </div>
           <label style="margin-top:5px;">Diagnóstico / Observaciones</label>
-          <textarea id="pop-notas" rows="2" placeholder="Problemáticas de la zona, pedidos vecinales...">${d.notas || ''}</textarea>
+          <textarea id="pop-notas" rows="2" placeholder="Problemáticas de la zona, pedidos vecinales...">${h(d.notas)}</textarea>
         </details>
 
         <!-- Desplegable 3: Apartados Personalizados Creados por el Usuario -->
@@ -3417,10 +3456,10 @@ if (!permitidos.includes(correo)) {
           const row = document.createElement('div');
           row.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:10px; font-weight:700; color:#38bdf8;">📌 ${k}</span>
-              <span class="del-custom-k" data-k="${k}" style="color:#f87171; cursor:pointer; font-size:10.5px; font-weight:700;" title="Borrar apartado">✕ Quitar</span>
+              <span style="font-size:10px; font-weight:700; color:#38bdf8;">📌 ${h(k)}</span>
+              <span class="del-custom-k" data-k="${h(k)}" style="color:#f87171; cursor:pointer; font-size:10.5px; font-weight:700;" title="Borrar apartado">✕ Quitar</span>
             </div>
-            <input type="text" class="inp-custom-val" data-k="${k}" value="${d.camposExtra[k] || ''}" placeholder="Valor para ${k}..." />
+            <input type="text" class="inp-custom-val" data-k="${h(k)}" value="${h(d.camposExtra[k])}" placeholder="Valor para ${h(k)}..." />
           `;
           wrapCustom.appendChild(row);
         });
@@ -3575,15 +3614,15 @@ if (!permitidos.includes(correo)) {
           card.style.borderLeftColor = obtenerColorSegunModo(d);
 
           const histBadge = (!d.esPin && (d.histPropio || d.histRival))
-            ? `<span style="color:#fbbf24;">⚖️ Ant: ${d.histPropio || 0}% vs ${d.histRival || 0}%</span>`
+            ? `<span style="color:#fbbf24;">⚖️ Ant: ${h(d.histPropio || 0)}% vs ${h(d.histRival || 0)}%</span>`
             : '';
 
           card.innerHTML = `
             <div style="font-weight:700; font-size:12px; color:#ffffff; padding-right:28px;">
-              ${d.esPin ? (d.emojiPin || '📍') : '🗺️'} ${d.nombre || 'Zona'}
+              ${d.esPin ? h(d.emojiPin || '📍') : '🗺️'} ${h(d.nombre || 'Zona')}
             </div>
             <div style="font-size:10.5px; color:#94a3b8; margin-top:4px; display:flex; flex-wrap:wrap; gap:7px;">
-              <span style="color:#38bdf8;">${d.categoria || ''}</span>
+              <span style="color:#38bdf8;">${h(d.categoria)}</span>
               ${!d.esPin ? `<span>👥 ${v.toLocaleString('es-AR')}</span><span style="color:#10b981; font-weight:700;">🎯 ${meta.toLocaleString('es-AR')} v.</span><span>🧱 ~${geo.manzanas} mz</span>` : ''}
               ${histBadge}
             </div>
@@ -3625,7 +3664,7 @@ if (!permitidos.includes(correo)) {
       geo.properties = layer._cpoData || {};
       features.push(geo);
     });
-    localStorage.setItem(claveStorage(), JSON.stringify({ type: 'FeatureCollection', features }));
+    guardarLS(claveStorage(), JSON.stringify({ type: 'FeatureCollection', features }));
     actualizarPanelYKPIs();
   }
 
@@ -3882,22 +3921,22 @@ if (!permitidos.includes(correo)) {
         const meta = calcularMetaZona(z);
         const hProp = parseFloat(z.histPropio || 0) || 0;
         const hRiv = parseFloat(z.histRival || 0) || 0;
-        const objActual = parseFloat(z.objetivoPct || 40) || 40;
+        const objActual = num(z.objetivoPct, 40);
         const difPts = hProp > 0 ? +(objActual - hProp).toFixed(1) : null;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><b>${idx + 1}</b></td>
-          <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${z.color};margin-right:6px;"></span><b>${z.nombre}</b></td>
-          <td>${z.categoria || '-'}</td>
+          <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${colorSeguro(z.color)};margin-right:6px;"></span><b>${h(z.nombre)}</b></td>
+          <td>${h(z.categoria || '-')}</td>
           <td>${pad.toLocaleString('es-AR')}</td>
-          <td>${(hProp || hRiv) ? `<b>${hProp}%</b> vs ${hRiv}% ${z.histNombreRival ? `(${z.histNombreRival})` : ''}` : '<span style="color:#64748b;">Sin cargar</span>'}</td>
+          <td>${(hProp || hRiv) ? `<b>${hProp}%</b> vs ${hRiv}% ${z.histNombreRival ? `(${h(z.histNombreRival)})` : ''}` : '<span style="color:#64748b;">Sin cargar</span>'}</td>
           <td><b>${objActual}%</b></td>
           <td style="color:#10b981; font-weight:700;">${meta.toLocaleString('es-AR')} v.</td>
           <td style="color:${difPts === null ? '#64748b' : difPts >= 0 ? '#38bdf8' : '#f87171'}; font-weight:700;">
             ${difPts === null ? '-' : (difPts >= 0 ? `+${difPts} pts` : `${difPts} pts`)}
           </td>
-          <td>${z.referente || '-'} <small style="color:#94a3b8;">(${z.avance || 'Pendiente'})</small></td>
+          <td>${h(z.referente || '-')} <small style="color:#94a3b8;">(${h(z.avance || 'Pendiente')})</small></td>
         `;
         tbody.appendChild(tr);
       });
@@ -3913,16 +3952,17 @@ if (!permitidos.includes(correo)) {
     // Impresión de Hoja de Ruta Ejecutiva
     content.querySelector('#wr-btn-print').onclick = () => {
       const win = window.open('', '_blank');
+      if (!win) { alert('El navegador bloqueó la ventana de impresión. Permití las ventanas emergentes para este sitio y volvé a intentarlo.'); return; }
       const filasHtml = zonasArr.map((z, i) => `
         <tr>
           <td>${i + 1}</td>
-          <td><b>${z.nombre}</b><br><small>${z.categoria || ''}</small></td>
+          <td><b>${h(z.nombre)}</b><br><small>${h(z.categoria)}</small></td>
           <td>${(parseInt(z.votantes || 0, 10) || 0).toLocaleString('es-AR')}</td>
-          <td>${z.histPropio ? `${z.histPropio}% vs ${z.histRival || 0}%` : '-'}</td>
-          <td><b>${calcularMetaZona(z).toLocaleString('es-AR')} votos</b> (${z.objetivoPct || 40}%)</td>
+          <td>${z.histPropio ? `${h(z.histPropio)}% vs ${h(z.histRival || 0)}%` : '-'}</td>
+          <td><b>${calcularMetaZona(z).toLocaleString('es-AR')} votos</b> (${h(num(z.objetivoPct, 40))}%)</td>
           <td>~${z.manzanas} mz (${z.horasBrigada} hs)</td>
-          <td>${z.referente || '-'}<br>${z.escuela || ''}</td>
-          <td>${z.notas || ''}</td>
+          <td>${h(z.referente || '-')}<br>${h(z.escuela)}</td>
+          <td>${h(z.notas)}</td>
         </tr>
       `).join('');
 
@@ -3972,7 +4012,7 @@ if (!permitidos.includes(correo)) {
       filas.push([
         d.esPin ? `${d.emojiPin || '📍'} ${d.tipoPin || 'Pin'}` : 'Circuito/Zona',
         d.nombre || '', d.categoria || '', d.color || '', d.votantes || 0,
-        d.participacion || 75, d.objetivoPct || 40, d.esPin ? 0 : calcularMetaZona(d),
+        num(d.participacion, 75), num(d.objetivoPct, 40), d.esPin ? 0 : calcularMetaZona(d),
         d.histPropio || '', d.histRival || '', d.histTercero || '',
         geo.manzanas, geo.horasBrigada, d.avance || '', d.escuela || '', d.referente || '', d.notas || '',
         ...colsExtra.map(k => d.camposExtra?.[k] || '')
@@ -3983,7 +4023,7 @@ if (!permitidos.includes(correo)) {
     const csv = '\uFEFF' + [encab.map(esc).join(';'), ...filas.map(r => r.map(esc).join(';'))].join('\r\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-    a.download = `Planilla_Electoral_${muniActualObj.n.split(' (')[0]}_${obtenerClienteActual()}.csv`;
+    a.download = `Planilla_Electoral_${muniActualObj.n.split(' (')[0]}_${nombreClienteActual()}.csv`;
     a.click();
   }
 
@@ -4194,14 +4234,15 @@ if (!permitidos.includes(correo)) {
     if (!q) return;
     const muniLimpio = muniActualObj ? muniActualObj.n.split(' (')[0] : '';
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ', ' + muniLimpio + ', Buenos Aires, Argentina')}`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(res => {
         if (res && res.length > 0 && map) {
           map.setView([parseFloat(res[0].lat), parseFloat(res[0].lon)], 16);
         } else {
           alert(`No se encontró "${q}" en ${muniLimpio}. Probá escribiendo "Nombre de calle, Localidad".`);
         }
-      });
+      })
+      .catch(() => alert('No se pudo consultar el buscador de calles. Revisá la conexión y probá de nuevo en unos segundos.'));
   }
 
   document.getElementById('cpo-mapa-btn-buscar').addEventListener('click', buscarCalleEnMunicipio);
@@ -4213,7 +4254,7 @@ if (!permitidos.includes(correo)) {
     const raw = localStorage.getItem(claveStorage()) || '{"type":"FeatureCollection","features":[]}';
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
-    a.download = `cartografia_${obtenerClienteActual()}.geojson`;
+    a.download = `cartografia_${nombreClienteActual()}.geojson`;
     a.click();
   });
 
@@ -4226,7 +4267,7 @@ if (!permitidos.includes(correo)) {
       try {
         const parsed = JSON.parse(ev.target.result);
         if (parsed && parsed.features) {
-          localStorage.setItem(claveStorage(), JSON.stringify(parsed));
+          if (!guardarLS(claveStorage(), JSON.stringify(parsed))) return;
           cargarZonasGuardadas();
           alert('¡Cartografía importada con éxito!');
         }
@@ -4240,57 +4281,48 @@ if (!permitidos.includes(correo)) {
     document.getElementById('cpo-mapa-modal').style.display = 'none';
   });
 
+  // Botón fijo en el menú lateral (contenedor #side-mods, que el tablero no redibuja)
   function inyectarBotonMenu() {
     if (document.getElementById('cpo-btn-abrir-mapa')) return;
-    const elementos = Array.from(document.querySelectorAll('a, button, div, li'));
-    const refMenciones = elementos.find(el => el.children.length === 0 && el.textContent.trim() === 'Menciones');
-    const btn = document.createElement('div');
+    const btn = document.createElement('button');
+    btn.type = 'button';
     btn.id = 'cpo-btn-abrir-mapa';
-    btn.innerHTML = '🗺️ Mapa Territorial';
-    btn.style.cssText = 'cursor:pointer; padding:8px 12px; margin:6px 8px; border-radius:6px; background:rgba(16,185,129,0.16); color:#10b981; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px; border:1px solid rgba(16,185,129,0.3);';
+    btn.className = 'navi notranslate';
+    btn.title = 'Mapa territorial';
+    btn.setAttribute('translate', 'no');
+    btn.innerHTML = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 5.5 7.5 3l5 2.5 5-2.5v11.5l-5 2.5-5-2.5-5 2.5z"/><path d="M7.5 3v11.5M12.5 5.5V17"/></svg><span class="nl">Mapa territorial</span>';
     btn.onclick = () => {
       document.getElementById('cpo-mapa-modal').style.display = 'flex';
       iniciarMapa();
     };
-    if (refMenciones && refMenciones.parentElement) {
-      refMenciones.parentElement.insertAdjacentElement('afterend', btn);
-    } else {
-      btn.style.cssText += 'position:fixed; bottom:16px; left:16px; z-index:9999; background:#0c8a5e; color:#fff;';
+    const slot = document.getElementById('side-mods');
+    if (slot) slot.prepend(btn);
+    else {
+      btn.style.cssText = 'position:fixed; bottom:16px; left:16px; z-index:9999; background:#0c8a5e; color:#fff; width:auto;';
       document.body.appendChild(btn);
     }
   }
 
   /* =========================================================================
      10. GESTIÓN DE CLIENTES (DESCARGAR HISTORIAL Y OCULTAR SIN BORRAR FIREBASE)
+     El filtro de ocultos lo aplica el tablero al dibujar el selector (drawTop),
+     así no hay parpadeo ni se pierde al redibujar.
      ========================================================================= */
   const CLAVE_OCULTOS = 'cpo_clientes_ocultos_tablero';
-  function obtenerOcultos() { try { return JSON.parse(localStorage.getItem(CLAVE_OCULTOS) || '[]'); } catch (e) { return []; } }
-  function guardarOcultos(l) { localStorage.setItem(CLAVE_OCULTOS, JSON.stringify(l)); }
+  function obtenerOcultos() { try { const l = JSON.parse(localStorage.getItem(CLAVE_OCULTOS) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; } }
+  function guardarOcultos(l) { guardarLS(CLAVE_OCULTOS, JSON.stringify(l)); }
 
   function aplicarFiltroOcultos() {
-    const sel = obtenerSelectorCliente();
-    if (!sel) return;
     const ocultos = obtenerOcultos();
     const btnRes = document.getElementById('cpo-btn-res-cli');
     if (btnRes) {
       btnRes.style.display = ocultos.length > 0 ? 'inline-flex' : 'none';
       btnRes.textContent = `👁️ Restaurar (${ocultos.length})`;
     }
-    if (ocultos.length === 0) return;
-    Array.from(sel.options).forEach(opt => {
-      if (ocultos.some(o => o.id === opt.value || o.nombre === opt.textContent.trim())) {
-        opt.style.display = 'none';
-        opt.disabled = true;
-        if (sel.value === opt.value) {
-          const libre = Array.from(sel.options).find(o => !o.disabled);
-          if (libre) { sel.value = libre.value; sel.dispatchEvent(new Event('change', { bubbles: true })); }
-        }
-      }
-    });
+    if (window.cpoRefrescar) window.cpoRefrescar();
   }
 
   function inyectarBotonesCliente() {
-    aplicarFiltroOcultos();
     if (document.getElementById('cpo-cliente-tools')) return;
     const sel = obtenerSelectorCliente();
     if (!sel || !sel.parentElement) return;
@@ -4307,33 +4339,34 @@ if (!permitidos.includes(correo)) {
 
     document.getElementById('cpo-btn-dl-cli').onclick = () => {
       const cli = obtenerClienteActual();
+      const leer = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
       const paquete = {
-        cliente: cli,
+        cliente: (window.cpoClienteActual && window.cpoClienteActual()) || cli,
         fecha_exportacion: new Date().toLocaleString('es-AR'),
-        cartografia_electoral: JSON.parse(localStorage.getItem(claveStorage()) || 'null'),
-        categorias_mapa: JSON.parse(localStorage.getItem(claveCategorias()) || 'null')
+        cartografia_electoral: leer(claveStorage()),
+        categorias_mapa: leer(claveCategorias())
       };
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k !== CLAVE_OCULTOS && k.includes(cli)) paquete[k] = localStorage.getItem(k);
+        if (k !== CLAVE_OCULTOS && k.endsWith('_' + cli)) paquete[k] = localStorage.getItem(k);
       }
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([JSON.stringify(paquete, null, 2)], { type: 'application/json' }));
-      a.download = `Historial_${cli}_${new Date().toISOString().slice(0,10)}.json`;
+      a.download = `Historial_${nombreClienteActual()}_${new Date().toISOString().slice(0,10)}.json`;
       a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     };
 
     document.getElementById('cpo-btn-del-cli').onclick = () => {
-      const s = obtenerSelectorCliente();
-      if (!s || !s.value) return;
-      const nom = s.options[s.selectedIndex].textContent.trim();
-      if (confirm(`¿Ocultar a "${nom}" de la vista del tablero?\n\n✅ Sus datos siguen resguardados en Firebase.`)) {
+      const c = window.cpoClienteActual && window.cpoClienteActual();
+      if (!c) return;
+      if (confirm(`¿Ocultar a "${c.nombre}" de la vista del tablero en este navegador?\n\n✅ Sus datos siguen resguardados en Firebase.`)) {
         const oc = obtenerOcultos();
-        if (!oc.some(o => o.id === s.value)) {
-          oc.push({ id: s.value, nombre: nom });
+        if (!oc.some(o => o.id === c.id)) {
+          oc.push({ id: c.id, nombre: c.nombre });
           guardarOcultos(oc);
-          aplicarFiltroOcultos();
         }
+        aplicarFiltroOcultos();
       }
     };
 
@@ -4342,12 +4375,12 @@ if (!permitidos.includes(correo)) {
       if (oc.length === 0) return;
       const r = prompt(`Clientes ocultos:\n${oc.map((o, i) => `${i + 1}. ${o.nombre}`).join('\n')}\n\nEscribí el número para restaurar (o TODOS):`);
       if (!r) return;
-      if (r.trim().toUpperCase() === 'TODOS') { guardarOcultos([]); window.location.reload(); return; }
+      if (r.trim().toUpperCase() === 'TODOS') { guardarOcultos([]); aplicarFiltroOcultos(); return; }
       const n = parseInt(r.trim(), 10);
       if (!isNaN(n) && n >= 1 && n <= oc.length) {
         oc.splice(n - 1, 1);
         guardarOcultos(oc);
-        window.location.reload();
+        aplicarFiltroOcultos();
       }
     };
 
@@ -4357,9 +4390,11 @@ if (!permitidos.includes(correo)) {
         cargarZonasGuardadas();
       }
     });
+    aplicarFiltroOcultos();
   }
 
-  setInterval(() => { inyectarBotonMenu(); inyectarBotonesCliente(); }, 1200);
+  inyectarBotonMenu();
+  inyectarBotonesCliente();
 
   /* =========================================================================
      11. PUERTO DE EXPANSIÓN ABIERTA (API DE PLUGINS PARA FUTURAS MEJORAS)
@@ -4745,7 +4780,7 @@ if (!permitidos.includes(correo)) {
      0. CONFIGURACIÓN
      ===================================================================== */
   const CFG = {
-    ID_SELECTOR_CLIENTE: '',            // Si el selector de clientes del tablero tiene id, escribilo acá
+    ID_SELECTOR_CLIENTE: 'cli',         // id del selector de clientes del tablero
     PDFJS_VERSION: '3.11.174',
     MAX_PAGINAS_PDF: 300,
     MAX_CARACTERES_POR_DOC: 400000,
@@ -4827,7 +4862,27 @@ if (!permitidos.includes(correo)) {
   /* =====================================================================
      CLIENTE ACTIVO
      ===================================================================== */
+  // Clave por id del cliente: no cambia si se renombra y no mezcla nombres parecidos.
+  // La primera vez copia los borradores y la jurisdicción guardados con la clave vieja (por nombre).
+  const clientesMigrados = new Set();
   function leerCliente() {
+    const c = window.cpoClienteActual && window.cpoClienteActual();
+    if (c && c.id) {
+      const clave = String(c.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+      if (!clientesMigrados.has(clave)) {
+        clientesMigrados.add(clave);
+        const vieja = (c.nombre || '').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+        if (vieja && vieja !== clave) {
+          [PREFIJO_BORRADORES, PREFIJO_JURISDICCION].forEach(p => {
+            if (lsGet(p + clave, null) === null) { const v = lsGet(p + vieja, null); if (v !== null) lsSet(p + clave, v); }
+          });
+        }
+      }
+      return { clave, nombre: c.nombre || 'Sin nombre' };
+    }
+    return leerClienteDesdeSelector();
+  }
+  function leerClienteDesdeSelector() {
     let sel = CFG.ID_SELECTOR_CLIENTE ? document.getElementById(CFG.ID_SELECTOR_CLIENTE) : null;
     if (!sel || sel.tagName !== 'SELECT') {
       sel = Array.from(document.querySelectorAll('select')).find(s =>
@@ -5781,48 +5836,22 @@ if (!permitidos.includes(correo)) {
 
   window.cpoAbrirRedaccion = abrirModal; // para abrirlo desde otros módulos
 
-  const ESTILO_BOTON_MENU = 'cursor:pointer; padding:8px 12px; margin:6px 8px; border-radius:6px; background:rgba(124,58,237,0.18); color:#c4b5fd; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px; border:1px solid rgba(139,92,246,0.4);';
-  const ESTILO_BOTON_FLOTANTE = ESTILO_BOTON_MENU + ' position:fixed; bottom:60px; left:16px; z-index:9999; background:#5b21b6; color:#fff;';
-  let botonMenu = null;
-  let ticksSinMenu = 0;
-
-  function buscarAnclaMenu() {
-    const btnMapa = document.getElementById('cpo-btn-abrir-mapa');
-    if (btnMapa && btnMapa.parentElement) return btnMapa;
-    const ref = Array.from(document.querySelectorAll('a, button, div, li')).find(n =>
-      n.children.length === 0 && n.textContent.trim() === 'Menciones' && !modal.contains(n));
-    return ref && ref.parentElement ? ref.parentElement : null;
-  }
-
   function ubicarBotonMenu() {
-    if (!botonMenu) {
-      botonMenu = document.getElementById('cpo-btn-abrir-redaccion') ||
-        el('div', { id: 'cpo-btn-abrir-redaccion', class: 'notranslate', role: 'button', tabIndex: 0 }, '✍️ Análisis y Redacción');
-      botonMenu.setAttribute('translate', 'no');
-      botonMenu.addEventListener('click', abrirModal);
-      botonMenu.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirModal(); } });
-    }
-    if (botonMenu.isConnected && botonMenu.dataset.ubicacion === 'menu') return;
-    if (botonMenu.isConnected && botonMenu.dataset.ubicacion === 'flotante' && ticksSinMenu > 100) return;
-
-    const ancla = buscarAnclaMenu();
-    if (ancla) {
-      botonMenu.style.cssText = ESTILO_BOTON_MENU;
-      botonMenu.dataset.ubicacion = 'menu';
-      ancla.insertAdjacentElement('afterend', botonMenu);
-      ticksSinMenu = 0;
-      return;
-    }
-    ticksSinMenu++;
-    if (!botonMenu.isConnected && ticksSinMenu >= 8) { // espera unos 10 segundos al menú
-      botonMenu.style.cssText = ESTILO_BOTON_FLOTANTE;
-      botonMenu.dataset.ubicacion = 'flotante';
-      document.body.appendChild(botonMenu);
+    if (document.getElementById('cpo-btn-abrir-redaccion')) return;
+    const boton = el('button', { type: 'button', id: 'cpo-btn-abrir-redaccion', class: 'navi notranslate', title: 'Análisis y redacción' });
+    boton.setAttribute('translate', 'no');
+    boton.innerHTML = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16l-3.5.5L4 13z"/><path d="M11.5 5.5l3 3"/></svg><span class="nl">Análisis y redacción</span>';
+    boton.addEventListener('click', abrirModal);
+    const slot = document.getElementById('side-mods');
+    if (slot) slot.append(boton);
+    else {
+      boton.style.cssText = 'position:fixed; bottom:60px; left:16px; z-index:9999; background:#5b21b6; color:#fff; width:auto;';
+      document.body.appendChild(boton);
     }
   }
 
   ubicarBotonMenu();
-  setInterval(ubicarBotonMenu, 1200);
 })();
 </script>
 <!-- === FIN MÓDULO SISTEMA DE ANÁLISIS Y REDACCIÓN POLÍTICA · v3 === -->
+</body></html>

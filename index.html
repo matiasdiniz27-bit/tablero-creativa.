@@ -2872,6 +2872,8 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     transition: transform .16s var(--ease);
   }
   .cpo-custom-pin-icon:hover { transform: scale(1.18); }
+  /* Calles en modo oscuro: el mapa claro invertido, con los colores corregidos */
+  #cpo-leaflet-map.cpo-tiles-oscuras .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9) saturate(.7); }
 
   /* Controles de Leaflet con los colores del tablero */
   #cpo-mapa-modal .leaflet-bar a, #cpo-mapa-modal .leaflet-pm-toolbar .button-container a {
@@ -4332,16 +4334,34 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   });
 
   // "Mapa según el tema" usa el claro o el oscuro de CARTO y cambia solo con el tema del tablero
+  // "Mapa según el tema" usa OpenStreetMap, el proveedor más confiable. En modo
+  // oscuro se oscurece con un filtro, sin depender de otro servidor de mapas.
   function capaElegida() {
     const v = document.getElementById('cpo-mapa-capa').value || 'auto';
-    if (v !== 'auto') return v;
-    return document.documentElement.getAttribute('data-modo-actual') === 'dark' ? 'dark' : 'light';
+    return v === 'auto' ? 'osm' : v;
   }
   function ponerCapa() {
     if (!map) return;
-    const conf = CAPAS_TILES[capaElegida()] || CAPAS_TILES.light;
+    const sel = document.getElementById('cpo-mapa-capa');
+    const auto = (sel.value || 'auto') === 'auto';
+    const oscuro = document.documentElement.getAttribute('data-modo-actual') === 'dark';
+    document.getElementById('cpo-leaflet-map').classList.toggle('cpo-tiles-oscuras', auto && oscuro);
+    const clave = capaElegida();
+    const conf = CAPAS_TILES[clave] || CAPAS_TILES.osm;
     if (tileLayerActual) map.removeLayer(tileLayerActual);
-    tileLayerActual = L.tileLayer(conf.url, { maxZoom: 19, attribution: conf.attr }).addTo(map);
+    const capa = L.tileLayer(conf.url, { maxZoom: 19, attribution: conf.attr });
+    // Si un proveedor no responde (red de la oficina, bloqueador de anuncios), pasa solo a OpenStreetMap
+    let cargadas = 0, fallas = 0;
+    capa.on('tileload', () => { cargadas++; });
+    capa.on('tileerror', () => {
+      fallas++;
+      if (clave !== 'osm' && cargadas === 0 && fallas >= 4 && tileLayerActual === capa) {
+        sel.value = 'auto';
+        try { localStorage.setItem('cpo_mapa_capa', 'auto'); } catch (e) {}
+        ponerCapa();
+      }
+    });
+    tileLayerActual = capa.addTo(map);
   }
   document.getElementById('cpo-mapa-capa').addEventListener('change', e => {
     try { localStorage.setItem('cpo_mapa_capa', e.target.value); } catch (err) {}

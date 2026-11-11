@@ -621,6 +621,7 @@ html.side-min{--sw:72px}
 .side-foot{border-top:1px solid var(--line);padding-top:10px}
 .side-mods{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line);padding:10px 0 8px}
 .side-mods:empty{display:none}
+@media (prefers-reduced-motion:no-preference){html.tema-cambiando,html.tema-cambiando *,html.tema-cambiando *::before,html.tema-cambiando *::after{transition:background-color .4s var(--ease),border-color .4s var(--ease),color .3s var(--ease),box-shadow .4s var(--ease)!important}}
 button.navi{background:none;border:0;font:inherit;font-size:.88rem;width:100%;cursor:pointer;text-align:left;box-sizing:border-box}
 .iconbtn{all:unset;box-sizing:border-box;cursor:pointer;width:36px;height:36px;display:grid;place-items:center;border-radius:var(--r-sm);color:var(--fg-2);flex:none}
 .iconbtn:hover{background:var(--surface-2);color:var(--fg)}
@@ -2568,10 +2569,29 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
 (function(){
   const R=document.documentElement,mq=matchMedia("(prefers-color-scheme: dark)");
   function actual(){const m=R.getAttribute("data-mode");if(m==="light"||m==="dark")return m;const t=R.getAttribute("data-theme");if(t==="light"||t==="dark")return t;return mq.matches?"dark":"light"}
-  function pintar(){const m=actual();document.querySelectorAll("[data-mode-set]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.modeSet===m)))}
-  document.querySelector(".mode").addEventListener("click",e=>{const b=e.target.closest("[data-mode-set]");if(!b)return;R.setAttribute("data-mode",b.dataset.modeSet);try{localStorage.setItem("cpo:modo",b.dataset.modeSet)}catch(err){}pintar()});
+  const SOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/></svg>';
+  const LUNA='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M13.5 9.6A5.6 5.6 0 0 1 6.4 2.5a5.6 5.6 0 1 0 7.1 7.1z"/></svg>';
+  let previo="";
+  function pintar(){
+    const m=actual();
+    document.querySelectorAll("[data-mode-set]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.modeSet===m)));
+    /* Botones de tema del mapa y de redacción: muestran a qué modo pasan */
+    document.querySelectorAll("[data-cpo-tema]").forEach(b=>{b.innerHTML=m==="dark"?SOL+"<span>Claro</span>":LUNA+"<span>Oscuro</span>";b.setAttribute("aria-label",m==="dark"?"Pasar a modo claro":"Pasar a modo oscuro")});
+    if(R.getAttribute("data-modo-actual")!==m)R.setAttribute("data-modo-actual",m);
+    if(previo&&previo!==m)document.dispatchEvent(new CustomEvent("cpo:tema",{detail:m}));
+    previo=m;
+  }
+  /* Cambio de tema con transición suave de colores */
+  function fijar(m){
+    R.classList.add("tema-cambiando");clearTimeout(window.__cpoTemaT);window.__cpoTemaT=setTimeout(()=>R.classList.remove("tema-cambiando"),500);
+    R.setAttribute("data-mode",m);try{localStorage.setItem("cpo:modo",m)}catch(err){}pintar();
+  }
+  window.cpoAlternarModo=function(){fijar(actual()==="dark"?"light":"dark")};
+  document.querySelector(".mode").addEventListener("click",e=>{const b=e.target.closest("[data-mode-set]");if(!b)return;fijar(b.dataset.modeSet)});
+  document.addEventListener("click",e=>{if(e.target.closest("[data-cpo-tema]"))window.cpoAlternarModo()});
   try{mq.addEventListener("change",pintar)}catch(e){}
   new MutationObserver(pintar).observe(R,{attributes:true,attributeFilter:["data-theme","data-mode"]});
+  document.addEventListener("DOMContentLoaded",pintar);
   pintar();
 })();
 </script>
@@ -2695,310 +2715,407 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
 <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.14.2/dist/leaflet-geoman.min.js"></script>
 
 <style>
-  /* Contenedor Principal Fullscreen Dark Mode */
+  /* Mapa territorial. Usa los mismos colores del tablero (variables de :root),
+     así sigue el modo claro u oscuro elegido sin estilos aparte. */
   #cpo-mapa-modal {
-    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: #0b0f17; z-index: 99999; flex-direction: column;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: #f8fafc; color-scheme: dark; user-select: none;
+    display: none; position: fixed; inset: 0;
+    background: var(--bg); z-index: 99999; flex-direction: column;
+    font-family: var(--f-body); color: var(--fg); user-select: none;
+    animation: cpoEntrar .28s var(--ease) both;
   }
+  @keyframes cpoEntrar { from { opacity: 0; transform: translateY(8px) scale(.995); } to { opacity: 1; transform: none; } }
+  @keyframes cpoAparecer { from { opacity: 0; } to { opacity: 1; } }
 
-  /* Forzar Modo Oscuro en TODOS los selects y opciones para evitar fondos blancos */
-  #cpo-mapa-modal select,
-  #cpo-mapa-modal input,
-  #cpo-mapa-modal button,
-  #cpo-warroom-overlay select,
-  #cpo-warroom-overlay input,
-  #cpo-warroom-overlay button {
-    color-scheme: dark !important;
-    background-color: #1e293b !important;
-    color: #f8fafc !important;
-    border: 1px solid #475569 !important;
-    border-radius: 6px;
-    padding: 5px 9px;
-    font-size: 12px;
+  /* Controles de formulario */
+  /* Tamaño de los controles: con la prioridad del id para que no lo pise el tablero */
+  #cpo-mapa-modal :is(select, input, button), #cpo-warroom-overlay :is(select, input, button) {
+    font-family: var(--f-body); font-size: 12.5px; line-height: 1.35; padding: 6px 10px; border-radius: var(--r-sm); min-height: 0;
+  }
+  /* Colores: :where() deja la prioridad en cero para que las clases de color ganen */
+  :where(#cpo-mapa-modal, #cpo-warroom-overlay) :where(select, input, button) {
+    background-color: var(--surface) !important;
+    color: var(--fg) !important;
+    border: 1px solid var(--line-2) !important;
     outline: none;
+    transition: border-color .16s, box-shadow .16s, background-color .16s, transform .12s var(--ease), filter .16s;
   }
-  #cpo-mapa-modal select option,
-  #cpo-warroom-overlay select option {
-    background-color: #0f172a !important;
-    color: #f8fafc !important;
-    padding: 6px;
+  #cpo-mapa-modal select:focus, #cpo-mapa-modal input:focus,
+  #cpo-warroom-overlay select:focus, #cpo-warroom-overlay input:focus {
+    border-color: var(--accent) !important; box-shadow: 0 0 0 3px var(--accent-ring);
   }
+  #cpo-mapa-modal button:focus-visible, #cpo-warroom-overlay button:focus-visible { box-shadow: 0 0 0 3px var(--accent-ring); }
+  #cpo-mapa-modal button:active, #cpo-warroom-overlay button:active { transform: translateY(1px); }
+  :where(#cpo-mapa-modal, #cpo-warroom-overlay) select option { background-color: var(--surface) !important; color: var(--fg) !important; }
+  #cpo-mapa-modal ::placeholder, #cpo-warroom-overlay ::placeholder { color: var(--ph); }
 
-  /* Barra Superior Compacta */
+  /* Barra superior */
   .cpo-top-bar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 14px; background: #0f172a; border-bottom: 1px solid #334155;
+    padding: 10px 16px; background: var(--head-bg); border-bottom: 1px solid var(--line);
+    backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px);
     z-index: 20; flex-wrap: wrap; gap: 8px;
   }
-  .cpo-top-bar button { cursor: pointer; font-weight: 600; transition: filter 0.15s; }
-  .cpo-top-bar button:hover { filter: brightness(1.15); }
-  .cpo-btn-toggle-top { background: #1e293b !important; color: #38bdf8 !important; border-color: #38bdf8 !important; font-weight: 700 !important; }
-  .cpo-btn-dhondt { background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; color: #ffffff !important; border: none !important; font-weight: 700 !important; }
-  .cpo-btn-verde { background: #10b981 !important; color: #052e16 !important; border: none !important; font-weight: 700 !important; }
-  .cpo-btn-azul { background: #2563eb !important; color: #ffffff !important; border: none !important; font-weight: 700 !important; }
-  .cpo-btn-rojo { background: #ef4444 !important; color: #ffffff !important; border: none !important; font-weight: 700 !important; }
+  .cpo-grupo { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+  .cpo-top-bar button { cursor: pointer; font-weight: 600; }
+  :where(#cpo-mapa-modal, #cpo-warroom-overlay) button:hover { filter: brightness(1.06); }
+  .cpo-btn-toggle-top:hover, .cpo-btn-suave:hover, .cpo-pin-btn:hover { background-color: var(--surface-2) !important; filter: none; }
+  .cpo-btn-toggle-top { color: var(--fg) !important; font-weight: 600 !important; }
+  .cpo-btn-toggle-top[aria-expanded="true"] { background: var(--accent-soft) !important; border-color: var(--accent-line) !important; color: var(--accent) !important; }
+  .cpo-btn-dhondt { background: var(--c-prod) !important; color: var(--surface) !important; border-color: transparent !important; font-weight: 600 !important; }
+  .cpo-btn-verde { background: var(--accent) !important; color: var(--on-accent) !important; border-color: transparent !important; font-weight: 600 !important; }
+  .cpo-btn-azul { background: var(--c-int) !important; color: var(--surface) !important; border-color: transparent !important; font-weight: 600 !important; }
+  .cpo-btn-rojo { background: var(--crit-soft) !important; color: var(--crit) !important; border-color: transparent !important; font-weight: 600 !important; }
+  .cpo-btn-suave { color: var(--fg-2) !important; }
+  .cpo-btn-link { background: none !important; border: 0 !important; color: var(--accent) !important; font-size: 11.5px !important; font-weight: 600; cursor: pointer; padding: 2px 4px !important; }
 
-  /* Panel Superior Desplegable (Controles, KPIs y Pines) */
+  /* Botón de tema, compartido con Análisis y redacción */
+  .cpo-tema-btn { display: inline-flex !important; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+  .cpo-tema-btn svg { width: 16px; height: 16px; flex: none; }
+
+  /* Panel desplegable */
   #cpo-panel-desplegable {
-    display: none; flex-direction: column; gap: 9px;
-    padding: 10px 14px; background: #131c2e; border-bottom: 2px solid #334155;
-    z-index: 19; font-size: 12px;
+    display: none; flex-direction: column; gap: 10px;
+    padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--line);
+    z-index: 19; font-size: 12.5px; box-shadow: var(--shadow-up);
   }
-  .cpo-row-flex {
-    display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;
-  }
+  #cpo-panel-desplegable.abierto { display: flex; animation: cpoBajar .22s var(--ease) both; }
+  @keyframes cpoBajar { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  .cpo-row-flex { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+  .cpo-row-flex + .cpo-row-flex { border-top: 1px solid var(--line); padding-top: 10px; }
   .cpo-kpi-badge {
-    background: #0f172a; border: 1px solid #334155; border-radius: 999px;
-    padding: 4px 11px; display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: #cbd5e1;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--fg-2);
+    transition: border-color .16s, background-color .16s;
   }
-  .cpo-kpi-badge strong { color: #38bdf8; font-size: 12.5px; }
+  .cpo-kpi-badge[id^="kpi-pill"] { cursor: pointer; }
+  .cpo-kpi-badge[id^="kpi-pill"]:hover { border-color: var(--accent-line); background: var(--accent-soft); }
+  .cpo-kpi-badge strong { color: var(--fg); font-size: 13px; font-family: var(--f-mono); font-weight: 500; }
+  .cpo-kpi-badge strong.cpo-dato-ok { color: var(--accent); }
+  .cpo-kpi-badge strong.cpo-dato-warn { color: var(--warn); font-family: var(--f-body); font-weight: 600; }
   .cpo-kpi-badge input {
-    width: 82px !important; padding: 2px 6px !important; font-weight: 700 !important;
-    color: #10b981 !important; background: #090d16 !important; border-color: #475569 !important;
+    width: 92px !important; padding: 2px 8px !important; font-family: var(--f-mono) !important;
+    color: var(--accent) !important; background: var(--surface) !important;
   }
+  .cpo-etq { color: var(--muted); font-size: 11.5px; font-weight: 600; margin-right: 3px; }
+  .cpo-chk { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--fg-2); font-weight: 600; }
+  .cpo-chk input { width: auto !important; accent-color: var(--accent); }
 
-  /* Botonera de Pines */
+  /* Pines */
   .cpo-pines-wrap { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
-  .cpo-pin-btn {
-    background: #1e293b !important; color: #e2e8f0 !important; border: 1px solid #475569 !important;
-    padding: 4px 9px !important; border-radius: 6px !important; cursor: pointer; font-size: 11.5px !important;
-  }
-  .cpo-pin-btn.activo {
-    background: #f59e0b !important; color: #0f172a !important; border-color: #fbbf24 !important; font-weight: 800 !important;
-  }
-  .cpo-pin-btn.modo-borrar.activo {
-    background: #ef4444 !important; color: #ffffff !important; border-color: #f87171 !important; font-weight: 800 !important;
-  }
+  .cpo-pin-btn { color: var(--fg-2) !important; padding: 5px 10px !important; border-radius: 999px !important; cursor: pointer; font-size: 12px !important; }
+  .cpo-pin-btn.activo { background: var(--warn-soft) !important; color: var(--warn) !important; border-color: var(--warn) !important; font-weight: 700 !important; }
+  .cpo-pin-btn.modo-borrar.activo { background: var(--crit-soft) !important; color: var(--crit) !important; border-color: var(--crit) !important; }
+  .cpo-pin-crear { background: var(--accent) !important; color: var(--on-accent) !important; border-color: transparent !important; font-weight: 600; padding: 5px 10px !important; border-radius: 999px !important; cursor: pointer; font-size: 12px !important; }
 
-  /* Cuerpo Principal: Mapa + Barra Lateral Colapsable */
-  .cpo-mapa-body {
-    display: flex; flex: 1; width: 100%; height: 100%; position: relative; overflow: hidden;
-  }
-  #cpo-leaflet-map { flex: 1; height: 100%; width: 100%; background: #090d16; z-index: 1; }
-
-  /* Botón Flotante para Plegar/Desplegar Lista Lateral */
+  /* Mapa y lista lateral */
+  .cpo-mapa-body { display: flex; flex: 1; width: 100%; height: 100%; position: relative; overflow: hidden; }
+  #cpo-leaflet-map { flex: 1; height: 100%; width: 100%; background: var(--surface-2); z-index: 1; }
   #cpo-btn-toggle-side {
-    position: absolute; right: 320px; top: 12px; z-index: 1000;
-    background: #0f172a !important; color: #38bdf8 !important;
-    border: 1px solid #475569 !important; border-right: none !important;
-    padding: 6px 10px !important; border-radius: 8px 0 0 8px !important;
-    cursor: pointer; font-weight: 700; font-size: 11.5px; box-shadow: -3px 2px 10px rgba(0,0,0,0.5);
-    transition: right 0.25s ease;
+    position: absolute; right: 332px; top: 12px; z-index: 1000;
+    color: var(--fg-2) !important; background: var(--surface) !important;
+    padding: 6px 12px !important; border-radius: 999px !important;
+    cursor: pointer; font-weight: 600; font-size: 12px; box-shadow: var(--shadow-up);
+    transition: right .28s var(--ease);
   }
-  #cpo-btn-toggle-side.plegado {
-    right: 0 !important; border-right: 1px solid #475569 !important; border-radius: 8px 0 0 8px !important;
-  }
-
-  /* Sidebar Derecha */
+  #cpo-btn-toggle-side.plegado { right: 12px !important; }
   .cpo-sidebar {
-    width: 320px; background: #0f172a; border-left: 1px solid #334155;
-    display: flex; flex-direction: column; z-index: 10; transition: width 0.25s ease, transform 0.25s ease;
+    width: 320px; background: var(--side-bg); border-left: 1px solid var(--line);
+    display: flex; flex-direction: column; z-index: 10; transition: width .28s var(--ease), transform .28s var(--ease);
   }
   .cpo-sidebar.oculto { width: 0 !important; overflow: hidden !important; border-left: none !important; transform: translateX(100%); }
-  .cpo-side-head { padding: 10px 12px; border-bottom: 1px solid #1e293b; display: flex; flex-direction: column; gap: 7px; }
-  .cpo-lista-zonas { flex: 1; overflow-y: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 7px; }
+  .cpo-side-head { padding: 12px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+  .cpo-side-head .cpo-fila { display: flex; justify-content: space-between; align-items: center; }
+  .cpo-side-titulo { font-size: 13px; font-weight: 600; color: var(--fg); }
+  .cpo-lista-zonas { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
   .cpo-card-zona {
-    background: #1e293b; border-radius: 7px; padding: 8px 10px; cursor: pointer;
-    border-left: 5px solid #10b981; position: relative; transition: background 0.15s;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 10px 12px; cursor: pointer;
+    border-left: 4px solid var(--accent); position: relative;
+    transition: transform .16s var(--ease), box-shadow .2s, border-color .16s;
+    animation: cpoAparecer .25s var(--ease) both;
   }
-  .cpo-card-zona:hover { background: #26354d; }
+  .cpo-card-zona:hover { transform: translateY(-1px); box-shadow: var(--shadow-up); }
+  .cpo-card-titulo { font-weight: 600; font-size: 12.5px; color: var(--fg); padding-right: 30px; }
+  .cpo-card-meta { font-size: 11px; color: var(--muted); margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .cpo-card-meta .cpo-cat { color: var(--c-int); }
+  .cpo-card-meta .cpo-meta-ok { color: var(--accent); font-weight: 600; }
+  .cpo-card-meta .cpo-meta-warn { color: var(--warn); }
   .cpo-card-del {
-    position: absolute; top: 7px; right: 7px;
-    background: rgba(239,68,68,0.2) !important; color: #f87171 !important;
-    border: 1px solid rgba(239,68,68,0.45) !important; border-radius: 5px !important;
-    padding: 2px 6px !important; font-size: 11px !important; cursor: pointer;
+    position: absolute; top: 8px; right: 8px;
+    background: transparent !important; color: var(--muted) !important; border-color: transparent !important;
+    border-radius: 6px !important; padding: 2px 6px !important; font-size: 12px !important; cursor: pointer;
   }
-  .cpo-card-del:hover { background: #ef4444 !important; color: #ffffff !important; }
+  .cpo-card-del:hover { background: var(--crit-soft) !important; color: var(--crit) !important; }
+  .cpo-vacio { color: var(--muted); font-size: 12px; text-align: center; padding: 18px 8px; line-height: 1.5; }
 
-  /* Etiquetas Fijas sobre el Mapa: Fondo Oscuro Sólido y Letras Blancas (Blindado contra CSS externo) */
+  /* Etiquetas sobre el mapa */
   .leaflet-tooltip.cpo-label-fija {
-    background-color: rgba(15, 23, 42, 0.94) !important;
-    border: 1px solid #38bdf8 !important;
-    color: #ffffff !important;
-    border-radius: 6px !important;
-    padding: 3px 7px !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.65) !important;
+    background-color: var(--surface) !important;
+    border: 1px solid var(--line-2) !important;
+    color: var(--fg) !important;
+    border-radius: 8px !important;
+    padding: 3px 8px !important;
+    font: 600 11px/1.35 var(--f-body) !important;
+    box-shadow: var(--shadow-up) !important;
     text-align: center !important;
     pointer-events: none !important;
     white-space: nowrap !important;
   }
   .leaflet-tooltip.cpo-label-fija::before { display: none !important; }
+  .cpo-label-fija .cpo-t-pad { color: var(--c-int); }
+  .cpo-label-fija .cpo-t-meta { color: var(--accent); }
 
-  /* Pines Personalizados en el Mapa (Con Emoji Visible y Fácil de Cliquear) */
+  /* Pines en el mapa */
   .cpo-custom-pin-icon {
-    background: #0f172a; border: 2px solid #fbbf24; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--warn); border-radius: 50%;
     display: flex !important; align-items: center; justify-content: center;
-    font-size: 18px; box-shadow: 0 3px 8px rgba(0,0,0,0.7); cursor: pointer;
-    transition: transform 0.15s;
+    font-size: 18px; box-shadow: var(--shadow-up); cursor: pointer;
+    transition: transform .16s var(--ease);
   }
-  .cpo-custom-pin-icon:hover { transform: scale(1.2); border-color: #ef4444; }
+  .cpo-custom-pin-icon:hover { transform: scale(1.18); }
 
-  /* Popup Ficha Electoral: Con Acordeones Desplegables para que NO se corte nunca */
+  /* Controles de Leaflet con los colores del tablero */
+  #cpo-mapa-modal .leaflet-bar a, #cpo-mapa-modal .leaflet-pm-toolbar .button-container a {
+    background-color: var(--surface) !important; color: var(--fg) !important; border-color: var(--line) !important;
+  }
+  #cpo-mapa-modal .leaflet-bar { border: 1px solid var(--line) !important; border-radius: var(--r-sm) !important; box-shadow: var(--shadow-up) !important; overflow: hidden; }
+  #cpo-mapa-modal .leaflet-control-attribution { background: var(--head-bg) !important; color: var(--muted) !important; }
+  #cpo-mapa-modal .leaflet-control-attribution a { color: var(--fg-2) !important; }
+  html[data-modo-actual="dark"] #cpo-mapa-modal .leaflet-pm-icon-polygon,
+  html[data-modo-actual="dark"] #cpo-mapa-modal .leaflet-pm-icon-rectangle,
+  html[data-modo-actual="dark"] #cpo-mapa-modal .leaflet-pm-icon-polyline,
+  html[data-modo-actual="dark"] #cpo-mapa-modal .leaflet-pm-icon-edit,
+  html[data-modo-actual="dark"] #cpo-mapa-modal .leaflet-pm-icon-cut,
+  html[data-modo-actual="dark"] #cpo-mapa-modal .leaflet-pm-icon-delete { filter: invert(.88); }
+
+  /* Ficha emergente */
   .leaflet-popup-content-wrapper {
-    background: #0f172a !important; color: #f8fafc !important;
-    border: 1px solid #334155 !important; border-radius: 10px !important;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.75) !important;
+    background: var(--surface) !important; color: var(--fg) !important;
+    border: 1px solid var(--line) !important; border-radius: var(--r-md) !important;
+    box-shadow: var(--shadow-up) !important; font-family: var(--f-body);
   }
-  .leaflet-popup-tip { background: #0f172a !important; }
+  .leaflet-popup-tip { background: var(--surface) !important; }
+  .leaflet-container a.leaflet-popup-close-button { color: var(--muted) !important; }
   .cpo-popup-form {
-    display: flex; flex-direction: column; gap: 6px; width: 305px; max-height: 370px;
-    overflow-y: auto; padding-right: 4px; color: #f8fafc; font-size: 11.5px;
+    display: flex; flex-direction: column; gap: 7px; width: 305px; max-height: 380px;
+    overflow-y: auto; padding-right: 4px; color: var(--fg); font-size: 12px;
   }
-  .cpo-popup-form label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 2px; display: block; }
+  .cpo-popup-form label { font-size: 10.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; display: block; }
   .cpo-popup-form input, .cpo-popup-form select, .cpo-popup-form textarea {
-    width: 100%; box-sizing: border-box; background: #1e293b !important; color: #ffffff !important;
-    border: 1px solid #475569 !important; border-radius: 5px; padding: 5px 7px; font-size: 11.5px;
+    width: 100%; box-sizing: border-box; background: var(--surface-2) !important; color: var(--fg) !important;
+    border: 1px solid var(--line-2) !important; border-radius: 8px; padding: 6px 8px; font: 12px var(--f-body);
   }
+  .cpo-popup-form input:focus, .cpo-popup-form select:focus, .cpo-popup-form textarea:focus { border-color: var(--accent) !important; outline: none; box-shadow: 0 0 0 3px var(--accent-ring); }
+  .cpo-popup-cab { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  .cpo-popup-cab strong { font-size: 13px; color: var(--fg); }
+  .cpo-chip { font-size: 11px; background: var(--surface-2); border: 1px solid var(--line); padding: 2px 8px; border-radius: 999px; color: var(--warn); font-weight: 600; }
   .cpo-popup-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .cpo-popup-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
-  .cpo-details-box {
-    background: #162032; border: 1px solid #334155; border-radius: 6px; padding: 5px 8px; margin-top: 2px;
+  .cpo-popup-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .cpo-details-box { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 6px 9px; margin-top: 2px; }
+  .cpo-details-box summary { cursor: pointer; font-weight: 600; font-size: 11.5px; color: var(--fg-2); outline: none; padding: 2px 0; }
+  .cpo-details-box[open] summary { color: var(--accent); }
+  .cpo-meta-caja {
+    background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: 10px;
+    padding: 7px 10px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; color: var(--fg-2);
   }
-  .cpo-details-box summary {
-    cursor: pointer; font-weight: 700; font-size: 11px; color: #38bdf8; outline: none; padding: 2px 0;
-  }
-  .cpo-swatch-row { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 5px; }
-  .cpo-swatch { width: 18px; height: 18px; border-radius: 4px; cursor: pointer; border: 1px solid rgba(255,255,255,0.35); }
+  .cpo-meta-caja strong { color: var(--accent); font-size: 14px; font-family: var(--f-mono); font-weight: 500; }
+  .cpo-campo-cab { display: flex; justify-content: space-between; align-items: center; }
+  .cpo-campo-cab span:first-child { font-size: 10.5px; font-weight: 700; color: var(--c-int); }
+  .cpo-campo-quitar { color: var(--crit); cursor: pointer; font-size: 11px; font-weight: 600; }
+  .cpo-ayuda { color: var(--muted); font-size: 11px; }
+  .cpo-btn-mini { background: var(--c-int) !important; color: var(--surface) !important; border-color: transparent !important; border-radius: 999px !important; padding: 3px 10px !important; font-size: 11px !important; font-weight: 600; cursor: pointer; }
+  .cpo-swatch-row { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+  .cpo-swatch { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line-2); transition: transform .12s var(--ease); }
+  .cpo-swatch:hover { transform: scale(1.15); }
   .cpo-popup-btns {
     display: flex; gap: 6px; margin-top: 6px; position: sticky; bottom: 0;
-    background: #0f172a; padding-top: 6px; border-top: 1px solid #334155;
+    background: var(--surface); padding-top: 8px; border-top: 1px solid var(--line);
   }
-  .cpo-popup-btns button { flex: 1; padding: 7px; border: none !important; border-radius: 5px; cursor: pointer; font-weight: 700; }
+  .cpo-popup-btns button { flex: 1; padding: 8px; border: none !important; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  .cpo-popup-btns #pop-guardar { background: var(--accent) !important; color: var(--on-accent) !important; }
+  .cpo-popup-btns #pop-borrar { background: var(--crit-soft) !important; color: var(--crit) !important; flex: .55; }
 
-  /* Modal Comando Electoral y Calculadora D'Hondt */
+  /* Simulador y D'Hondt */
   #cpo-warroom-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(5, 8, 15, 0.88); z-index: 100005;
-    align-items: center; justify-content: center; padding: 16px; color-scheme: dark;
+    display: none; position: fixed; inset: 0; background: rgba(8, 12, 16, .55); z-index: 100005;
+    align-items: center; justify-content: center; padding: 16px;
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: cpoAparecer .2s ease both;
   }
   .cpo-warroom-box {
-    background: #0f172a; color: #f8fafc; border: 1px solid #334155;
-    border-radius: 12px; width: 100%; max-width: 980px; max-height: 90vh; overflow-y: auto;
-    padding: 20px 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.85);
+    background: var(--surface); color: var(--fg); border: 1px solid var(--line);
+    border-radius: var(--r-lg); width: 100%; max-width: 1000px; max-height: 90vh; overflow-y: auto;
+    padding: 22px 26px; box-shadow: var(--shadow-up); font-family: var(--f-body);
+    animation: cpoEntrar .28s var(--ease) both;
   }
+  .cpo-wr-cab { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--line); padding-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+  .cpo-wr-cab h3 { margin: 0; font: 600 24px/1.15 var(--f-display); color: var(--fg); }
+  .cpo-wr-sub { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+  .cpo-wr-sub b { color: var(--fg); font-weight: 600; }
+  .cpo-wr-ayuda { background: var(--surface-2); border-left: 3px solid var(--c-int); padding: 9px 13px; border-radius: 8px; font-size: 12px; color: var(--fg-2); margin-top: 12px; }
   .cpo-wr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 14px 0; }
-  .cpo-wr-card { background: #162032; border: 1px solid #334155; border-radius: 9px; padding: 14px; }
-  .cpo-wr-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; background: #162032; border-radius: 8px; overflow: hidden; }
-  .cpo-wr-table th, .cpo-wr-table td { padding: 8px 10px; border-bottom: 1px solid #26354d; text-align: left; }
-  .cpo-wr-table th { background: #090d16; color: #94a3b8; font-size: 10.5px; text-transform: uppercase; }
+  .cpo-wr-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 15px; }
+  .cpo-wr-card > strong { display: block; font-size: 13px; font-weight: 600; color: var(--fg); }
+  .cpo-wr-card.destacada { border-color: var(--c-prod); }
+  .cpo-wr-lbl { font-size: 11px; color: var(--muted); display: block; margin-top: 8px; }
+  .cpo-wr-lbl.ok { color: var(--accent); font-weight: 600; }
+  .cpo-wr-lbl.crit { color: var(--crit); font-weight: 600; }
+  .cpo-wr-lbl.warn { color: var(--warn); font-weight: 600; }
+  .cpo-wr-lbl.int { color: var(--c-int); font-weight: 600; }
+  .cpo-wr-piso { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; margin-top: 10px; font-size: 12px; }
+  .cpo-wr-piso strong { font-family: var(--f-mono); font-weight: 500; color: var(--warn); }
+  .cpo-wr-piso strong.ok { color: var(--accent); }
+  .cpo-wr-btn-mapa { width: 100%; margin-top: 10px; color: var(--c-int) !important; border-color: var(--c-int) !important; cursor: pointer; font-weight: 600; font-size: 12px; }
+  .cpo-wr-res { background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+  .cpo-wr-res .t { font-size: 11.5px; color: var(--fg-2); }
+  .cpo-wr-res .n { font-size: 24px; font-weight: 700; color: var(--accent); }
+  .cpo-wr-res .n small { font-size: 12px; font-weight: 500; color: var(--fg-2); }
+  .cpo-wr-res .d { font-size: 11.5px; color: var(--fg-2); margin-top: 3px; }
+  .cpo-wr-fila { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+  .cpo-wr-fila small { color: var(--crit); }
+  .cpo-wr-h4 { margin: 16px 0 6px; font-size: 14px; font-weight: 600; color: var(--fg); }
+  .cpo-wr-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .cpo-wr-table th, .cpo-wr-table td { padding: 9px 11px; border-bottom: 1px solid var(--line); text-align: left; }
+  .cpo-wr-table th { background: var(--surface-2); color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+  .cpo-wr-table tbody tr { transition: background-color .12s; }
+  .cpo-wr-table tbody tr:hover { background: var(--surface-2); }
+  .cpo-wr-table .pos { color: var(--c-int); font-weight: 600; }
+  .cpo-wr-table .neg { color: var(--crit); font-weight: 600; }
+  .cpo-wr-table .nada { color: var(--muted); }
+  .cpo-wr-table .meta { color: var(--accent); font-weight: 600; }
 
-  /* Botones de Gestión de Clientes en el Tablero Principal */
+  /* Herramientas de cliente en la barra del tablero */
   #cpo-cliente-tools { display: inline-flex; gap: 6px; align-items: center; margin-left: 8px; flex-wrap: wrap; }
   .cpo-btn-tool {
-    padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 600;
-    cursor: pointer; border: 1px solid rgba(128,128,128,0.3); display: inline-flex; align-items: center; gap: 4px;
+    padding: 6px 11px; border-radius: 999px; font: 600 12px var(--f-body);
+    cursor: pointer; border: 1px solid var(--line-2); background: var(--surface); color: var(--fg-2);
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: background-color .16s, border-color .16s, color .16s, transform .12s var(--ease);
   }
-  .cpo-btn-dl { background: #2563eb; color: #fff; border: none; }
-  .cpo-btn-del { background: rgba(239,68,68,0.18); color: #f87171; border-color: rgba(239,68,68,0.4); }
-  .cpo-btn-res { background: rgba(16,185,129,0.15); color: #10b981; border-color: rgba(16,185,129,0.35); }
+  .cpo-btn-tool:hover { background: var(--surface-2); color: var(--fg); }
+  .cpo-btn-tool:active { transform: translateY(1px); }
+  .cpo-btn-tool:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cpo-btn-del:hover { background: var(--crit-soft); color: var(--crit); border-color: transparent; }
+  .cpo-btn-res { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-line); }
+
+  @media (max-width: 760px) {
+    .cpo-top-bar { padding: 8px 10px; }
+    .cpo-top-bar .cpo-txt, .cpo-top-bar .cpo-tema-btn span, #cpo-cliente-tools .cpo-txt { display: none; }
+    .cpo-top-bar .cpo-grupo:first-child { width: 100%; }
+    #cpo-mapa-municipio { flex: 1 1 100%; max-width: none !important; }
+    #cpo-mapa-buscar { flex: 1; width: auto !important; min-width: 0; }
+    #cpo-cliente-tools { margin-left: 4px; }
+    .cpo-sidebar { position: absolute; right: 0; top: 0; bottom: 0; width: min(86vw, 320px); box-shadow: var(--shadow-up); }
+    #cpo-btn-toggle-side { right: calc(min(86vw, 320px) + 12px); }
+    .cpo-warroom-box { padding: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #cpo-mapa-modal, #cpo-warroom-overlay, .cpo-warroom-box, .cpo-card-zona, #cpo-panel-desplegable.abierto { animation: none !important; }
+  }
 </style>
 
 <!-- translate="no" evita que Google Chrome traduzca mal "Hab.", "Manzanas" o "War Room" -->
-<div id="cpo-mapa-modal" translate="no" class="notranslate">
-  <!-- BARRA SUPERIOR COMPACTA -->
+<div id="cpo-mapa-modal" translate="no" class="notranslate" role="dialog" aria-modal="true" aria-label="Mapa territorial">
+  <!-- Barra superior -->
   <div class="cpo-top-bar">
-    <div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap;">
-      <button type="button" id="cpo-btn-toggle-panel" class="cpo-btn-toggle-top">🎛️ Controles, Secciones y Pines [ ▼ ]</button>
-      <select id="cpo-mapa-municipio" title="Seleccionar Municipio de la Provincia de Buenos Aires" style="max-width:225px; font-weight:700;"></select>
-      <input type="text" id="cpo-mapa-buscar" placeholder="Buscar calle, esquina o barrio..." style="width:170px;" />
-      <button type="button" id="cpo-mapa-btn-buscar" class="cpo-btn-azul">🔍 Ir</button>
+    <div class="cpo-grupo">
+      <button type="button" id="cpo-btn-toggle-panel" class="cpo-btn-toggle-top" aria-expanded="false" aria-controls="cpo-panel-desplegable">🎛️ Controles y pines ▾</button>
+      <select id="cpo-mapa-municipio" title="Seleccionar municipio de la Provincia de Buenos Aires" style="max-width:240px; font-weight:600;"></select>
+      <input type="text" id="cpo-mapa-buscar" placeholder="Buscar calle, esquina o barrio" style="width:190px;" />
+      <button type="button" id="cpo-mapa-btn-buscar" class="cpo-btn-azul">🔍<span class="cpo-txt"> Ir</span></button>
     </div>
 
-    <div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap;">
-      <button type="button" id="cpo-btn-warroom" class="cpo-btn-dhondt" title="Simulador de Escenarios, Comparativa y Calculadora D'Hondt">🏛️ Simulador & D'Hondt</button>
-      <button type="button" id="cpo-mapa-excel" class="cpo-btn-azul" title="Descargar tabla completa para Excel">📊 Excel (.CSV)</button>
-      <button type="button" id="cpo-mapa-exportar" class="cpo-btn-verde" title="Descargar cartografía GeoJSON">⬇ GeoJSON</button>
-      <button type="button" id="cpo-mapa-cerrar" class="cpo-btn-rojo">✕ Cerrar Mapa</button>
+    <div class="cpo-grupo">
+      <button type="button" id="cpo-btn-warroom" class="cpo-btn-dhondt" title="Simulador de escenarios, comparativa y calculadora D'Hondt">🏛️<span class="cpo-txt"> Simulador D'Hondt</span></button>
+      <button type="button" id="cpo-mapa-excel" class="cpo-btn-suave" title="Descargar la tabla completa para Excel">📊<span class="cpo-txt"> Excel</span></button>
+      <button type="button" id="cpo-mapa-exportar" class="cpo-btn-suave" title="Descargar la cartografía en GeoJSON">⬇<span class="cpo-txt"> GeoJSON</span></button>
+      <button type="button" class="cpo-btn-suave cpo-tema-btn" data-cpo-tema title="Cambiar entre modo claro y oscuro"></button>
+      <button type="button" id="cpo-mapa-cerrar" class="cpo-btn-rojo" title="Cerrar el mapa (tecla Esc)">✕<span class="cpo-txt"> Cerrar</span></button>
     </div>
   </div>
 
-  <!-- PANEL SUPERIOR DESPLEGABLE (SE ABRE Y CIERRA A PEDIDO PARA NO QUITAR LUGAR AL MAPA) -->
+  <!-- Panel desplegable -->
   <div id="cpo-panel-desplegable">
-    <!-- Fila 1: Secciones, Población Censo, Padrón y KPIs en Vivo -->
+    <!-- Fila 1. Sección, población, padrón e indicadores -->
     <div class="cpo-row-flex">
-      <div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap;">
-        <select id="cpo-filtro-seccion" title="Filtrar por Sección Electoral de PBA">
-          <option value="TODAS">🏛️ Todas las Secciones PBA (135 Municipios)</option>
-          <option value="1">1ª Sección Electoral (Norte/Oeste GBA - 24 municipios)</option>
-          <option value="2">2ª Sección Electoral (Norte PBA - 15 municipios)</option>
-          <option value="3">3ª Sección Electoral (Sur GBA - 19 municipios)</option>
-          <option value="4">4ª Sección Electoral (Noroeste - 19 municipios)</option>
-          <option value="5" selected>5ª Sección Electoral (Costa y Sudeste - 27 municipios)</option>
-          <option value="6">6ª Sección Electoral (Sudoeste - 22 municipios)</option>
-          <option value="7">7ª Sección Electoral (Centro - 8 municipios)</option>
-          <option value="8">8ª Sección Electoral (Capital / La Plata - 1 municipio)</option>
+      <div class="cpo-grupo">
+        <select id="cpo-filtro-seccion" title="Filtrar por sección electoral de PBA">
+          <option value="TODAS">🏛️ Todas las secciones (135 municipios)</option>
+          <option value="1">1ª Sección · Norte y Oeste GBA (24)</option>
+          <option value="2">2ª Sección · Norte PBA (15)</option>
+          <option value="3">3ª Sección · Sur GBA (19)</option>
+          <option value="4">4ª Sección · Noroeste (19)</option>
+          <option value="5" selected>5ª Sección · Costa y Sudeste (27)</option>
+          <option value="6">6ª Sección · Sudoeste (22)</option>
+          <option value="7">7ª Sección · Centro (8)</option>
+          <option value="8">8ª Sección · La Plata (1)</option>
         </select>
-        <span class="cpo-kpi-badge" title="Habitantes según Censo Nacional INDEC">👥 Población Censo: <strong id="kpi-muni-hab">667.082</strong></span>
-        <span class="cpo-kpi-badge" title="Electores habilitados en el municipio (editable)">🗳️ Padrón Distrito: <input type="number" id="kpi-muni-padron-input" value="585000" /></span>
-        <span class="cpo-kpi-badge" title="Concejales que renueva este municipio y piso D'Hondt">🏛️ Renueva: <strong id="kpi-muni-bancas" style="color:#fbbf24;">12 conc. (Piso 8.33%)</strong></span>
+        <span class="cpo-kpi-badge" title="Habitantes según el Censo Nacional del INDEC">👥 Población <strong id="kpi-muni-hab">667.082</strong></span>
+        <span class="cpo-kpi-badge" title="Electores habilitados en el municipio (editable)">🗳️ Padrón <input type="number" id="kpi-muni-padron-input" value="585000" /></span>
+        <span class="cpo-kpi-badge" title="Concejales que renueva este municipio y piso D'Hondt">🏛️ Renueva <strong id="kpi-muni-bancas" class="cpo-dato-warn">12 conc. (Piso 8.33%)</strong></span>
       </div>
 
-      <div style="display:flex; gap:7px; align-items:center; flex-wrap:wrap;">
-        <span class="cpo-kpi-badge" id="kpi-pill-zonas" style="cursor:pointer;" title="Clic para abrir el Simulador">🗺️ Zonas: <strong id="kpi-zonas">0</strong></span>
-        <span class="cpo-kpi-badge" id="kpi-pill-padron" style="cursor:pointer;" title="Padrón suma de las zonas dibujadas">👥 Padrón Zonas: <strong id="kpi-padron">0</strong> (<span id="kpi-cobertura">0%</span>)</span>
-        <span class="cpo-kpi-badge" id="kpi-pill-meta" style="cursor:pointer; border-color:#10b981;" title="Clic para abrir el Simulador D'Hondt">🎯 Meta Votos: <strong id="kpi-meta" style="color:#10b981;">0</strong></span>
-        <span class="cpo-kpi-badge" id="kpi-pill-manzanas" style="cursor:pointer;" title="Superficie estimada en manzanas urbanas">🧱 Manzanas: <strong id="kpi-manzanas">~0</strong></span>
+      <div class="cpo-grupo">
+        <span class="cpo-kpi-badge" id="kpi-pill-zonas" title="Abrir el simulador">🗺️ Zonas <strong id="kpi-zonas">0</strong></span>
+        <span class="cpo-kpi-badge" id="kpi-pill-padron" title="Padrón sumado de las zonas dibujadas">👥 Padrón en zonas <strong id="kpi-padron">0</strong> (<span id="kpi-cobertura">0%</span>)</span>
+        <span class="cpo-kpi-badge" id="kpi-pill-meta" title="Abrir el simulador D'Hondt">🎯 Meta <strong id="kpi-meta" class="cpo-dato-ok">0</strong></span>
+        <span class="cpo-kpi-badge" id="kpi-pill-manzanas" title="Superficie estimada en manzanas urbanas">🧱 Manzanas <strong id="kpi-manzanas">~0</strong></span>
       </div>
     </div>
 
-    <!-- Fila 2: Pines Personalizados, Modo Borrar 1-Clic y Capas Visuales -->
-    <div class="cpo-row-flex" style="border-top:1px solid #26354d; padding-top:8px;">
+    <!-- Fila 2. Pines, borrado rápido y capas -->
+    <div class="cpo-row-flex">
       <div class="cpo-pines-wrap" id="cpo-barra-pines">
-        <strong style="color:#94a3b8; font-size:11.5px; margin-right:3px;">📌 Herramienta Pin:</strong>
+        <span class="cpo-etq">📌 Pin</span>
         <button type="button" class="cpo-pin-btn activo" data-pin="ninguno">✋ Navegar</button>
         <button type="button" class="cpo-pin-btn" data-pin="🏫|Escuela">🏫 Escuela</button>
         <button type="button" class="cpo-pin-btn" data-pin="🏠|Local Partidario">🏠 Local</button>
         <button type="button" class="cpo-pin-btn" data-pin="⚠️|Reclamo Vecinal">⚠️ Reclamo</button>
         <button type="button" class="cpo-pin-btn" data-pin="📢|Cartel Vía Pública">📢 Cartel</button>
-        <button type="button" class="cpo-pin-btn" data-pin="🤝|Institución / Club">🤝 Club/Inst.</button>
+        <button type="button" class="cpo-pin-btn" data-pin="🤝|Institución / Club">🤝 Club o institución</button>
         <span id="cpo-pines-custom-slot" style="display:inline-flex; gap:5px; flex-wrap:wrap;"></span>
-        <button type="button" id="cpo-btn-crear-pin" style="background:#10b981 !important; color:#052e16 !important; border:none !important; font-weight:700; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:11px;">+ Crear Pin Propio</button>
-        <button type="button" class="cpo-pin-btn modo-borrar" data-pin="BORRAR_1CLIC" title="Activá esto y tocá cualquier escuela, reclamo o zona para borrarla al instante">🗑️ Borrar con 1 clic</button>
+        <button type="button" id="cpo-btn-crear-pin" class="cpo-pin-crear">+ Pin propio</button>
+        <button type="button" class="cpo-pin-btn modo-borrar" data-pin="BORRAR_1CLIC" title="Activalo y tocá cualquier pin o zona para borrarlo al instante">🗑️ Borrar con un clic</button>
       </div>
 
-      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <label style="display:inline-flex; align-items:center; gap:5px; cursor:pointer; color:#f8fafc; font-weight:600;">
-          <input type="checkbox" id="cpo-chk-labels" checked style="width:auto !important;" /> 🏷️ Nombres fijos
-        </label>
+      <div class="cpo-grupo">
+        <label class="cpo-chk"><input type="checkbox" id="cpo-chk-labels" checked /> 🏷️ Nombres fijos</label>
         <select id="cpo-modo-pintado" title="Elegir cómo se colorean las zonas">
-          <option value="manual">🎨 Pintar: Color / Categoría Política</option>
-          <option value="historico">⚖️ Pintar: Comparativa Elección Anterior (Ganado/Perdido)</option>
-          <option value="calor">🔥 Pintar: Mapa de Calor (Cantidad de Votantes)</option>
-          <option value="avance">🚶 Pintar: Avance de Caminata / Rastrillaje</option>
+          <option value="manual">🎨 Color por categoría</option>
+          <option value="historico">⚖️ Elección anterior (ganado o perdido)</option>
+          <option value="calor">🔥 Mapa de calor por votantes</option>
+          <option value="avance">🚶 Avance de caminata</option>
         </select>
-        <select id="cpo-mapa-capa" title="Cambiar tipo de mapa">
-          <option value="osm">🗺️ Mapa Callejero</option>
-          <option value="dark">🌙 Mapa Oscuro Electoral</option>
-          <option value="sat">🛰️ Mapa Satelital</option>
+        <select id="cpo-mapa-capa" title="Cambiar el tipo de mapa">
+          <option value="auto">✨ Mapa según el tema</option>
+          <option value="light">☀️ Mapa claro</option>
+          <option value="dark">🌙 Mapa oscuro</option>
+          <option value="osm">🗺️ Mapa callejero</option>
+          <option value="sat">🛰️ Satelital</option>
         </select>
         <input type="file" id="cpo-mapa-file-in" accept=".geojson,.json" style="display:none;" />
-        <button type="button" id="cpo-mapa-importar" style="cursor:pointer;">📂 Importar GeoJSON</button>
+        <button type="button" id="cpo-mapa-importar" class="cpo-btn-suave">📂 Importar GeoJSON</button>
       </div>
     </div>
   </div>
 
-  <!-- CUERPO DEL MAPA Y LISTA LATERAL PLEGABLE -->
+  <!-- Mapa y lista lateral -->
   <div class="cpo-mapa-body">
     <div id="cpo-leaflet-map"></div>
-    <button type="button" id="cpo-btn-toggle-side" title="Ocultar o mostrar la lista lateral para agrandar el mapa">Ocultar Lista ▶</button>
+    <button type="button" id="cpo-btn-toggle-side" title="Ocultar o mostrar la lista lateral">Ocultar lista ▸</button>
     <div class="cpo-sidebar" id="cpo-sidebar">
       <div class="cpo-side-head">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong style="font-size:12.5px; color:#f8fafc;">📋 Circuitos, Zonas y Pines</strong>
-          <button type="button" id="cpo-btn-gestor-cats" style="background:#1e293b !important; color:#38bdf8 !important; border:1px solid #38bdf8 !important; border-radius:5px; padding:2px 7px; font-size:10.5px; cursor:pointer; font-weight:700;">+ Categorías</button>
+        <div class="cpo-fila">
+          <span class="cpo-side-titulo">📋 Zonas y pines</span>
+          <button type="button" id="cpo-btn-gestor-cats" class="cpo-btn-link">+ Categorías</button>
         </div>
-        <input type="text" id="cpo-filtro-zonas" placeholder="Filtrar por nombre, categoría, referente..." />
+        <input type="text" id="cpo-filtro-zonas" placeholder="Filtrar por nombre, categoría o referente" />
       </div>
       <div class="cpo-lista-zonas" id="cpo-zonas-lista"></div>
     </div>
   </div>
 </div>
 
-<!-- MODAL COMANDO ELECTORAL, COMPARATIVA HISTÓRICA Y CALCULADORA D'HONDT -->
-<div id="cpo-warroom-overlay" translate="no" class="notranslate">
+<!-- Simulador electoral, comparativa histórica y calculadora D'Hondt -->
+<div id="cpo-warroom-overlay" translate="no" class="notranslate" role="dialog" aria-modal="true" aria-label="Simulador D'Hondt">
   <div class="cpo-warroom-box" id="cpo-warroom-content"></div>
 </div>
 
@@ -3056,6 +3173,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   let muniActualObj = MUNICIPIOS_PBA.find(m => m.n.includes("General Pueyrredón")) || MUNICIPIOS_PBA[0];
 
   const CAPAS_TILES = {
+    light: { url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', attr: '© OpenStreetMap · © CARTO' },
     osm: { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attr: '© OpenStreetMap' },
     dark: { url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', attr: '© CartoDB Dark' },
     sat: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attr: '© Esri Satelital' }
@@ -3253,7 +3371,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
 
     const meta = calcularMetaZona(d);
     const pad = parseInt(d.votantes || 0, 10) || 0;
-    const html = `<div><b>${h(d.nombre || 'Circuito')}</b><br><span style="color:#38bdf8;">👥 ${pad.toLocaleString('es-AR')}</span> | <span style="color:#10b981;">🎯 ${meta.toLocaleString('es-AR')} v.</span></div>`;
+    const html = `<div><b>${h(d.nombre || 'Circuito')}</b><br><span class="cpo-t-pad">👥 ${pad.toLocaleString('es-AR')}</span> · <span class="cpo-t-meta">🎯 ${meta.toLocaleString('es-AR')} v.</span></div>`;
     layer.bindTooltip(html, {
       permanent: mostrarFijas,
       direction: 'center',
@@ -3323,11 +3441,11 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
       ).join('');
 
       container.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:5px;">
-          <strong style="font-size:12.5px; color:#38bdf8;">
+        <div class="cpo-popup-cab">
+          <strong>
             ${d.esPin ? `${h(d.emojiPin || '📍')} ${h(d.tipoPin || 'Pin Estratégico')}` : '🗳️ Ficha Electoral de Zona'}
           </strong>
-          ${!d.esPin ? `<span style="font-size:10.5px; background:#1e293b; border:1px solid #475569; padding:2px 6px; border-radius:4px; color:#fbbf24; font-weight:700;">🧱 ~${geoCalc.manzanas} mz (${geoCalc.hectareas} ha)</span>` : ''}
+          ${!d.esPin ? `<span class="cpo-chip">🧱 ~${geoCalc.manzanas} mz (${geoCalc.hectareas} ha)</span>` : ''}
         </div>
 
         <div class="${d.esPin ? 'cpo-popup-grid2' : ''}">
@@ -3346,8 +3464,8 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         <!-- Categoría y Paleta de Color Libre -->
         <div class="cpo-details-box">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <label style="margin:0; color:#cbd5e1;">Categoría y Color Libre</label>
-            <button type="button" id="pop-nueva-cat" style="background:none !important; border:none !important; color:#38bdf8 !important; font-size:10.5px; font-weight:700; cursor:pointer; padding:0;">+ Nueva categoría</button>
+            <label style="margin:0;">Categoría y color</label>
+            <button type="button" id="pop-nueva-cat" class="cpo-btn-link">+ Nueva categoría</button>
           </div>
           <div style="display:flex; gap:6px; margin-top:4px; align-items:center;">
             <select id="pop-categoria" style="flex:1;">${opcionesCatHtml}</select>
@@ -3373,9 +3491,9 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
           </div>
         </div>
 
-        <div style="background:#064e3b; border:1px solid #10b981; border-radius:6px; padding:6px 9px; font-size:11.5px; display:flex; justify-content:space-between; align-items:center;">
-          <span>🎯 Meta Votos: <strong id="pop-meta-calc" style="color:#34d399; font-size:13px;">${calcularMetaZona(d).toLocaleString('es-AR')}</strong></span>
-          <span style="color:#a7f3d0; font-size:10.5px;">🚶 Caminata: ~${geoCalc.horasBrigada} hs</span>
+        <div class="cpo-meta-caja">
+          <span>🎯 Meta de votos <strong id="pop-meta-calc">${calcularMetaZona(d).toLocaleString('es-AR')}</strong></span>
+          <span style="font-size:11px;">🚶 Caminata ~${geoCalc.horasBrigada} hs</span>
         </div>
 
         <!-- Desplegable 1: Comparativa Elecciones Anteriores -->
@@ -3433,14 +3551,14 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         <details class="cpo-details-box" ${Object.keys(d.camposExtra || {}).length > 0 ? 'open' : ''}>
           <summary>➕ Apartados Personalizados (${Object.keys(d.camposExtra || {}).length})</summary>
           <div style="display:flex; justify-content:flex-end; margin-top:4px;">
-            <button type="button" id="pop-add-campo" style="background:#2563eb !important; color:#fff !important; border:none !important; border-radius:4px; padding:3px 8px; font-size:10.5px; font-weight:700; cursor:pointer;">+ Crear Nuevo Apartado</button>
+            <button type="button" id="pop-add-campo" class="cpo-btn-mini">+ Crear Nuevo Apartado</button>
           </div>
           <div id="pop-custom-fields-wrap" style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"></div>
         </details>
 
         <div class="cpo-popup-btns">
-          <button type="button" id="pop-guardar" style="background:#10b981 !important; color:#052e16 !important;">💾 Guardar Datos</button>
-          <button type="button" id="pop-borrar" style="background:#ef4444 !important; color:#ffffff !important; flex:0.55;">🗑️ Eliminar</button>
+          <button type="button" id="pop-guardar">💾 Guardar</button>
+          <button type="button" id="pop-borrar">🗑️ Eliminar</button>
         </div>
       `;
 
@@ -3449,15 +3567,15 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         wrapCustom.innerHTML = '';
         const claves = Object.keys(d.camposExtra || {});
         if (claves.length === 0) {
-          wrapCustom.innerHTML = `<small style="color:#94a3b8; font-size:10.5px;">Tocá "+ Crear Nuevo Apartado" para agregar casilleros propios (ej: Intención de voto, Pasacalles, Fiscales, etc.).</small>`;
+          wrapCustom.innerHTML = `<small class="cpo-ayuda">Tocá "+ Crear Nuevo Apartado" para agregar casilleros propios (ej: Intención de voto, Pasacalles, Fiscales, etc.).</small>`;
           return;
         }
         claves.forEach(k => {
           const row = document.createElement('div');
           row.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:10px; font-weight:700; color:#38bdf8;">📌 ${h(k)}</span>
-              <span class="del-custom-k" data-k="${h(k)}" style="color:#f87171; cursor:pointer; font-size:10.5px; font-weight:700;" title="Borrar apartado">✕ Quitar</span>
+            <div class="cpo-campo-cab">
+              <span>📌 ${h(k)}</span>
+              <span class="del-custom-k cpo-campo-quitar" data-k="${h(k)}" title="Borrar apartado">✕ Quitar</span>
             </div>
             <input type="text" class="inp-custom-val" data-k="${h(k)}" value="${h(d.camposExtra[k])}" placeholder="Valor para ${h(k)}..." />
           `;
@@ -3573,7 +3691,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         guardarZonas();
       };
 
-      layer.bindPopup(container, { maxWidth: 330 }).openPopup();
+      layer.bindPopup(container, { maxWidth: 330, autoPanPaddingTopLeft: [16, 24], autoPanPaddingBottomRight: [16, 16] }).openPopup();
     });
   }
 
@@ -3611,19 +3729,19 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         if (contenedorLista) {
           const card = document.createElement('div');
           card.className = 'cpo-card-zona';
-          card.style.borderLeftColor = obtenerColorSegunModo(d);
+          card.style.borderLeftColor = colorSeguro(obtenerColorSegunModo(d));
 
           const histBadge = (!d.esPin && (d.histPropio || d.histRival))
-            ? `<span style="color:#fbbf24;">⚖️ Ant: ${h(d.histPropio || 0)}% vs ${h(d.histRival || 0)}%</span>`
+            ? `<span class="cpo-meta-warn">⚖️ Ant. ${h(d.histPropio || 0)}% vs ${h(d.histRival || 0)}%</span>`
             : '';
 
           card.innerHTML = `
-            <div style="font-weight:700; font-size:12px; color:#ffffff; padding-right:28px;">
+            <div class="cpo-card-titulo">
               ${d.esPin ? h(d.emojiPin || '📍') : '🗺️'} ${h(d.nombre || 'Zona')}
             </div>
-            <div style="font-size:10.5px; color:#94a3b8; margin-top:4px; display:flex; flex-wrap:wrap; gap:7px;">
-              <span style="color:#38bdf8;">${h(d.categoria)}</span>
-              ${!d.esPin ? `<span>👥 ${v.toLocaleString('es-AR')}</span><span style="color:#10b981; font-weight:700;">🎯 ${meta.toLocaleString('es-AR')} v.</span><span>🧱 ~${geo.manzanas} mz</span>` : ''}
+            <div class="cpo-card-meta">
+              <span class="cpo-cat">${h(d.categoria)}</span>
+              ${!d.esPin ? `<span>👥 ${v.toLocaleString('es-AR')}</span><span class="cpo-meta-ok">🎯 ${meta.toLocaleString('es-AR')} v.</span><span>🧱 ~${geo.manzanas} mz</span>` : ''}
               ${histBadge}
             </div>
             <button type="button" class="cpo-card-del" title="Borrar inmediatamente del mapa">🗑️</button>
@@ -3646,6 +3764,11 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
       }
     });
 
+    if (contenedorLista && !contenedorLista.children.length) {
+      contenedorLista.innerHTML = filtro
+        ? '<div class="cpo-vacio">Ninguna zona coincide con el filtro.</div>'
+        : '<div class="cpo-vacio">Todavía no hay zonas ni pines.<br>Dibujá una zona con las herramientas de la izquierda del mapa o elegí un pin en Controles.</div>';
+    }
     const padronMuni = parseInt(document.getElementById('kpi-muni-padron-input')?.value || 1, 10) || 1;
     const pctCob = Math.min(100, +((padronTotal / padronMuni) * 100).toFixed(1));
 
@@ -3739,11 +3862,11 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     const padronMuni = parseInt(document.getElementById('kpi-muni-padron-input')?.value || Math.round(muniActualObj.h * 0.82), 10);
 
     content.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #334155; padding-bottom:12px; flex-wrap:wrap; gap:10px;">
+      <div class="cpo-wr-cab">
         <div>
-          <h3 style="margin:0; font-size:18px; color:#38bdf8;">🏛️ Centro de Simulación Electoral, Comparativa y Sistema D'Hondt</h3>
-          <div style="font-size:12px; color:#94a3b8; margin-top:4px;">
-            Municipio: <b style="color:#fff;">${muniActualObj.n}</b> (${muniActualObj.s}ª Sección) | Población Censo: <b style="color:#38bdf8;">${muniActualObj.h.toLocaleString('es-AR')} hab.</b> | Padrón: <b style="color:#10b981;">${padronMuni.toLocaleString('es-AR')} electores</b>
+          <h3>Simulador electoral y D'Hondt</h3>
+          <div class="cpo-wr-sub">
+            Municipio: <b style="color:var(--fg);">${muniActualObj.n}</b> (${muniActualObj.s}ª Sección) | Población Censo: <b style="color:var(--c-int);">${muniActualObj.h.toLocaleString('es-AR')} hab.</b> | Padrón: <b style="color:var(--accent);">${padronMuni.toLocaleString('es-AR')} electores</b>
           </div>
         </div>
         <div style="display:flex; gap:8px;">
@@ -3753,15 +3876,15 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
       </div>
 
       <!-- Explicación breve de uso -->
-      <div style="background:#1e293b; border-left:4px solid #38bdf8; padding:8px 12px; border-radius:6px; font-size:11.5px; color:#cbd5e1; margin-top:10px;">
+      <div class="cpo-wr-ayuda">
         💡 <b>¿Para qué sirve este panel?</b> Calculá cuántos votos y qué porcentaje necesitás en <b>${muniActualObj.n}</b> para meter <b>Concejales, Diputados o Senadores Provinciales</b> según la Ley Electoral de PBA (Cociente y Sistema D'Hondt), y compará tus metas actuales contra la elección anterior.
       </div>
 
       <div class="cpo-wr-grid">
         <!-- Columna 1: Configuración de Categoría en Juego (Concejales / Diputados / Senadores) -->
         <div class="cpo-wr-card">
-          <strong style="color:#fbbf24; font-size:13px;">1️⃣ Categoría Legislativa y Bancas en Juego</strong>
-          <label style="font-size:11px; color:#94a3b8; display:block; margin-top:8px;">Elegir qué elección querés calcular:</label>
+          <strong style="color:var(--warn); font-size:13px;">1️⃣ Categoría Legislativa y Bancas en Juego</strong>
+          <label style="font-size:11px; color:var(--muted); display:block; margin-top:8px;">Elegir qué elección querés calcular:</label>
           <select id="wr-tipo-eleccion" style="width:100%; margin-top:4px;">
             <option value="CONCEJALES" selected>🏛️ Concejales Municipales (${muniActualObj.n} renueva ${bancasMuniDefault})</option>
             <option value="DIPUTADOS">🏦 Diputados Provinciales (${muniActualObj.s}ª Sección: ${infoSec.diputados} bancas)</option>
@@ -3770,58 +3893,58 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
             <div>
-              <label style="font-size:10.5px; color:#94a3b8;">Bancas a repartir</label>
+              <label style="font-size:10.5px; color:var(--muted);">Bancas a repartir</label>
               <input type="number" id="wr-inp-bancas" value="${bancasMuniDefault}" min="1" max="50" style="width:100%; font-weight:700;" />
             </div>
             <div>
-              <label style="font-size:10.5px; color:#94a3b8;">% Participación Muni</label>
+              <label style="font-size:10.5px; color:var(--muted);">% Participación Muni</label>
               <input type="number" id="wr-inp-part-muni" value="76" min="10" max="100" style="width:100%; font-weight:700;" />
             </div>
           </div>
 
-          <div style="background:#090d16; border:1px solid #334155; border-radius:6px; padding:8px 10px; margin-top:10px; font-size:11.5px;">
-            <div>📌 <b>Piso Electoral Ley PBA (Cociente):</b> <strong id="wr-piso-pct" style="color:#fbbf24;">8.33%</strong></div>
-            <div style="margin-top:4px;">🗳️ <b>Votos mínimos para 1ª banca:</b> <strong id="wr-piso-votos" style="color:#10b981;">0 votos</strong></div>
+          <div style="background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:8px 10px; margin-top:10px; font-size:11.5px;">
+            <div>📌 <b>Piso Electoral Ley PBA (Cociente):</b> <strong id="wr-piso-pct" style="color:var(--warn);">8.33%</strong></div>
+            <div style="margin-top:4px;">🗳️ <b>Votos mínimos para 1ª banca:</b> <strong id="wr-piso-votos" style="color:var(--accent);">0 votos</strong></div>
           </div>
         </div>
 
         <!-- Columna 2: Porcentajes de Fuerzas Políticas para Simular el Reparto D'Hondt -->
         <div class="cpo-wr-card">
-          <strong style="color:#10b981; font-size:13px;">2️⃣ Simulador de Fuerzas (% de Votos Válidos)</strong>
-          <div style="font-size:11px; color:#94a3b8; margin-top:4px;">Ajustá los porcentajes para ver cuántas bancas entra cada lista:</div>
+          <strong style="color:var(--accent); font-size:13px;">2️⃣ Simulador de Fuerzas (% de Votos Válidos)</strong>
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;">Ajustá los porcentajes para ver cuántas bancas entra cada lista:</div>
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
             <div>
-              <label style="font-size:10.5px; color:#10b981; font-weight:700;">🟢 Nuestra Fuerza (%)</label>
-              <input type="number" id="wr-pct-f1" value="36" step="0.5" style="width:100%; border-color:#10b981 !important; font-weight:700;" />
+              <label style="font-size:10.5px; color:var(--accent); font-weight:700;">🟢 Nuestra Fuerza (%)</label>
+              <input type="number" id="wr-pct-f1" value="36" step="0.5" style="width:100%; border-color:var(--accent-line) !important; font-weight:700;" />
             </div>
             <div>
-              <label style="font-size:10.5px; color:#f87171; font-weight:700;">🔴 Rival Principal (%)</label>
+              <label style="font-size:10.5px; color:var(--crit); font-weight:700;">🔴 Rival Principal (%)</label>
               <input type="number" id="wr-pct-f2" value="33" step="0.5" style="width:100%;" />
             </div>
             <div>
-              <label style="font-size:10.5px; color:#fbbf24; font-weight:700;">🟡 3ª Fuerza (%)</label>
+              <label style="font-size:10.5px; color:var(--warn); font-weight:700;">🟡 3ª Fuerza (%)</label>
               <input type="number" id="wr-pct-f3" value="19" step="0.5" style="width:100%;" />
             </div>
             <div>
-              <label style="font-size:10.5px; color:#38bdf8; font-weight:700;">🔵 4ª Fuerza (%)</label>
+              <label style="font-size:10.5px; color:var(--c-int); font-weight:700;">🔵 4ª Fuerza (%)</label>
               <input type="number" id="wr-pct-f4" value="8" step="0.5" style="width:100%;" />
             </div>
           </div>
-          <button type="button" id="wr-btn-usar-mapa" style="width:100%; margin-top:8px; background:#1e293b !important; color:#38bdf8 !important; border:1px solid #38bdf8 !important; cursor:pointer; font-weight:700; font-size:11px;">
+          <button type="button" id="wr-btn-usar-mapa" style="width:100%; margin-top:8px; background:var(--surface-2) !important; color:var(--c-int) !important; border:1px solid var(--c-int) !important; cursor:pointer; font-weight:700; font-size:11px;">
             🔄 Tomar porcentaje proyectado de mis zonas dibujadas
           </button>
         </div>
 
         <!-- Columna 3: Resultado del Reparto de Bancas D'Hondt -->
-        <div class="cpo-wr-card" style="border-color:#7c3aed;">
-          <strong style="color:#c4b5fd; font-size:13px;">3️⃣ Resultado de Bancas (Sistema D'Hondt)</strong>
+        <div class="cpo-wr-card destacada">
+          <strong style="color:var(--c-prod); font-size:13px;">3️⃣ Resultado de Bancas (Sistema D'Hondt)</strong>
           <div id="wr-dhondt-resumen" style="margin-top:8px; font-size:12px;"></div>
         </div>
       </div>
 
       <!-- Tabla Comparativa de Zonas Dibujadas (Meta Actual vs Elección Anterior) -->
-      <h4 style="margin:14px 0 6px 0; font-size:13.5px; color:#38bdf8;">📊 Comparativa por Circuito / Zona: Elección Anterior vs. Meta Actual</h4>
+      <h4 class="cpo-wr-h4">📊 Comparativa por Circuito / Zona: Elección Anterior vs. Meta Actual</h4>
       <table class="cpo-wr-table">
         <thead>
           <tr>
@@ -3892,19 +4015,19 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
       const votosParaSiguienteBanca = Math.max(0, (dh.cifraRepartidora * (nuestra.bancas + 1)) - nuestra.votos);
 
       content.querySelector('#wr-dhondt-resumen').innerHTML = `
-        <div style="background:#064e3b; border:1px solid #10b981; border-radius:7px; padding:8px 10px; margin-bottom:8px;">
-          <div style="font-size:11px; color:#a7f3d0;">Bancas que obtiene Nuestra Fuerza:</div>
-          <div style="font-size:22px; font-weight:900; color:#34d399;">${nuestra.bancas} de ${bancas} bancas <span style="font-size:12px; font-weight:600;">(${nuestra.votos.toLocaleString('es-AR')} votos)</span></div>
-          <div style="font-size:10.5px; color:#d1fae5; margin-top:3px;">
+        <div class="cpo-wr-res">
+          <div class="t">Bancas que obtiene nuestra fuerza</div>
+          <div class="n">${nuestra.bancas} de ${bancas} <small>(${nuestra.votos.toLocaleString('es-AR')} votos)</small></div>
+          <div class="d">
             ${nuestra.superaPiso
               ? `➕ Te faltan <b>${votosParaSiguienteBanca.toLocaleString('es-AR')} votos</b> para meter la banca N° ${nuestra.bancas + 1}.`
               : `⚠️ No alcanza el piso del ${dh.pisoPct}% (${dh.pisoVotos.toLocaleString('es-AR')} votos).`}
           </div>
         </div>
         ${dh.fuerzas.map(f => `
-          <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #26354d; font-size:11.5px;">
+          <div class="cpo-wr-fila">
             <span>${f.nombre} (${f.pct}%)</span>
-            <strong>${f.bancas} bancas ${!f.superaPiso ? '<small style="color:#f87171;">(Bajo piso)</small>' : ''}</strong>
+            <strong>${f.bancas} bancas ${!f.superaPiso ? '<small>(bajo el piso)</small>' : ''}</strong>
           </div>
         `).join('')}
       `;
@@ -3912,7 +4035,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
       const tbody = content.querySelector('#wr-tbody-zonas');
       tbody.innerHTML = '';
       if (zonasArr.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#94a3b8; padding:14px;">Todavía no dibujaste zonas o circuitos en el mapa. Usá el ícono de polígono a la izquierda del mapa para trazar zonas.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--muted); padding:14px;">Todavía no dibujaste zonas o circuitos en el mapa. Usá el ícono de polígono a la izquierda del mapa para trazar zonas.</td></tr>`;
         return;
       }
 
@@ -3927,16 +4050,16 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><b>${idx + 1}</b></td>
-          <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${colorSeguro(z.color)};margin-right:6px;"></span><b>${h(z.nombre)}</b></td>
+          <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${colorSeguro(z.color)};margin-right:7px;vertical-align:middle;"></span><b>${h(z.nombre)}</b></td>
           <td>${h(z.categoria || '-')}</td>
           <td>${pad.toLocaleString('es-AR')}</td>
-          <td>${(hProp || hRiv) ? `<b>${hProp}%</b> vs ${hRiv}% ${z.histNombreRival ? `(${h(z.histNombreRival)})` : ''}` : '<span style="color:#64748b;">Sin cargar</span>'}</td>
+          <td>${(hProp || hRiv) ? `<b>${hProp}%</b> vs ${hRiv}% ${z.histNombreRival ? `(${h(z.histNombreRival)})` : ''}` : '<span class="nada">Sin cargar</span>'}</td>
           <td><b>${objActual}%</b></td>
-          <td style="color:#10b981; font-weight:700;">${meta.toLocaleString('es-AR')} v.</td>
-          <td style="color:${difPts === null ? '#64748b' : difPts >= 0 ? '#38bdf8' : '#f87171'}; font-weight:700;">
+          <td class="meta">${meta.toLocaleString('es-AR')} v.</td>
+          <td style="color:${difPts === null ? 'var(--muted)' : difPts >= 0 ? 'var(--c-int)' : 'var(--crit)'}; font-weight:700;">
             ${difPts === null ? '-' : (difPts >= 0 ? `+${difPts} pts` : `${difPts} pts`)}
           </td>
-          <td>${h(z.referente || '-')} <small style="color:#94a3b8;">(${h(z.avance || 'Pendiente')})</small></td>
+          <td>${h(z.referente || '-')} <small class="nada">(${h(z.avance || 'Pendiente')})</small></td>
         `;
         tbody.appendChild(tr);
       });
@@ -4099,7 +4222,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
       renderPinesCustomEnBarra();
 
       map = L.map('cpo-leaflet-map').setView([muniActualObj.lat, muniActualObj.lon], muniActualObj.z);
-      tileLayerActual = L.tileLayer(CAPAS_TILES.osm.url, { maxZoom: 19, attribution: CAPAS_TILES.osm.attr }).addTo(map);
+      ponerCapa();
       fg = L.featureGroup().addTo(map);
 
       map.pm.addControls({
@@ -4151,6 +4274,9 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         setTimeout(() => marker.fire('click'), 140);
       });
     }
+    if (innerWidth < 760 && !document.getElementById('cpo-sidebar').classList.contains('oculto')) {
+      document.getElementById('cpo-btn-toggle-side').click();
+    }
     setTimeout(() => {
       map.invalidateSize();
       cargarZonasGuardadas();
@@ -4160,12 +4286,11 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   // Eventos de Controles y Barras Desplegables
   document.getElementById('cpo-btn-toggle-panel').onclick = () => {
     const p = document.getElementById('cpo-panel-desplegable');
-    const abierto = p.style.display === 'flex';
-    p.style.display = abierto ? 'none' : 'flex';
-    document.getElementById('cpo-btn-toggle-panel').textContent = abierto
-      ? '🎛️ Controles, Secciones y Pines [ ▼ ]'
-      : '🎛️ Ocultar Controles [ ▲ ]';
-    if (map) setTimeout(() => map.invalidateSize(), 150);
+    const b = document.getElementById('cpo-btn-toggle-panel');
+    const abierto = p.classList.toggle('abierto');
+    b.setAttribute('aria-expanded', String(abierto));
+    b.textContent = abierto ? '🎛️ Ocultar controles ▴' : '🎛️ Controles y pines ▾';
+    if (map) setTimeout(() => map.invalidateSize(), 240);
   };
 
   document.getElementById('cpo-btn-toggle-side').onclick = () => {
@@ -4173,8 +4298,8 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     const b = document.getElementById('cpo-btn-toggle-side');
     s.classList.toggle('oculto');
     b.classList.toggle('plegado');
-    b.textContent = s.classList.contains('oculto') ? '◀ Ver Lista' : 'Ocultar Lista ▶';
-    if (map) setTimeout(() => map.invalidateSize(), 260);
+    b.textContent = s.classList.contains('oculto') ? '◂ Ver lista' : 'Ocultar lista ▸';
+    if (map) setTimeout(() => map.invalidateSize(), 300);
   };
 
   document.querySelectorAll('.cpo-pin-btn').forEach(btn => {
@@ -4206,12 +4331,24 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     actualizarPanelYKPIs();
   });
 
-  document.getElementById('cpo-mapa-capa').addEventListener('change', e => {
+  // "Mapa según el tema" usa el claro o el oscuro de CARTO y cambia solo con el tema del tablero
+  function capaElegida() {
+    const v = document.getElementById('cpo-mapa-capa').value || 'auto';
+    if (v !== 'auto') return v;
+    return document.documentElement.getAttribute('data-modo-actual') === 'dark' ? 'dark' : 'light';
+  }
+  function ponerCapa() {
     if (!map) return;
-    const conf = CAPAS_TILES[e.target.value] || CAPAS_TILES.osm;
+    const conf = CAPAS_TILES[capaElegida()] || CAPAS_TILES.light;
     if (tileLayerActual) map.removeLayer(tileLayerActual);
     tileLayerActual = L.tileLayer(conf.url, { maxZoom: 19, attribution: conf.attr }).addTo(map);
+  }
+  document.getElementById('cpo-mapa-capa').addEventListener('change', e => {
+    try { localStorage.setItem('cpo_mapa_capa', e.target.value); } catch (err) {}
+    ponerCapa();
   });
+  try { const c = localStorage.getItem('cpo_mapa_capa'); if (c && CAPAS_TILES[c] || c === 'auto') document.getElementById('cpo-mapa-capa').value = c; } catch (e) {}
+  document.addEventListener('cpo:tema', () => { if (document.getElementById('cpo-mapa-capa').value === 'auto') ponerCapa(); });
 
   document.getElementById('cpo-modo-pintado').addEventListener('change', actualizarPanelYKPIs);
   document.getElementById('cpo-chk-labels').addEventListener('change', actualizarPanelYKPIs);
@@ -4277,9 +4414,15 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     e.target.value = '';
   });
 
-  document.getElementById('cpo-mapa-cerrar').addEventListener('click', () => {
-    document.getElementById('cpo-mapa-modal').style.display = 'none';
+  function cerrarMapa() { document.getElementById('cpo-mapa-modal').style.display = 'none'; }
+  document.getElementById('cpo-mapa-cerrar').addEventListener('click', cerrarMapa);
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const wr = document.getElementById('cpo-warroom-overlay');
+    if (wr.style.display === 'flex') { wr.style.display = 'none'; return; }
+    if (document.getElementById('cpo-mapa-modal').style.display === 'flex' && !document.querySelector('.leaflet-popup')) cerrarMapa();
   });
+  document.getElementById('cpo-warroom-overlay').addEventListener('click', e => { if (e.target.id === 'cpo-warroom-overlay') e.target.style.display = 'none'; });
 
   // Botón fijo en el menú lateral (contenedor #side-mods, que el tablero no redibuja)
   function inyectarBotonMenu() {
@@ -4317,7 +4460,8 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     const btnRes = document.getElementById('cpo-btn-res-cli');
     if (btnRes) {
       btnRes.style.display = ocultos.length > 0 ? 'inline-flex' : 'none';
-      btnRes.textContent = `👁️ Restaurar (${ocultos.length})`;
+      btnRes.innerHTML = `👁️<span class="cpo-txt"> Restaurar</span> (${ocultos.length})`;
+      btnRes.title = 'Restaurar clientes ocultos';
     }
     if (window.cpoRefrescar) window.cpoRefrescar();
   }
@@ -4331,8 +4475,8 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     wrap.id = 'cpo-cliente-tools';
     wrap.setAttribute('translate', 'no');
     wrap.innerHTML = `
-      <button type="button" class="cpo-btn-tool cpo-btn-dl" id="cpo-btn-dl-cli" title="Descargar respaldo completo del cliente">⬇ Descargar historial</button>
-      <button type="button" class="cpo-btn-tool cpo-btn-del" id="cpo-btn-del-cli" title="Ocultar del tablero sin borrar de Firebase">🗑️ Ocultar cliente</button>
+      <button type="button" class="cpo-btn-tool cpo-btn-dl" id="cpo-btn-dl-cli" title="Descargar respaldo completo del cliente">⬇<span class="cpo-txt"> Descargar historial</span></button>
+      <button type="button" class="cpo-btn-tool cpo-btn-del" id="cpo-btn-del-cli" title="Ocultar del tablero sin borrar de Firebase">🗑️<span class="cpo-txt"> Ocultar cliente</span></button>
       <button type="button" class="cpo-btn-tool cpo-btn-res" id="cpo-btn-res-cli" style="display:none;">👁️ Restaurar</button>
     `;
     sel.insertAdjacentElement('afterend', wrap);
@@ -4433,14 +4577,17 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
 <style>
   /* ---------- Base del módulo (todo encerrado en el id para no tocar el resto de la página) ---------- */
   #cpo-redaccion-modal {
-    --sar-fondo: #0b1120; --sar-panel: #111a2e; --sar-panel2: #16213a; --sar-borde: #24324d;
-    --sar-texto: #e7ecf5; --sar-suave: #a3b1c6; --sar-tenue: #64748b;
-    --sar-violeta: #8b5cf6; --sar-celeste: #38bdf8; --sar-verde: #10b981; --sar-ambar: #fbbf24; --sar-rojo: #f87171;
+    /* Colores tomados del tablero: siguen el modo claro u oscuro elegido */
+    --sar-fondo: var(--bg); --sar-panel: var(--surface); --sar-panel2: var(--surface-2); --sar-borde: var(--line);
+    --sar-texto: var(--fg); --sar-suave: var(--fg-2); --sar-tenue: var(--muted);
+    --sar-violeta: var(--c-prod); --sar-celeste: var(--c-int); --sar-verde: var(--accent); --sar-ambar: var(--warn); --sar-rojo: var(--crit);
+    --sar-violeta-suave: color-mix(in srgb, var(--c-prod) 14%, var(--surface));
     display: none; position: fixed; inset: 0; z-index: 99998; flex-direction: column;
-    background: var(--sar-fondo); color: var(--sar-texto); color-scheme: dark;
-    font: 13px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--sar-fondo); color: var(--sar-texto);
+    font: 13px/1.5 var(--f-body);
   }
-  #cpo-redaccion-modal.cpo-abierto { display: flex; }
+  #cpo-redaccion-modal.cpo-abierto { display: flex; animation: cpoEntrar .28s var(--ease) both; }
+  @media (prefers-reduced-motion: reduce) { #cpo-redaccion-modal.cpo-abierto { animation: none; } }
   html.cpo-sar-sin-scroll, html.cpo-sar-sin-scroll body { overflow: hidden !important; }
   #cpo-redaccion-modal *, #cpo-redaccion-modal *::before, #cpo-redaccion-modal *::after { box-sizing: border-box; }
   #cpo-redaccion-modal [hidden] { display: none !important; }
@@ -4450,16 +4597,17 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   #cpo-redaccion-modal input,
   #cpo-redaccion-modal textarea,
   #cpo-redaccion-modal button {
-    color-scheme: dark !important; font-family: inherit; font-size: 13px;
+    font-family: inherit; font-size: 13px;
+    transition: border-color .16s, box-shadow .16s, background-color .16s, transform .12s var(--ease);
     background-color: var(--sar-panel2) !important; color: var(--sar-texto) !important;
     border: 1px solid var(--sar-borde) !important; border-radius: 8px; padding: 8px 10px; outline: none; margin: 0;
   }
-  #cpo-redaccion-modal select option { background-color: #0f172a !important; color: var(--sar-texto) !important; }
+  #cpo-redaccion-modal select option { background-color: var(--surface) !important; color: var(--sar-texto) !important; }
   #cpo-redaccion-modal input[type="text"], #cpo-redaccion-modal input[type="password"],
   #cpo-redaccion-modal select, #cpo-redaccion-modal textarea { width: 100%; }
   #cpo-redaccion-modal textarea { resize: vertical; line-height: 1.55; }
   #cpo-redaccion-modal input[type="checkbox"] { width: 16px !important; height: 16px; padding: 0 !important; accent-color: var(--sar-violeta); cursor: pointer; }
-  #cpo-redaccion-modal input:focus, #cpo-redaccion-modal textarea:focus, #cpo-redaccion-modal select:focus { border-color: var(--sar-violeta) !important; }
+  #cpo-redaccion-modal input:focus, #cpo-redaccion-modal textarea:focus, #cpo-redaccion-modal select:focus { border-color: var(--sar-violeta) !important; box-shadow: 0 0 0 3px var(--sar-violeta-suave); }
   #cpo-redaccion-modal ::placeholder { color: var(--sar-tenue); }
 
   /* ---------- Botones ---------- */
@@ -4467,12 +4615,12 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   #cpo-redaccion-modal .sar-btn:hover { filter: brightness(1.15); }
   #cpo-redaccion-modal .sar-btn:active { transform: translateY(1px); }
   #cpo-redaccion-modal .sar-btn:disabled { opacity: .55; cursor: wait; }
-  #cpo-redaccion-modal .sar-btn-violeta { background: linear-gradient(135deg, #7c3aed, #4f46e5) !important; color: #fff !important; border: none !important; }
-  #cpo-redaccion-modal .sar-btn-azul { background: #2563eb !important; color: #fff !important; border: none !important; }
-  #cpo-redaccion-modal .sar-btn-verde { background: var(--sar-verde) !important; color: #052e16 !important; border: none !important; }
-  #cpo-redaccion-modal .sar-btn-borde { background: transparent !important; color: var(--sar-celeste) !important; border: 1px solid #2b5d80 !important; }
+  #cpo-redaccion-modal .sar-btn-violeta { background: var(--c-prod) !important; color: var(--surface) !important; border: none !important; }
+  #cpo-redaccion-modal .sar-btn-azul { background: var(--c-int) !important; color: var(--surface) !important; border: none !important; }
+  #cpo-redaccion-modal .sar-btn-verde { background: var(--sar-verde) !important; color: var(--on-accent) !important; border: none !important; }
+  #cpo-redaccion-modal .sar-btn-borde { background: transparent !important; color: var(--sar-celeste) !important; border: 1px solid var(--line-2) !important; }
   #cpo-redaccion-modal .sar-btn-texto { background: transparent !important; border: none !important; color: var(--sar-suave) !important; }
-  #cpo-redaccion-modal .sar-btn-cerrar { background: #3b1d24 !important; color: #fecaca !important; border: 1px solid #7f1d1d !important; padding: 6px 12px; }
+  #cpo-redaccion-modal .sar-btn-cerrar { background: var(--crit-soft) !important; color: var(--crit) !important; border: 1px solid transparent !important; padding: 6px 12px; }
   #cpo-redaccion-modal .sar-btn-grande { width: 100%; padding: 13px !important; font-size: 14px; border-radius: 10px; }
   #cpo-redaccion-modal .sar-btn-mini { padding: 4px 8px !important; font-size: 11.5px; border-radius: 6px; }
   #cpo-redaccion-modal .sar-icono { background: transparent !important; border: 1px solid transparent !important; padding: 4px 7px !important; font-size: 12px; border-radius: 6px; cursor: pointer; color: var(--sar-suave) !important; }
@@ -4482,11 +4630,12 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   /* ---------- Barra superior ---------- */
   #cpo-redaccion-modal .sar-top {
     display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-    padding: 10px 18px; background: #0f172a; border-bottom: 1px solid var(--sar-borde);
+    padding: 10px 18px; background: var(--head-bg); border-bottom: 1px solid var(--sar-borde);
+    backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px);
   }
   #cpo-redaccion-modal .sar-top-izq, #cpo-redaccion-modal .sar-top-der { display: flex; align-items: center; gap: 10px; }
   #cpo-redaccion-modal .sar-logo { font-size: 22px; }
-  #cpo-redaccion-modal .sar-titulo { font-size: 15px; font-weight: 800; color: #ddd6fe; }
+  #cpo-redaccion-modal .sar-titulo { font: 600 21px/1.1 var(--f-display); color: var(--fg); }
   #cpo-redaccion-modal .sar-subtitulo { font-size: 12px; color: var(--sar-suave); }
   #cpo-redaccion-modal .sar-subtitulo strong { color: var(--sar-texto); }
   #cpo-redaccion-modal .sar-estado { font-size: 11.5px; font-weight: 700; margin-left: 4px; }
@@ -4494,7 +4643,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   #cpo-redaccion-modal .sar-estado.sar-falta { color: var(--sar-ambar); }
 
   /* ---------- Panel del motor IA (desplegable) ---------- */
-  #cpo-sar-motor-config { display: none; background: #131d33; border-bottom: 2px solid #4c1d95; padding: 14px 18px; }
+  #cpo-sar-motor-config { display: none; background: var(--surface); border-bottom: 1px solid var(--line); box-shadow: var(--shadow-up); padding: 14px 18px; }
   #cpo-sar-motor-config.cpo-abierto { display: block; }
   #cpo-redaccion-modal .sar-motor-grid { display: grid; grid-template-columns: minmax(220px, 1.2fr) minmax(220px, 1fr) auto; gap: 14px; align-items: end; }
   #cpo-redaccion-modal .sar-fila { display: flex; gap: 8px; align-items: center; }
@@ -4502,14 +4651,15 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   @media (max-width: 860px) { #cpo-redaccion-modal .sar-motor-grid { grid-template-columns: 1fr; } }
 
   /* ---------- Selector de modos ---------- */
-  #cpo-redaccion-modal .sar-modos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px 18px; background: #0d1527; border-bottom: 1px solid var(--sar-borde); }
+  #cpo-redaccion-modal .sar-modos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px 18px; background: var(--surface); border-bottom: 1px solid var(--sar-borde); }
   @media (max-width: 980px) { #cpo-redaccion-modal .sar-modos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   #cpo-redaccion-modal .sar-modo {
     display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer; padding: 10px 12px !important;
-    background: var(--sar-panel) !important; border: 1px solid var(--sar-borde) !important; border-radius: 10px;
+    background: var(--sar-panel) !important; border: 1px solid var(--sar-borde) !important; border-radius: var(--r-md);
+    transition: border-color .16s, background-color .16s, transform .16s var(--ease), box-shadow .2s;
   }
-  #cpo-redaccion-modal .sar-modo:hover { border-color: #4c3b8a !important; }
-  #cpo-redaccion-modal .sar-modo.activa { background: linear-gradient(135deg, #2e1065, #1e1b4b) !important; border-color: var(--sar-violeta) !important; box-shadow: 0 0 0 1px var(--sar-violeta) inset; }
+  #cpo-redaccion-modal .sar-modo:hover { border-color: var(--line-2) !important; transform: translateY(-1px); box-shadow: var(--shadow-up); }
+  #cpo-redaccion-modal .sar-modo.activa { background: var(--sar-violeta-suave) !important; border-color: var(--sar-violeta) !important; box-shadow: 0 0 0 1px var(--sar-violeta) inset; }
   #cpo-redaccion-modal .sar-modo-ico { font-size: 20px; }
   #cpo-redaccion-modal .sar-modo b { display: block; font-size: 13px; color: var(--sar-texto); }
   #cpo-redaccion-modal .sar-modo small { display: block; font-size: 11px; color: var(--sar-suave); font-weight: 400; }
@@ -4524,10 +4674,10 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   }
 
   /* ---------- Secciones desplegables ---------- */
-  #cpo-redaccion-modal .sar-seccion { background: #0f1729; border: 1px solid var(--sar-borde); border-radius: 10px; }
+  #cpo-redaccion-modal .sar-seccion { background: var(--surface-2); border: 1px solid var(--sar-borde); border-radius: 10px; }
   #cpo-redaccion-modal .sar-seccion > summary {
     list-style: none; cursor: pointer; display: flex; align-items: center; gap: 9px;
-    padding: 11px 13px; font-weight: 800; font-size: 13px; color: var(--sar-texto); user-select: none;
+    padding: 11px 13px; font-weight: 700; font-size: 13px; color: var(--sar-texto); user-select: none;
   }
   #cpo-redaccion-modal .sar-seccion > summary::-webkit-details-marker { display: none; }
   #cpo-redaccion-modal .sar-seccion > summary::after { content: "▾"; margin-left: auto; color: var(--sar-tenue); transition: transform .2s; }
@@ -4536,9 +4686,9 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   #cpo-redaccion-modal .sar-seccion-cuerpo { padding: 0 13px 13px; display: flex; flex-direction: column; gap: 10px; }
   #cpo-redaccion-modal .sar-paso {
     width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
-    background: #2e1065; color: #ddd6fe; font-size: 12px; font-weight: 800; flex-shrink: 0;
+    background: var(--sar-violeta-suave); color: var(--c-prod); font-size: 12px; font-weight: 700; flex-shrink: 0;
   }
-  #cpo-redaccion-modal .sar-contador { background: #1e293b; color: var(--sar-celeste); font-size: 11px; padding: 1px 8px; border-radius: 999px; }
+  #cpo-redaccion-modal .sar-contador { background: var(--surface-2); color: var(--sar-celeste); font-size: 11px; padding: 1px 8px; border-radius: 999px; }
 
   #cpo-redaccion-modal .sar-campo { display: flex; flex-direction: column; gap: 5px; }
   #cpo-redaccion-modal .sar-campo > label { font-size: 12px; font-weight: 700; color: var(--sar-suave); }
@@ -4546,7 +4696,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   #cpo-redaccion-modal .sar-grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
   @media (max-width: 480px) { #cpo-redaccion-modal .sar-grid2 { grid-template-columns: minmax(0, 1fr); } }
   #cpo-redaccion-modal .sar-contraste > label { color: var(--sar-ambar); }
-  #cpo-redaccion-modal .sar-nota { font-size: 11.5px; color: var(--sar-suave); background: #0b1324; border-radius: 8px; padding: 8px 10px; }
+  #cpo-redaccion-modal .sar-nota { font-size: 11.5px; color: var(--sar-suave); background: var(--surface-2); border-radius: 8px; padding: 8px 10px; }
   #cpo-redaccion-modal .sar-nota:empty { display: none; }
   #cpo-redaccion-modal .sar-mini { margin-top: 10px; font-size: 12px; color: var(--sar-suave); }
   #cpo-redaccion-modal .sar-mini summary { cursor: pointer; }
@@ -4554,7 +4704,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
 
   #cpo-redaccion-modal .sar-accion-fija {
     position: sticky; bottom: 0; margin-top: auto; padding: 14px 0 14px;
-    background: linear-gradient(to bottom, rgba(17,26,46,0), var(--sar-panel) 30%);
+    background: linear-gradient(to bottom, transparent, var(--sar-panel) 30%);
     display: flex; flex-direction: column; gap: 6px; text-align: center;
   }
 
@@ -4590,21 +4740,21 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     display: block; text-align: center; color: var(--sar-tenue); padding: 40px 10px; border: 1px dashed var(--sar-borde); border-radius: 10px;
   }
   #cpo-redaccion-modal .cpo-bloque-card { background: var(--sar-panel); border: 1px solid var(--sar-borde); border-left: 4px solid var(--sar-violeta); border-radius: 10px; }
-  #cpo-redaccion-modal .cpo-bloque-card.sar-excluido { border-left-color: #475569; }
+  #cpo-redaccion-modal .cpo-bloque-card.sar-excluido { border-left-color: var(--line-2); }
   #cpo-redaccion-modal .sar-bloque-cab { display: flex; align-items: center; gap: 8px; padding: 8px 10px; }
   #cpo-redaccion-modal .sar-chevron { transition: transform .2s; }
   #cpo-redaccion-modal .cpo-bloque-card.sar-colapsado .sar-chevron { transform: rotate(-90deg); }
-  #cpo-redaccion-modal .sar-bloque-num { font-size: 11px; font-weight: 800; color: #c4b5fd; background: #2e1065; border-radius: 6px; padding: 2px 7px; flex-shrink: 0; }
+  #cpo-redaccion-modal .sar-bloque-num { font-size: 11px; font-weight: 700; color: var(--c-prod); background: var(--sar-violeta-suave); border-radius: 6px; padding: 2px 7px; flex-shrink: 0; }
   #cpo-redaccion-modal .cpo-bloque-titulo-inp {
     flex: 1; min-width: 80px; background: transparent !important; border: 1px solid transparent !important;
-    color: #ddd6fe !important; font-weight: 800; padding: 4px 6px !important;
+    color: var(--fg) !important; font-weight: 700; padding: 4px 6px !important;
   }
   #cpo-redaccion-modal .cpo-bloque-titulo-inp:hover { border-color: var(--sar-borde) !important; }
   #cpo-redaccion-modal .sar-bloque-meta { font-size: 11px; color: var(--sar-tenue); white-space: nowrap; }
   #cpo-redaccion-modal .sar-bloque-acciones { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
   #cpo-redaccion-modal .sar-chk-lectura { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--sar-suave); cursor: pointer; padding: 0 6px; }
   #cpo-redaccion-modal .sar-bloque-cuerpo { padding: 0 12px 12px; }
-  #cpo-redaccion-modal .cpo-bloque-textarea { min-height: 90px; background: #0b1324 !important; font-size: 14px; line-height: 1.6; padding: 10px 12px; }
+  #cpo-redaccion-modal .cpo-bloque-textarea { min-height: 90px; background: var(--surface) !important; font-size: 14px; line-height: 1.6; padding: 10px 12px; }
   #cpo-redaccion-modal .sar-bloque-preview { display: none; padding: 0 14px 10px 46px; color: var(--sar-tenue); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
   #cpo-redaccion-modal .cpo-bloque-card.sar-colapsado .sar-bloque-cuerpo { display: none; }
   #cpo-redaccion-modal .cpo-bloque-card.sar-colapsado .sar-bloque-preview { display: block; }
@@ -4616,13 +4766,13 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   /* ---------- Avisos flotantes ---------- */
   #cpo-redaccion-modal .sar-toast {
     position: fixed; right: 20px; bottom: 20px; max-width: 420px; z-index: 99999;
-    background: #0f2b22; border: 1px solid #065f46; color: #d1fae5; border-radius: 10px; padding: 12px 14px;
+    background: var(--accent-soft); border: 1px solid var(--accent-line); color: var(--fg); box-shadow: var(--shadow-up); border-radius: 10px; padding: 12px 14px;
     font-size: 13px; white-space: pre-line; box-shadow: 0 10px 30px rgba(0,0,0,.45); cursor: pointer;
     opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .2s, transform .2s;
   }
   #cpo-redaccion-modal .sar-toast.sar-visible { opacity: 1; transform: none; pointer-events: auto; }
-  #cpo-redaccion-modal .sar-toast.sar-toast-aviso { background: #2d230a; border-color: #92400e; color: #fef3c7; }
-  #cpo-redaccion-modal .sar-toast.sar-toast-error { background: #2c1215; border-color: #991b1b; color: #fee2e2; }
+  #cpo-redaccion-modal .sar-toast.sar-toast-aviso { background: var(--warn-soft); border-color: var(--warn); color: var(--fg); }
+  #cpo-redaccion-modal .sar-toast.sar-toast-error { background: var(--crit-soft); border-color: var(--crit); color: var(--fg); }
 </style>
 
 <div id="cpo-redaccion-modal" translate="no" class="notranslate" role="dialog" aria-modal="true" aria-label="Sistema de Análisis y Redacción">
@@ -4638,6 +4788,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     </div>
     <div class="sar-top-der">
       <button type="button" id="cpo-sar-btn-motor" class="sar-btn sar-btn-borde">🧠 Motor IA <span id="cpo-sar-estado-motor" class="sar-estado sar-falta">● Sin conectar</span></button>
+      <button type="button" class="sar-btn sar-btn-borde cpo-tema-btn" data-cpo-tema title="Cambiar entre modo claro y oscuro"></button>
       <button type="button" id="cpo-sar-cerrar" class="sar-btn sar-btn-cerrar" title="Cerrar (tecla Esc)">✕ Cerrar</button>
     </div>
   </header>

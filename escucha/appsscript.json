@@ -1,0 +1,16 @@
+{
+  "timeZone": "America/Argentina/Buenos_Aires",
+  "runtimeVersion": "V8",
+  "exceptionLogging": "STACKDRIVER",
+  "dependencies": {
+    "enabledAdvancedServices": [
+      { "userSymbol": "YouTube", "serviceId": "youtube", "version": "v3" }
+    ]
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/datastore",
+    "https://www.googleapis.com/auth/script.external_request",
+    "https://www.googleapis.com/auth/script.scriptapp",
+    "https://www.googleapis.com/auth/youtube.readonly"
+  ]
+}

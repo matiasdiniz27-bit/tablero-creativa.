@@ -621,6 +621,37 @@ html.side-min{--sw:72px}
 .side-foot{border-top:1px solid var(--line);padding-top:10px}
 .side-mods{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line);padding:10px 0 8px}
 .side-mods:empty{display:none}
+.esc .estado-esc{display:inline-flex;align-items:center;gap:7px;font-size:.78rem;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--surface-2);white-space:nowrap}
+.esc .estado-esc.on{color:var(--accent);background:var(--accent-soft);border-color:var(--accent-line)}
+.esc .estado-esc.on i{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:livep 2s infinite}
+.esc .estado-esc.warn{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+.esc-fuentes{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.esc-fuentes li{display:grid;grid-template-columns:auto 1fr;column-gap:9px;align-items:center;padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface-2);font-size:.84rem;font-weight:500}
+.esc-fuentes li small{grid-column:2;color:var(--muted);font-size:.74rem;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.esc-fuentes .pt{width:9px;height:9px;border-radius:50%;background:var(--line-2);grid-row:span 2}
+.esc-fuentes .fz-on .pt{background:var(--ok)}.esc-fuentes .fz-err .pt{background:var(--crit)}.esc-fuentes .fz-err small{color:var(--crit)}
+.inf-card .inf-tit{font:600 1.35rem/1.2 var(--f-display);margin:6px 0 10px}
+.inf-cifras{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:.84rem;color:var(--fg-2);margin:4px 0 10px}
+.inf-cifras b{font-family:var(--f-mono);font-weight:500;color:var(--fg)}.inf-cifras .t-pos b{color:var(--ok)}.inf-cifras .t-neg b{color:var(--crit)}
+.inf-txt{color:var(--fg-2);font-size:.9rem;line-height:1.55;margin:0 0 12px}
+.inf-lista{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column}
+.inf-lista li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.inf-lista .evlink{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;min-width:0}
+.inf-lista .evlink span{color:var(--muted);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.inf-mas{margin-top:10px}.inf-mas summary{cursor:pointer;font-size:.84rem;color:var(--fg-2);font-weight:500}
+.inf-vista{border-color:var(--accent-line);animation:rise .4s var(--ease) both}
+.inf-cuerpo p{font-size:.95rem;line-height:1.65;color:var(--fg);margin:0 0 10px;max-width:72ch}
+.inf-h{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;font-weight:600}
+.inf-temas,.inf-barras,.inf-dest{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.inf-temas li{display:flex;justify-content:space-between;gap:10px;font-size:.88rem;padding:7px 10px;border-radius:var(--r-sm);background:var(--surface-2)}
+.inf-temas li span{color:var(--muted);font-size:.8rem}
+.inf-barras li{display:grid;grid-template-columns:130px 1fr 34px;align-items:center;gap:8px;font-size:.84rem}
+.inf-barras i{height:8px;border-radius:4px;background:var(--accent);display:block;min-width:4px}
+.inf-barras b{font-family:var(--f-mono);font-weight:500;text-align:right}
+.inf-dest li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:8px 10px;border-radius:var(--r-sm);border:1px solid var(--line);font-size:.88rem}
+.inf-dest li small{color:var(--muted);flex-basis:100%}
+.esc-chk{display:flex;align-items:center;gap:8px;font-weight:500;margin:8px 0 4px}
+.esc-chk input{accent-color:var(--accent);width:16px;height:16px}
 @media (prefers-reduced-motion:no-preference){html.tema-cambiando,html.tema-cambiando *,html.tema-cambiando *::before,html.tema-cambiando *::after{transition:background-color .4s var(--ease),border-color .4s var(--ease),color .3s var(--ease),box-shadow .4s var(--ease)!important}}
 button.navi{background:none;border:0;font:inherit;font-size:.88rem;width:100%;cursor:pointer;text-align:left;box-sizing:border-box}
 .iconbtn{all:unset;box-sizing:border-box;cursor:pointer;width:36px;height:36px;display:grid;place-items:center;border-radius:var(--r-sm);color:var(--fg-2);flex:none}
@@ -1209,7 +1240,7 @@ const resolved=x=>x&&(x.estado==="hecha"||x.estado==="no-aplica");
    de esta pantalla (cliente elegido, quién trabaja, tema y efectos). */
 let db=null,user=null,myId=null,canWrite=true,connErr="",writeErr="";
 let sesion={estado:"cargando",correo:"",nombre:""},unsubBase=[],connTimer=0;
-const st={clientes:[],cid:ls.get("cpo:cid",""),equipo:[],tareas:{},fichas:{},cierre:{},entreg:{},eventos:{},plan:{},conf:{},men:{},menLoaded:false,menAt:0,bita:[],ok:{clientes:false,cliente:false},names:{}};
+const st={clientes:[],cid:ls.get("cpo:cid",""),equipo:[],tareas:{},fichas:{},cierre:{},entreg:{},eventos:{},plan:{},conf:{},men:{},menLoaded:false,menAt:0,bita:[],inf:[],ok:{clientes:false,cliente:false},names:{}};
 let como=ls.get("cpo:como","");
 const ui={sub:{},open:new Set(),filtro:{},verArch:false,nuevo:false,editCli:false,confirm:"",mes:"",dia:"",calModo:"mes",calFiltro:"todo",evEdit:"",evDraft:null,planMsg:"",menEdit:"",menDraft:null,menWarn:"",menF:"todas",menQ:"",radEdit:false,radDraft:null,tlSel:null,tlDraft:null,tlWarn:"",tlZoom:"meses",tlCenter:false,justDragged:false,menNew:new Set(),menAcc:false,menAlc:"",menPlat:"",menTag:"",menDesde:"",menHasta:"",menLim:60,menImp:null,menPer:"dia",menResDia:"",bustT0:0};
 let unsubCli=[],pendientes=0,dirty=false;
@@ -1256,7 +1287,7 @@ function tareasAbiertas(){const out=[];F.forEach(f=>f.tareas.forEach((t,i)=>{con
 /* ---------- Suscripciones en tiempo real ---------- */
 function subscribeCliente(){
   unsubCli.forEach(u=>{try{u()}catch(e){}});unsubCli=[];
-  st.tareas={};st.fichas={};st.cierre={};st.entreg={};st.eventos={};st.plan={};st.conf={};st.men={};st.menLoaded=false;st.bita=[];st.ok.cliente=false;
+  st.tareas={};st.fichas={};st.cierre={};st.entreg={};st.eventos={};st.plan={};st.conf={};st.men={};st.menLoaded=false;st.bita=[];st.inf=[];st.ok.cliente=false;
   if(!db||!st.cid)return;
   const map=(k)=>s=>{const o={};s.docs.forEach(d=>o[d.id]=d.data());st[k]=o;st.ok.cliente=true;resolveNames();render()};
   const err=e=>{console.error(e);connErr="Se cortó la conexión con el registro de este cliente. Recargá la página para volver a conectarte.";render()};
@@ -1269,9 +1300,10 @@ function subscribeCliente(){
   unsubCli.push(db.collection(c+"/plan").onSnapshot(map("plan"),err));
   unsubCli.push(db.collection(c+"/config").onSnapshot(map("conf"),err));
   unsubCli.push(db.collection(c+"/menciones").onSnapshot(s=>{const o={};s.docs.forEach(d=>o[d.id]=d.data());if(st.menLoaded){const nn=Object.keys(o).filter(id=>!st.men[id]);nn.forEach(id=>ui.menNew.add(id));if(nn.length)toast(nn.length===1?"Nueva mención · "+(o[nn[0]].titulo||"sin título"):`${nn.length} menciones nuevas en el registro`)}st.men=o;if(!s.fromCache)st.menLoaded=true;st.menAt=Date.now();st.ok.cliente=true;resolveNames();render()},err));
+  unsubCli.push(db.collection(c+"/informes").orderBy("hasta","desc").limit(60).onSnapshot(s=>{st.inf=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>console.error(e)));
   unsubCli.push(db.collection(c+"/bitacora").orderBy("at","desc").limit(300).onSnapshot(s=>{st.bita=s.docs.map(d=>({id:d.id,...d.data()}));resolveNames();render()},err));
 }
-function selectCliente(id){if(id===st.cid)return;st.cid=id;ls.set("cpo:cid",id);ui.editCli=false;ui.evEdit="";ui.evDraft=null;ui.confirm="";ui.menEdit="";ui.menDraft=null;ui.radEdit=false;ui.menNew=new Set();ui.menImp=null;ui.menTag="";subscribeCliente();render()}
+function selectCliente(id){if(id===st.cid)return;st.cid=id;ls.set("cpo:cid",id);ui.editCli=false;ui.evEdit="";ui.evDraft=null;ui.confirm="";ui.menEdit="";ui.menDraft=null;ui.radEdit=false;ui.menNew=new Set();ui.menImp=null;ui.menTag="";ui.infVer="";ui.escEdit=false;ui.escDraft=null;subscribeCliente();render()}
 let namesBusy=false;
 async function resolveNames(){
   if(!user||namesBusy)return;const ids=new Set();
@@ -2137,7 +2169,7 @@ function menRow(m){
    <div class="mcol"><span class="fz">${fechaCorta(m.fecha)} ${m.fecha.slice(0,4)}</span><span class="src">${esc(lab(FUENTES,m.fuente||"medio"))}</span>${nw?`<span class="newtag">Nueva</span>`:""}</div>
    <div class="mbody"><h3>${ok?`<a href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">${esc(m.titulo||m.url)} ↗</a>`:esc(m.titulo||"Sin título")}</h3>
     ${m.medio||m.firma?`<p class="small">${esc([m.medio,m.firma].filter(Boolean).join(" · "))}</p>`:""}${m.resumen?`<p class="mres">${esc(m.resumen)}</p>`:""}
-    <div class="kpis">${tg.map(x=>`<button type="button" class="kp tagk" data-mentag="${esc(x)}" title="Filtrar por ${esc(x)}">${esc(x)}</button>`).join("")}${al?`<span class="kp">Alcance ${esc(al)}${m.seguidores?` · ${fmtN(m.seguidores)}`:""}</span>`:""}${m.origen==="claude"?`<span class="kp">Cargada por Claude</span>`:m.origen==="import"?`<span class="kp">Importada</span>`:m.at?`<span class="kp">${esc(quien(m))} · ${hace(m.at)}</span>`:""}</div>
+    <div class="kpis">${typeof m.puntaje==="number"?`<span class="kp ${m.puntaje>0?"g":m.puntaje<0?"r":""}" title="Valoración de -2 a +2">Valoración ${m.puntaje>0?"+":""}${m.puntaje}</span>`:""}${tg.map(x=>`<button type="button" class="kp tagk" data-mentag="${esc(x)}" title="Filtrar por ${esc(x)}">${esc(x)}</button>`).join("")}${al?`<span class="kp">Alcance ${esc(al)}${m.seguidores?` · ${fmtN(m.seguidores)}`:""}</span>`:""}${m.origen==="robot"?`<span class="kp">Escucha automática</span>`:m.origen==="claude"?`<span class="kp">Cargada por Claude</span>`:m.origen==="import"?`<span class="kp">Importada</span>`:m.at?`<span class="kp">${esc(quien(m))} · ${hace(m.at)}</span>`:""}</div>
     ${m.nota?`<p class="small">${esc(m.nota)}</p>`:""}</div>
    <div class="mside"><span class="tono ${esc(to)}">${esc(lab(TONOS,to))}</span><select class="sel live acc a-${esc(ac)}" data-men="${esc(m.id)}" data-field="accion" aria-label="Acción sobre la mención"${dis()}>${ACC.map(a=>`<option value="${a[0]}"${a[0]===ac?" selected":""}>${a[1]}</option>`).join("")}</select><button class="btn grey sm" type="button" data-menedit="${esc(m.id)}">${canWrite&&db?"Editar":"Ver detalle"}</button></div></li>`;
 }
@@ -2217,6 +2249,81 @@ function impPreview(){
    ${I.out.length?`<ul class="alist">${I.out.slice(0,5).map(x=>`<li><span class="fz">${fechaCorta(x.fecha)}</span><span>${esc(cort(x.titulo,90))}</span><span class="small">${esc(lab(FUENTES,x.fuente))}</span></li>`).join("")}</ul>${I.out.length>5?`<p class="small">Y ${I.out.length-5} más.</p>`:""}`:""}
    <div class="confirm"><button class="btn" type="button" data-act="imp-ok"${I.out.length&&canWrite&&db?"":" disabled"}>Importar ${I.out.length}</button><button class="btn grey" type="button" data-act="imp-cancel">Cancelar</button></div></div>`;
 }
+/* ---------- Escucha automática (robot de escucha/robot.gs) ----------
+   El robot escribe en config/robot su estado, en menciones las que encuentra
+   y en informes los resúmenes diarios y semanales. */
+const FUENTES_ROBOT=[["medios","Diarios, revistas y medios digitales"],["youtube","YouTube y sus comentarios"],["x","X"],["meta","Facebook e Instagram propios"],["apify","TikTok y redes de terceros"]];
+function escCfg(){return st.conf.escucha||{}}
+function infLista(){return [...st.inf].sort((a,b)=>(b.hasta||"").localeCompare(a.hasta||"")||(a.tipo==="semanal"?-1:1))}
+function indiceTxt(n){if(n==null)return"Sin datos";return(n>0?"+":"")+n}
+function indiceCls(n){return n==null?"":n>=20?"g":n<=-20?"r":"y"}
+function escuchaPanel(){
+  const rb=st.conf.robot,cfg=escCfg(),inf=infLista(),dia=inf.find(x=>x.tipo==="diario"),sem=inf.filter(x=>x.tipo==="semanal").slice(0,6);
+  if(ui.escEdit)return escForm();
+  const viejo=rb&&rb.ultima&&Date.now()-rb.ultima>7*3600e3;
+  const estado=!rb?`<span class="estado-esc off">Sin instalar</span>`:cfg.activo===false?`<span class="estado-esc off">En pausa</span>`:viejo?`<span class="estado-esc warn">Sin noticias desde ${esc(hace(rb.ultima))}</span>`:`<span class="estado-esc on"><i></i>Escuchando · ${esc(hace(rb.ultima))}</span>`;
+  const fuentes=FUENTES_ROBOT.map(([k,l])=>{const f=rb&&rb.fuentes&&rb.fuentes[k];const c=!f?"off":!f.activa?"off":f.ok?"on":"err";
+    const t=!f?"Todavía no corrió":!f.activa?(k==="meta"?"Falta cargar las páginas o el token de Meta":"Falta el token, se omite"):f.ok?`${f.nuevas||0} nuevas en la última búsqueda`:`Error. ${f.error||""}`;
+    return `<li class="fz-${c}" title="${esc(t)}"><span class="pt"></span><span>${esc(l)}</span><small>${esc(t)}</small></li>`}).join("");
+  let h=`<section class="panelbox esc"><div class="head" style="margin-bottom:10px"><div><h3 style="font-weight:600;font-size:1.15rem">Escucha automática</h3><p class="small">Busca menciones cada 3 horas, valora cada una y arma un resumen diario y un informe semanal.</p></div>
+   <div class="confirm">${estado}<button class="btn grey sm" type="button" data-act="esc-edit"${dis()}>Configurar</button></div></div>
+   <ul class="esc-fuentes">${fuentes}</ul>`;
+  if(rb&&(rb.nuevas||rb.descartadas))h+=`<p class="small" style="margin-top:8px">Última búsqueda ${esc(hace(rb.ultima))}. ${rb.nuevas||0} menciones nuevas${rb.descartadas?`, ${rb.descartadas} descartadas por no referirse a ${esc(radarCfg().nombre)}`:""}.</p>`;
+  if(!rb)h+=`<p class="small" style="margin-top:8px">El robot todavía no se instaló. La guía paso a paso está en la carpeta <b>escucha</b> del repositorio, archivo GUIA.md.</p>`;
+  h+=`</section>`;
+  h+=`<div class="cgrid">`;
+  h+=dia?`<section class="panelbox inf-card"><span class="caps">Resumen del ${esc(fecha(dia.hasta))}</span><h3 class="inf-tit">${esc(dia.titular||"Resumen diario")}</h3>${cifrasHTML(dia)}<p class="inf-txt">${esc((dia.resumen||"").slice(0,420))}${(dia.resumen||"").length>420?"…":""}</p><div class="confirm"><button class="btn sm" type="button" data-act="inf-ver" data-id="${esc(dia.id)}">Leer completo</button></div></section>`
+    :`<section class="panelbox inf-card"><span class="caps">Resumen diario</span><p class="small" style="margin-top:6px">Aparece acá cada mañana a las 7, con lo publicado el día anterior.</p></section>`;
+  h+=`<section class="panelbox"><span class="caps">Informes semanales</span>${sem.length?`<ul class="inf-lista">${sem.map(x=>`<li><button type="button" class="evlink" data-act="inf-ver" data-id="${esc(x.id)}"><b>${esc(fechaCorta(x.desde))} al ${esc(fecha(x.hasta))}</b><span>${esc(x.titular||"")}</span></button><span class="kp ${indiceCls(x.indice)}" title="Clima de la conversación, de -100 a +100">${esc(indiceTxt(x.indice))}</span></li>`).join("")}</ul>`:`<p class="small" style="margin-top:6px">El primero llega el lunes a las 8 con la semana anterior completa.</p>`}${inf.filter(x=>x.tipo==="diario").length>1?`<details class="inf-mas"><summary>Resúmenes diarios anteriores</summary><ul class="inf-lista">${inf.filter(x=>x.tipo==="diario").slice(1,15).map(x=>`<li><button type="button" class="evlink" data-act="inf-ver" data-id="${esc(x.id)}"><b>${esc(fecha(x.hasta))}</b><span>${esc(x.titular||"")}</span></button><span class="kp ${indiceCls(x.indice)}">${esc(indiceTxt(x.indice))}</span></li>`).join("")}</ul></details>`:""}</section>`;
+  return h+`</div>`;
+}
+function cifrasHTML(x){const c=x.cifras||{};return `<div class="inf-cifras"><span><b>${c.total||0}</b> menciones</span><span class="t-pos"><b>${c.positivo||0}</b> positivas</span><span><b>${c.neutro||0}</b> neutras</span><span class="t-neg"><b>${c.negativo||0}</b> negativas</span><span class="kp ${indiceCls(x.indice)}" title="Clima de la conversación, de -100 a +100">Clima ${esc(indiceTxt(x.indice))}</span></div>`}
+function informeTxt(x){
+  const c=x.cifras||{},L=[];
+  L.push((x.tipo==="semanal"?`INFORME SEMANAL · ${fecha(x.desde)} al ${fecha(x.hasta)}`:`RESUMEN DIARIO · ${fecha(x.hasta)}`)+` · ${radarCfg().nombre}`);
+  L.push("",x.titular||"","",`${c.total||0} menciones. ${c.positivo||0} positivas, ${c.neutro||0} neutras y ${c.negativo||0} negativas. Clima ${indiceTxt(x.indice)}.`);
+  if(x.anterior)L.push(`Semana anterior ${x.anterior.total} menciones (${x.anterior.negativo} negativas).`);
+  L.push("",x.resumen||"");
+  if((x.temas||[]).length)L.push("","TEMAS",...x.temas.map(t=>`• ${t.tema} · ${t.menciones} menciones · ${t.tono}`));
+  if((x.alertas||[]).length)L.push("","ALERTAS",...x.alertas.map(a=>"• "+a));
+  if((x.recomendaciones||[]).length)L.push("","RECOMENDACIONES",...x.recomendaciones.map(a=>"• "+a));
+  if((x.destacadas||[]).length)L.push("","MENCIONES DESTACADAS",...x.destacadas.map(d=>`• ${d.titulo} (${d.medio||""}) ${d.url||""}`));
+  return L.join("\n");
+}
+function informeVista(){
+  const x=st.inf.find(i=>i.id===ui.infVer);if(!x)return"";
+  const pf=Object.entries(x.porFuente||{}).sort((a,b)=>b[1]-a[1]),max=Math.max(1,...pf.map(p=>p[1]));
+  return `<section class="panelbox inf-vista" id="inf-vista"><div class="head" style="margin-bottom:6px"><div><span class="caps">${x.tipo==="semanal"?`Informe semanal · ${esc(fecha(x.desde))} al ${esc(fecha(x.hasta))}`:`Resumen diario · ${esc(fecha(x.hasta))}`}</span><h2 class="sectitle" style="margin-top:6px">${esc(x.titular||"Informe")}</h2></div>
+   <div class="confirm"><button class="btn grey sm" type="button" data-act="inf-copy">Copiar</button><button class="btn grey sm" type="button" data-act="inf-print">Imprimir o PDF</button><button class="btn grey sm" type="button" data-act="inf-cerrar">Cerrar</button></div></div>
+   ${cifrasHTML(x)}${x.anterior?`<p class="small">Semana anterior ${x.anterior.total} menciones, ${x.anterior.negativo} negativas.</p>`:""}
+   <div class="inf-cuerpo">${(x.resumen||"").split(/\n+/).map(p=>`<p>${esc(p)}</p>`).join("")}</div>
+   <div class="cgrid">
+    ${(x.temas||[]).length?`<div><h4 class="inf-h">Temas</h4><ul class="inf-temas">${x.temas.map(t=>`<li><b>${esc(t.tema)}</b><span>${esc(String(t.menciones))} menciones · ${esc(t.tono)}</span></li>`).join("")}</ul></div>`:""}
+    ${pf.length?`<div><h4 class="inf-h">Por fuente</h4><ul class="inf-barras">${pf.map(([k,n])=>`<li><span>${esc(lab(FUENTES,k))}</span><i style="width:${Math.round(n/max*100)}%"></i><b>${n}</b></li>`).join("")}</ul></div>`:""}
+   </div>
+   ${(x.alertas||[]).length?`<h4 class="inf-h">Alertas</h4><ul class="risk alerts">${x.alertas.map(a=>`<li class="crit"><span>${esc(a)}</span></li>`).join("")}</ul>`:""}
+   ${(x.recomendaciones||[]).length?`<h4 class="inf-h">Recomendaciones</h4><ul class="risk">${x.recomendaciones.map(a=>`<li><span>${esc(a)}</span></li>`).join("")}</ul>`:""}
+   ${(x.destacadas||[]).length?`<h4 class="inf-h">Menciones destacadas</h4><ul class="inf-dest">${x.destacadas.map(d=>`<li class="t-${esc(d.tono)}"><span class="tono ${esc(d.tono)}">${esc(lab(TONOS,d.tono))}</span>${/^https?:\/\//.test(d.url||"")?`<a href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">${esc(d.titulo)} ↗</a>`:esc(d.titulo)}<small>${esc(d.medio||"")} · ${esc(fechaCorta(d.fecha))}</small></li>`).join("")}</ul>`:""}
+   <p class="small" style="margin-top:12px">Lo escribió el robot de escucha con Gemini ${esc(hace(x.creado))}. Las cifras describen la conversación pública encontrada y no reemplazan una encuesta.</p></section>`;
+}
+function escForm(){
+  const v=ui.escDraft||{activo:escCfg().activo!==false,fbPageId:escCfg().fbPageId||"",igUserId:escCfg().igUserId||""};
+  return `<form class="panelbox evf" id="fesc" data-hold style="margin:0"><span class="caps">Escucha automática de este cliente</span>
+   <label class="esc-chk"><input type="checkbox" name="activo"${v.activo!==false&&v.activo!=="off"?" checked":""}> Escucha activa</label>
+   <p class="small">Los términos de búsqueda salen del Radar de búsqueda de esta misma solapa. Si el nombre se confunde con otra persona, agregá palabras de contexto o para excluir.</p>
+   <div class="form">
+    <label class="f"><span>Página de Facebook del cliente (id)</span><input class="in" name="fbPageId" value="${esc(v.fbPageId)}" placeholder="Ej. 104512345678901" inputmode="numeric"></label>
+    <label class="f"><span>Cuenta de Instagram del cliente (id)</span><input class="in" name="igUserId" value="${esc(v.igUserId)}" placeholder="Ej. 17841400000000000" inputmode="numeric"></label>
+   </div>
+   <p class="small">Solo hacen falta para leer los comentarios de las páginas propias. La guía explica dónde encontrar cada id.</p>
+   <div class="confirm"><button class="btn" type="submit"${dis()}>Guardar</button><button class="btn grey" type="button" data-act="esc-cancel">Cancelar</button></div></form>`;
+}
+function imprimirInforme(x){
+  const w=window.open("","_blank");if(!w){toast("El navegador bloqueó la ventana. Permití ventanas emergentes para imprimir.");return}
+  const v=document.getElementById("inf-vista");
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(x.titular||"Informe")}</title><style>body{font:14px/1.55 "Instrument Sans",system-ui,sans-serif;color:#0E1419;max-width:760px;margin:32px auto;padding:0 20px}h2{font:600 26px/1.2 Georgia,serif}.confirm,button{display:none!important}.caps{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5B6673}ul{padding-left:18px}.inf-cifras{display:flex;gap:14px;flex-wrap:wrap}.inf-barras i{display:inline-block;height:8px;background:#037A57;margin:0 8px;vertical-align:middle}a{color:#037A57}.small{color:#5B6673;font-size:12px}.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:20px}</style></head><body>${v?v.innerHTML:""}<script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
 function menciones(){
   const c=cli(),t=hoy(),all=menList(),r=radarCfg();
   const d7=addD(t,-6),d30=addD(t,-29),n7=all.filter(m=>m.fecha>=d7&&m.fecha<=t).length,l30=all.filter(m=>m.fecha>=d30&&m.fecha<=t);
@@ -2230,6 +2337,8 @@ function menciones(){
   if(ui.menImp)h+=impPreview();
   if(ui.menEdit)h+=menForm();
   h+=`<div class="stats">${tile("Últimos 7 días",n7,n7===1?"mención":"menciones")}${tile("Últimos 30 días",l30.length,l30.length===1?"mención":"menciones")}${tile("Negativas en 30 días",neg30,l30.length?Math.round(neg30/l30.length*100)+"% del total":"Sin datos todavía",neg30?"crit":"")}${tile("Piden acción",accN,"Responder o escalar",accN?"warn":"")}</div>`;
+  if(ui.infVer)h+=informeVista();
+  h+=escuchaPanel();
   h+=`<div class="cgrid">${chartSemanas(all,t)}${radarPanel()}</div>`;
   h+=`<section class="panelbox"><div class="head" style="margin-bottom:12px"><div><h3 style="font-weight:600;font-size:1.15rem">Resumen para el equipo</h3><p class="small">Listo para pegar en el grupo de trabajo o en el informe semanal.</p></div>
    <div class="confirm"><div class="seg" role="group" aria-label="Período del resumen">${[["dia","Día"],["semana","Últimos 7 días"]].map(x=>`<button type="button" data-menper="${x[0]}" aria-pressed="${(ui.menPer||"dia")===x[0]}">${x[1]}</button>`).join("")}</div><input class="in" type="date" data-menflt="menResDia" value="${esc(ui.menResDia||t)}" aria-label="Fecha del resumen" style="width:auto"></div></div>
@@ -2320,6 +2429,12 @@ view.addEventListener("click",e=>{
     else if(a==="men-cancel"){ui.menEdit="";ui.menDraft=null;ui.menWarn="";ui.confirm="";render()}
     else if(a==="men-ask"){ui.confirm="men";render()}
     else if(a==="men-del"){const id=ui.menEdit;if(id&&id!=="new"){del(`${base()}/menciones/${id}`);const o={...st.men};delete o[id];st.men=o}ui.menEdit="";ui.menDraft=null;ui.confirm="";render()}
+    else if(a==="esc-edit"){ui.escEdit=true;ui.escDraft=null;render()}
+    else if(a==="esc-cancel"){ui.escEdit=false;ui.escDraft=null;render()}
+    else if(a==="inf-ver"){ui.infVer=el.dataset.id;render();const v=document.getElementById("inf-vista");if(v)v.scrollIntoView({behavior:"smooth",block:"start"})}
+    else if(a==="inf-cerrar"){ui.infVer="";render()}
+    else if(a==="inf-copy"){const x=st.inf.find(i=>i.id===ui.infVer);if(x){const txt=informeTxt(x);(navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("Informe copiado"),()=>toast("No se pudo copiar. Usá Imprimir o PDF."))}}
+    else if(a==="inf-print"){const x=st.inf.find(i=>i.id===ui.infVer);if(x)imprimirInforme(x)}
     else if(a==="radar-edit"){ui.radEdit=true;ui.radDraft=null;render()}
     else if(a==="radar-cancel"){ui.radEdit=false;ui.radDraft=null;render()}
     else if(a==="men-visto"){ui.menNew=new Set();render()}
@@ -2376,6 +2491,9 @@ view.addEventListener("submit",e=>{
     const body={...prev,titulo:tl.slice(0,140),tipo:fd.tipo||"hito",fecha:fd.fecha,hora:fd.hora||"",fin:fd.fin&&fd.fin>fd.fecha?fd.fin:"",fase:fd.fase?+fd.fase:0,resp:fd.resp||"",nota:(fd.nota||"").trim().slice(0,2000)};
     const id=s.k==="new"?db.collection(`${base()}/eventos`).doc().id:s.id;const nx=stamp(body);st.eventos={...st.eventos,[id]:nx};put(`${base()}/eventos/${id}`,nx);
     ui.tlSel={k:"ev",id};ui.tlDraft=null;ui.tlWarn="";blur();render();return}
+  if(fm.id==="fesc"){if(!db||!canWrite)return;const cur=st.conf.escucha||{};
+    const nx=stamp({...cur,activo:!!fm.querySelector('[name=activo]').checked,fbPageId:(fd.fbPageId||"").replace(/[^\d]/g,"").slice(0,30),igUserId:(fd.igUserId||"").replace(/[^\d]/g,"").slice(0,30)});
+    st.conf={...st.conf,escucha:nx};put(`${base()}/config/escucha`,nx);ui.escEdit=false;ui.escDraft=null;if(document.activeElement)document.activeElement.blur();render();return}
   if(fm.id==="fradar"){if(!db||!canWrite)return;const nm=(fd.nombre||"").trim();if(!nm)return;const cur=st.conf.radar||{};
     const nx=stamp({...cur,nombre:nm.slice(0,120),contexto:(fd.contexto||"").trim().slice(0,300),excluir:(fd.excluir||"").trim().slice(0,300),cuentas:(fd.cuentas||"").trim().slice(0,1500)});
     st.conf={...st.conf,radar:nx};put(`${base()}/config/radar`,nx);ui.radEdit=false;ui.radDraft=null;if(document.activeElement)document.activeElement.blur();render();return}
@@ -2401,8 +2519,8 @@ view.addEventListener("submit",e=>{
 });
 
 function verDia(){if(innerWidth<960)setTimeout(()=>{const p=document.getElementById("dayp");if(p)p.scrollIntoView({behavior:"smooth",block:"start"})},40)}
-const DRAFTS={fev:"evDraft",fmen:"menDraft",fradar:"radDraft",ftl:"tlDraft",ftlev:"tlDraft"};
-["input","change"].forEach(ev=>view.addEventListener(ev,e=>{const el=e.target;if(el.id==="menq"){ui.menQ=el.value;clearTimeout(ui.mqT);ui.mqT=setTimeout(filtrarMen,160);return}const f=el.name&&el.closest&&el.closest("#fev,#fmen,#fradar,#ftl,#ftlev");if(f){const k=DRAFTS[f.id];if(k==="radDraft"&&!ui.radDraft)ui.radDraft={...radarCfg()};if(k==="tlDraft"&&!ui.tlDraft){const s=ui.tlSel||{};ui.tlDraft=s.k==="fase"?{...planDe(s.n)}:s.k==="ev"?{...(st.eventos[s.id]||{})}:{fecha:s.fecha,tipo:s.tipo}}ui[k]={...(ui[k]||{}),[el.name]:el.value}}}));
+const DRAFTS={fev:"evDraft",fmen:"menDraft",fradar:"radDraft",fesc:"escDraft",ftl:"tlDraft",ftlev:"tlDraft"};
+["input","change"].forEach(ev=>view.addEventListener(ev,e=>{const el=e.target;if(el.id==="menq"){ui.menQ=el.value;clearTimeout(ui.mqT);ui.mqT=setTimeout(filtrarMen,160);return}const f=el.name&&el.closest&&el.closest("#fev,#fmen,#fradar,#fesc,#ftl,#ftlev");if(f){const k=DRAFTS[f.id];if(k==="radDraft"&&!ui.radDraft)ui.radDraft={...radarCfg()};if(k==="escDraft"&&!ui.escDraft){const c=escCfg();ui.escDraft={activo:c.activo!==false,fbPageId:c.fbPageId||"",igUserId:c.igUserId||""}}if(k==="tlDraft"&&!ui.tlDraft){const s=ui.tlSel||{};ui.tlDraft=s.k==="fase"?{...planDe(s.n)}:s.k==="ev"?{...(st.eventos[s.id]||{})}:{fecha:s.fecha,tipo:s.tipo}}ui[k]={...(ui[k]||{}),[el.name]:el.type==="checkbox"?el.checked:el.value}}}));
 
 /* ---------- Conexión con Firebase ----------
    El módulo del final de la página inicializa Firebase y, según la sesión,

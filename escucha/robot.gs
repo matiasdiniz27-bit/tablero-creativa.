@@ -18,9 +18,12 @@
 
 const PROYECTO = 'flujo-trabajo-cretiva-politica';
 const ZONA = 'America/Argentina/Buenos_Aires';
-const MODELO = 'gemini-flash-latest';
+const MODELO = 'gemini-flash-latest';          // se cambia con la propiedad GEMINI_MODELO
+const MODELO_RESPALDO = 'gemini-flash-lite-latest'; // más cuota gratis, se usa si el principal está saturado
+const LOTE_GEMINI = 12;             // menciones por consulta a Gemini
+const PAUSA_GEMINI_MS = 6500;       // pausa entre consultas para no pasar el límite gratuito por minuto
 const FS = 'https://firestore.googleapis.com/v1/projects/' + PROYECTO + '/databases/(default)/documents';
-const MAX_POR_FUENTE = 40;          // menciones nuevas por fuente y por corrida
+const MAX_POR_FUENTE = 30;          // menciones nuevas por fuente y por corrida
 const MAX_COMENTARIOS_VIDEO = 15;
 const DIAS_HACIA_ATRAS = 2;         // ventana de búsqueda de cada corrida
 
@@ -40,8 +43,13 @@ function instalar() {
 
 /** Revisa claves y accesos sin escribir menciones. */
 function diagnostico() {
+  geminiCaido = '';
   const p = props();
   Logger.log('Gemini: ' + (p.GEMINI_KEY ? 'clave cargada' : 'FALTA la clave GEMINI_KEY'));
+  if (p.GEMINI_KEY) {
+    try { gemini('Respondé solo con la palabra listo.', false); Logger.log('Gemini responde bien con el modelo ' + ultimoModelo); }
+    catch (e) { Logger.log('Gemini NO responde. ' + e.message); }
+  }
   Logger.log('X: ' + (p.X_BEARER ? 'token cargado' : 'sin token, se omite'));
   Logger.log('Meta (Facebook e Instagram propios): ' + (p.META_TOKEN ? 'token cargado' : 'sin token, se omite'));
   Logger.log('Apify (TikTok y redes de terceros): ' + (p.APIFY_TOKEN ? 'token cargado' : 'sin token, se omite'));
@@ -57,6 +65,7 @@ function probarAhora() { recolectar(); resumenDiario(); }
    ========================================================================= */
 
 function recolectar() {
+  geminiCaido = '';
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(1000)) return;
   try {
@@ -92,11 +101,28 @@ function recolectarCliente(c) {
     }
   });
 
-  const valoradas = valorar(c.radar, candidatos);
-  const escribir = valoradas.filter(m => m.relevante !== false);
+  // Primero las que quedaron sin valorar en corridas anteriores
+  let pendientes = 0, errorGemini = '';
+  try { pendientes = revalorarPendientes(c); } catch (e) { errorGemini = e.message; }
+
+  let escribir, descartadas = 0;
+  if (errorGemini) {
+    escribir = candidatos.map(sinValorar);
+  } else {
+    try {
+      const valoradas = valorar(c.radar, candidatos);
+      escribir = valoradas.filter(m => m.relevante !== false);
+      descartadas = valoradas.length - escribir.length;
+    } catch (e) {
+      // Si Gemini no responde, las menciones se guardan igual y se valoran en la próxima corrida
+      errorGemini = e.message;
+      escribir = candidatos.map(sinValorar);
+    }
+  }
   escribirMenciones(c.id, escribir);
   estado.nuevas = escribir.length;
-  estado.descartadas = valoradas.length - escribir.length;
+  estado.descartadas = descartadas;
+  estado.gemini = errorGemini ? { ok: false, error: errorGemini.slice(0, 300), pendientes: pendientes + escribir.length } : { ok: true, modelo: ultimoModelo };
   fsSet('clientes/' + c.id + '/config/robot', estado);
 }
 
@@ -218,11 +244,30 @@ function buscarApify(r) {
    VALORACIÓN CON GEMINI
    ========================================================================= */
 
+function sinValorar(m) { return Object.assign({}, m, { tono: 'neutro', puntaje: null, tema: '', accion: 'ninguna', resumen: '', valorada: false }); }
+
+/** Valora las menciones que quedaron pendientes porque Gemini no respondió. Devuelve cuántas siguen pendientes. */
+function revalorarPendientes(c) {
+  const pend = fsQuery('clientes/' + c.id, 'menciones', { fieldFilter: { field: { fieldPath: 'valorada' }, op: 'EQUAL', value: { booleanValue: false } } }).slice(0, 36);
+  if (!pend.length) return 0;
+  const val = valorar(c.radar, pend.map(m => ({ titulo: m.titulo, texto: m.titulo, medio: m.medio, firma: m.firma, fuente: m.fuente, _id: m._id, accion: m.accion, nota: m.nota })));
+  val.forEach((v, k) => {
+    const orig = pend[k], ruta = 'clientes/' + c.id + '/menciones/' + orig._id;
+    const tocada = (orig.nota || '') !== '' || (orig.accion || 'ninguna') !== 'ninguna';
+    if (v.relevante === false && !tocada) { fetchFs('DELETE', FS + '/' + ruta); return; }
+    const campos = { tono: v.tono, puntaje: v.puntaje, tema: v.tema, resumen: v.resumen, valorada: true };
+    if (!tocada) campos.accion = v.accion; // no cambia una acción que eligió el equipo
+    fsUpdate(ruta, campos);
+  });
+  return 0;
+}
+
 function valorar(r, items) {
   if (!items.length) return [];
   const out = [];
-  for (let i = 0; i < items.length; i += 25) {
-    const lote = items.slice(i, i + 25);
+  for (let i = 0; i < items.length; i += LOTE_GEMINI) {
+    if (i) Utilities.sleep(PAUSA_GEMINI_MS);
+    const lote = items.slice(i, i + LOTE_GEMINI);
     const lista = lote.map((m, k) => ({ i: k, fuente: m.fuente, medio: m.medio, autor: m.firma || '', texto: (m.titulo + '\n' + (m.texto || '')).slice(0, 900) }));
     const prompt =
       'Sos analista de escucha social de una consultora política argentina. El cliente es "' + r.nombre + '"' +
@@ -247,31 +292,57 @@ function valorar(r, items) {
         puntaje: Math.max(-2, Math.min(2, parseInt(v.puntaje, 10) || 0)),
         tema: String(v.tema || '').slice(0, 60),
         accion: ['ninguna', 'monitorear', 'responder', 'escalar'].includes(v.accion) ? v.accion : 'ninguna',
-        resumen: String(v.resumen || '').slice(0, 400)
+        resumen: String(v.resumen || '').slice(0, 400),
+        valorada: true
       }));
     });
   }
   return out;
 }
 
+let ultimoModelo = '', geminiCaido = '';
 function gemini(prompt, json) {
-  const key = props().GEMINI_KEY;
+  // Si ya falló en esta ejecución no insiste, para no pasar el límite de 6 minutos de Apps Script
+  if (geminiCaido) throw new Error(geminiCaido);
+  try { return geminiLlamar(prompt, json); }
+  catch (e) { geminiCaido = e.message; throw e; }
+}
+function geminiLlamar(prompt, json) {
+  const p = props(), key = p.GEMINI_KEY;
   if (!key) throw new Error('Falta la clave GEMINI_KEY en las propiedades del proyecto.');
   const body = { contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0.2 } };
   if (json) body.generationConfig.responseMimeType = 'application/json';
-  for (let intento = 0; intento < 3; intento++) {
-    const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + MODELO + ':generateContent', {
-      method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key }, payload: JSON.stringify(body), muteHttpExceptions: true
-    });
-    const code = res.getResponseCode();
-    if (code === 429 || code >= 500) { Utilities.sleep(8000 * (intento + 1)); continue; }
-    if (code !== 200) throw new Error('Gemini respondió ' + code + ': ' + res.getContentText().slice(0, 200));
-    const d = JSON.parse(res.getContentText());
-    const txt = (((d.candidates || [])[0] || {}).content || { parts: [] }).parts.map(p => p.text || '').join('');
-    if (!json) return txt;
-    try { return JSON.parse(txt); } catch (e) { const m = txt.match(/[\[{][\s\S]*[\]}]/); return m ? JSON.parse(m[0]) : null; }
+  const modelos = [p.GEMINI_MODELO || MODELO, MODELO_RESPALDO].filter((m, i, a) => a.indexOf(m) === i);
+  let ultimo = '';
+  for (const modelo of modelos) {
+    for (let intento = 0; intento < 2; intento++) {
+      const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + modelo + ':generateContent', {
+        method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key }, payload: JSON.stringify(body), muteHttpExceptions: true
+      });
+      const code = res.getResponseCode(), txt = res.getContentText();
+      if (code === 200) {
+        ultimoModelo = modelo;
+        const d = JSON.parse(txt);
+        const out = (((d.candidates || [])[0] || {}).content || { parts: [] }).parts.map(x => x.text || '').join('');
+        if (!json) return out;
+        try { return JSON.parse(out); } catch (e) { const m = out.match(/[\[{][\s\S]*[\]}]/); return m ? JSON.parse(m[0]) : null; }
+      }
+      let msg = '', espera = 0;
+      try {
+        const e = JSON.parse(txt).error || {};
+        msg = e.message || '';
+        (e.details || []).forEach(d => { if (d.retryDelay) espera = parseFloat(d.retryDelay) || 0; });
+      } catch (e) { msg = txt.slice(0, 200); }
+      ultimo = modelo + ' respondió ' + code + (msg ? '. ' + msg.slice(0, 220) : '');
+      if (code === 400 && /api key/i.test(msg)) throw new Error('La clave de Gemini no es válida. Revisá GEMINI_KEY. ' + msg.slice(0, 160));
+      if (code === 403) throw new Error('La clave de Gemini no tiene permiso. Revisá que la API esté habilitada en Google AI Studio. ' + msg.slice(0, 160));
+      if (code === 404) break;                                   // modelo inexistente, probar el de respaldo
+      if (code === 429 && /per ?day|PerDay|daily/i.test(msg)) break; // cuota del día agotada en este modelo
+      if (code === 429 || code >= 500) { Utilities.sleep(Math.min(30, Math.max(espera, 10)) * 1000); continue; }
+      throw new Error('Gemini ' + ultimo);
+    }
   }
-  throw new Error('Gemini no respondió después de tres intentos (cuota agotada o servidor ocupado).');
+  throw new Error('Gemini no respondió. Último intento, ' + ultimo + '. Si dice cuota (quota), el plan gratuito llegó a su límite y se libera solo en unas horas.');
 }
 
 /* =========================================================================
@@ -279,6 +350,7 @@ function gemini(prompt, json) {
    ========================================================================= */
 
 function resumenDiario() {
+  geminiCaido = '';
   const ayer = dia(new Date(Date.now() - 864e5));
   clientesActivos().forEach(c => {
     try { escribirInforme(c, 'diario', ayer, ayer); } catch (e) { Logger.log(c.nombre + ': ' + e); }
@@ -286,6 +358,7 @@ function resumenDiario() {
 }
 
 function informeSemanal() {
+  geminiCaido = '';
   const hasta = dia(new Date(Date.now() - 864e5)), desde = dia(new Date(Date.now() - 7 * 864e5));
   clientesActivos().forEach(c => {
     try { escribirInforme(c, 'semanal', desde, hasta); } catch (e) { Logger.log(c.nombre + ': ' + e); }
@@ -316,7 +389,11 @@ function escribirInforme(c, tipo, desde, hasta) {
       'Cifras ya calculadas ' + JSON.stringify(cuenta(ms)) + '. Por fuente ' + JSON.stringify(porFuente) + (anterior ? '. Semana anterior ' + JSON.stringify(anterior) : '') + '.\n' +
       'Devolvé solo un objeto JSON con titular (una frase), resumen (' + (tipo === 'diario' ? 'un párrafo' : 'dos o tres párrafos, con la comparación contra la semana anterior') + '), ' +
       'temas (arreglo de hasta 6 objetos con tema, menciones y tono), alertas (arreglo de textos, vacío si no hay) y recomendaciones (arreglo de hasta 4 textos).\n\nMenciones\n' + JSON.stringify(muestra);
-    const r = gemini(prompt, true) || {};
+    let r;
+    try { r = gemini(prompt, true) || {}; }
+    catch (e) {
+      r = { titular: 'Resumen sin redactar', resumen: 'Gemini no respondió al armar este informe (' + e.message.slice(0, 160) + '). Las cifras y las menciones destacadas están completas.', temas: [], alertas: [], recomendaciones: [] };
+    }
     analisis = {
       titular: String(r.titular || '').slice(0, 200),
       resumen: String(r.resumen || '').slice(0, 4000),
@@ -374,8 +451,9 @@ function escribirMenciones(cid, lista) {
       resumen: m.resumen || '', medio: String(m.medio || '').slice(0, 120), firma: String(m.firma || '').slice(0, 120),
       fuente: m.fuente, tono: m.tono, puntaje: m.puntaje, tema: m.tema, etiquetas: m.esComentario ? 'comentario' : '',
       seguidores: seg, alcance: seg ? (seg >= 100000 ? 'alto' : seg >= 10000 ? 'medio' : 'bajo') : '',
-      accion: m.accion, nota: '', origen: 'robot', autor: 'robot', at: ahora
+      accion: m.accion, nota: '', origen: 'robot', autor: 'robot', at: ahora, valorada: m.valorada !== false
     };
+    if (m.puntaje === null || m.puntaje === undefined) delete doc.puntaje;
     // exists:false no pisa una mención que el equipo ya editó
     return { update: { name: FS.replace('https://firestore.googleapis.com/v1/', '') + '/clientes/' + cid + '/menciones/' + id, fields: toFs(doc).mapValue.fields }, currentDocument: { exists: false } };
   });
@@ -387,6 +465,10 @@ function escribirMenciones(cid, lista) {
 function fsGet(path) {
   const r = fetchFs('GET', FS + '/' + path, null, true);
   return r ? fromFs({ mapValue: { fields: r.fields || {} } }) : null;
+}
+function fsUpdate(path, campos) {
+  const mask = Object.keys(campos).map(k => 'updateMask.fieldPaths=' + encodeURIComponent(k)).join('&');
+  fetchFs('PATCH', FS + '/' + path + '?' + mask + '&currentDocument.exists=true', { fields: toFs(campos).mapValue.fields });
 }
 function fsSet(path, data) { fetchFs('PATCH', FS + '/' + path, { fields: toFs(data).mapValue.fields }); }
 function fsList(col) {
@@ -402,7 +484,7 @@ function fsQuery(parent, col, where, campos) {
   const q = { structuredQuery: { from: [{ collectionId: col }], where: where, limit: 2000 } };
   if (campos) q.structuredQuery.select = { fields: campos.map(f => ({ fieldPath: f })) };
   const r = fetchFs('POST', FS + '/' + parent + ':runQuery', q) || [];
-  return r.filter(x => x.document).map(x => fromFs({ mapValue: { fields: x.document.fields || {} } }));
+  return r.filter(x => x.document).map(x => Object.assign(fromFs({ mapValue: { fields: x.document.fields || {} } }), { _id: x.document.name.split('/').pop() }));
 }
 function fetchFs(method, url, body, permitir404) {
   const opt = { method: method, headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true };

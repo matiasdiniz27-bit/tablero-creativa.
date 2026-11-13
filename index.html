@@ -650,6 +650,7 @@ html.side-min{--sw:72px}
 .inf-barras b{font-family:var(--f-mono);font-weight:500;text-align:right}
 .inf-dest li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:8px 10px;border-radius:var(--r-sm);border:1px solid var(--line);font-size:.88rem}
 .inf-dest li small{color:var(--muted);flex-basis:100%}
+.banner.warn{background:var(--warn-soft);border-color:transparent;color:var(--fg);border-left:3px solid var(--warn)}
 .esc-chk{display:flex;align-items:center;gap:8px;font-weight:500;margin:8px 0 4px}
 .esc-chk input{accent-color:var(--accent);width:16px;height:16px}
 @media (prefers-reduced-motion:no-preference){html.tema-cambiando,html.tema-cambiando *,html.tema-cambiando *::before,html.tema-cambiando *::after{transition:background-color .4s var(--ease),border-color .4s var(--ease),color .3s var(--ease),box-shadow .4s var(--ease)!important}}
@@ -2169,7 +2170,7 @@ function menRow(m){
    <div class="mcol"><span class="fz">${fechaCorta(m.fecha)} ${m.fecha.slice(0,4)}</span><span class="src">${esc(lab(FUENTES,m.fuente||"medio"))}</span>${nw?`<span class="newtag">Nueva</span>`:""}</div>
    <div class="mbody"><h3>${ok?`<a href="${esc(m.url)}" target="_blank" rel="noopener noreferrer">${esc(m.titulo||m.url)} ↗</a>`:esc(m.titulo||"Sin título")}</h3>
     ${m.medio||m.firma?`<p class="small">${esc([m.medio,m.firma].filter(Boolean).join(" · "))}</p>`:""}${m.resumen?`<p class="mres">${esc(m.resumen)}</p>`:""}
-    <div class="kpis">${typeof m.puntaje==="number"?`<span class="kp ${m.puntaje>0?"g":m.puntaje<0?"r":""}" title="Valoración de -2 a +2">Valoración ${m.puntaje>0?"+":""}${m.puntaje}</span>`:""}${tg.map(x=>`<button type="button" class="kp tagk" data-mentag="${esc(x)}" title="Filtrar por ${esc(x)}">${esc(x)}</button>`).join("")}${al?`<span class="kp">Alcance ${esc(al)}${m.seguidores?` · ${fmtN(m.seguidores)}`:""}</span>`:""}${m.origen==="robot"?`<span class="kp">Escucha automática</span>`:m.origen==="claude"?`<span class="kp">Cargada por Claude</span>`:m.origen==="import"?`<span class="kp">Importada</span>`:m.at?`<span class="kp">${esc(quien(m))} · ${hace(m.at)}</span>`:""}</div>
+    <div class="kpis">${m.valorada===false?`<span class="kp y" title="Gemini no respondió. Se valora sola en la próxima búsqueda.">Sin valorar todavía</span>`:""}${typeof m.puntaje==="number"?`<span class="kp ${m.puntaje>0?"g":m.puntaje<0?"r":""}" title="Valoración de -2 a +2">Valoración ${m.puntaje>0?"+":""}${m.puntaje}</span>`:""}${tg.map(x=>`<button type="button" class="kp tagk" data-mentag="${esc(x)}" title="Filtrar por ${esc(x)}">${esc(x)}</button>`).join("")}${al?`<span class="kp">Alcance ${esc(al)}${m.seguidores?` · ${fmtN(m.seguidores)}`:""}</span>`:""}${m.origen==="robot"?`<span class="kp">Escucha automática</span>`:m.origen==="claude"?`<span class="kp">Cargada por Claude</span>`:m.origen==="import"?`<span class="kp">Importada</span>`:m.at?`<span class="kp">${esc(quien(m))} · ${hace(m.at)}</span>`:""}</div>
     ${m.nota?`<p class="small">${esc(m.nota)}</p>`:""}</div>
    <div class="mside"><span class="tono ${esc(to)}">${esc(lab(TONOS,to))}</span><select class="sel live acc a-${esc(ac)}" data-men="${esc(m.id)}" data-field="accion" aria-label="Acción sobre la mención"${dis()}>${ACC.map(a=>`<option value="${a[0]}"${a[0]===ac?" selected":""}>${a[1]}</option>`).join("")}</select><button class="btn grey sm" type="button" data-menedit="${esc(m.id)}">${canWrite&&db?"Editar":"Ver detalle"}</button></div></li>`;
 }
@@ -2269,6 +2270,7 @@ function escuchaPanel(){
    <div class="confirm">${estado}<button class="btn grey sm" type="button" data-act="esc-edit"${dis()}>Configurar</button></div></div>
    <ul class="esc-fuentes">${fuentes}</ul>`;
   if(rb&&(rb.nuevas||rb.descartadas))h+=`<p class="small" style="margin-top:8px">Última búsqueda ${esc(hace(rb.ultima))}. ${rb.nuevas||0} menciones nuevas${rb.descartadas?`, ${rb.descartadas} descartadas por no referirse a ${esc(radarCfg().nombre)}`:""}.</p>`;
+  if(rb&&rb.gemini&&rb.gemini.ok===false)h+=`<div class="banner warn" style="margin-top:10px"><span><b>Gemini no respondió en la última búsqueda.</b> Las menciones se guardaron igual y se van a valorar solas en la próxima corrida${rb.gemini.pendientes?` (${rb.gemini.pendientes} pendientes)`:""}. Motivo ${esc(rb.gemini.error||"")}</span></div>`;
   if(!rb)h+=`<p class="small" style="margin-top:8px">El robot todavía no se instaló. La guía paso a paso está en la carpeta <b>escucha</b> del repositorio, archivo GUIA.md.</p>`;
   h+=`</section>`;
   h+=`<div class="cgrid">`;

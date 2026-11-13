@@ -100,6 +100,23 @@ Por defecto busca videos de TikTok. Para sumar búsquedas de Facebook o Instagra
 
 ---
 
+## Si aparece un error de Gemini
+
+El robot ya no se frena cuando Gemini falla. Guarda las menciones que encontró, las marca como **Sin valorar todavía** y las valora solo en la corrida siguiente. El tablero muestra un aviso amarillo con el motivo.
+
+Para ver el motivo exacto, ejecutá la función **diagnostico** y mirá el registro.
+
+- **Dice 429 o quota (cuota).** El plan gratuito de Gemini llegó a su límite. Si es por minuto, se libera solo en un rato. Si es por día, se libera al día siguiente. Mientras tanto el robot usa un modelo de respaldo con más cuota gratis. Para no depender del límite gratuito, activá la facturación en tu proyecto de [Google AI Studio](https://aistudio.google.com).
+- **Dice 503 u overloaded.** Los servidores de Google estaban saturados. Se resuelve solo.
+- **Dice que la clave no es válida.** Volvé a copiar la clave en la propiedad `GEMINI_KEY`, sin espacios al principio ni al final.
+- **La clave de Gemini es la misma que usa Análisis y redacción.** Las dos partes comparten la cuota. Si usan mucho la redacción, conviene crear una clave aparte para el robot.
+
+Para elegir otro modelo, agregá la propiedad `GEMINI_MODELO` con el nombre del modelo, por ejemplo `gemini-flash-lite-latest`.
+
+## Cómo actualizar el robot
+
+Cuando haya una versión nueva de [robot.gs](robot.gs), abrí **Código.gs** en Apps Script, borrá todo, pegá el contenido nuevo y guardá. No hace falta volver a instalar ni a cargar las claves.
+
 ## Preguntas frecuentes
 
 **¿Cuánto cuesta?** Las partes 1 y 2 son gratis. Gemini tiene un uso gratuito diario que alcanza para varios clientes. Con la clave gratuita Google puede usar lo que se envía para mejorar sus modelos. Son publicaciones públicas, pero si querés evitarlo activá la facturación en tu proyecto de Google AI Studio.

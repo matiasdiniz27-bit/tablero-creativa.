@@ -1423,7 +1423,7 @@ function cliente(){
   const d=c.eleccion?dias(t,c.eleccion):null;
   const row=o=>`<li><span class="fz">F${o.f.n}</span><a href="#fase-${o.f.n}" data-go-task="${o.f.n}-${o.i}">${esc(o.t[0])}</a><span class="small">${o.x.vence?fechaCorta(o.x.vence):""}${o.x.resp&&persona(o.x.resp)?" · "+esc(persona(o.x.resp).nombre):""}</span></li>`;
   const carga={};abiertas.forEach(o=>{const k=o.x.resp||"";carga[k]=(carga[k]||0)+1});
-  let h=`<section class="card phead"><div><span class="eyebrow">${esc(c.codigo||"Proyecto")}</span><h1>${esc(c.nombre)}</h1><p class="obj">${esc(c.pregunta||"Todavía no se cargó la pregunta central del proyecto.")}</p></div>
+  let h=`<section class="card phead"><div><span class="eyebrow">${esc(c.codigo||"Proyecto")}</span><h1>${esc(c.nombre)}</h1><p class="obj">${esc(c.pregunta||"Todavía no se cargó la pregunta central del proyecto.")}</p>${ui.editCli?"":`<button class="btn grey sm" type="button" data-act="edit-cli" style="margin-top:12px"${dis()}>✏️ Editar datos del cliente</button>`}</div>
    ${d!=null?`<div style="text-align:right"><div class="countdown">${Math.max(d,0)}</div><span class="caps">${d>0?"días a la elección":d===0?"la elección es hoy":"elección realizada"}</span>${c.cierreListas?`<span class="caps" style="display:block;margin-top:6px;color:var(--crit)">${dias(t,c.cierreListas)>0?dias(t,c.cierreListas)+" días al cierre de listas":dias(t,c.cierreListas)===0?"hoy cierran las listas":"listas cerradas"}</span>`:""}</div>`:`<span class="big" aria-hidden="true">CP</span>`}
    <div class="prog"><div class="pbar"><div class="lbl"><span>AVANCE TOTAL</span><b>${F.reduce((a,f)=>a+faseProg(f).h,0)} de ${F.reduce((a,f)=>a+f.tareas.length,0)} tareas</b></div><div class="track"><span style="width:${Math.round(F.reduce((a,f)=>a+faseProg(f).h,0)/F.reduce((a,f)=>a+f.tareas.length,0)*100)}%"></span></div></div>
    <span class="status go">Fase ${fa} en curso</span>${c.modalidad==="acelerada"?`<span class="status">Campaña de tres meses</span>`:""}</div></section>`;
@@ -2421,7 +2421,7 @@ view.addEventListener("click",e=>{
     else if(a==="nuevo-cli"){ui.nuevo=true;render()}
     else if(a==="cancel-cli"){ui.nuevo=false;ui.editCli=false;render()}
     else if(a==="toggle-arch"){ui.verArch=!ui.verArch;render()}
-    else if(a==="edit-cli"){ui.editCli=true;render()}
+    else if(a==="edit-cli"){abrirEdicionCliente()}
     else if(a==="ev-new"){ui.evEdit="new";ui.confirm="";ui.evDraft={fecha:ui.dia||hoy(),tipo:"reunion",fase:faseActual()};render();verDia()}
     else if(a==="ev-hito"){const t=hoy();ui.evEdit="new";ui.confirm="";ui.dia=t;ui.mes=t.slice(0,7);ui.evDraft={fecha:t,tipo:"hito",fase:""};location.hash="#calendario"}
     else if(a==="ev-cancel"){ui.evEdit="";ui.evDraft=null;ui.confirm="";render()}
@@ -2479,7 +2479,10 @@ view.addEventListener("submit",e=>{
   e.preventDefault();const fm=e.target,fd=Object.fromEntries(new FormData(fm).entries());
   if(fm.id==="fcli"){if(!fd.nombre.trim())return;const c=ui.editCli?cli():null;
     const body={nombre:fd.nombre.trim(),codigo:fd.codigo.trim().toUpperCase(),espacio:fd.espacio.trim(),cargo:fd.cargo.trim(),territorio:fd.territorio.trim(),eleccion:fd.eleccion,inicio:fd.inicio,modalidad:fd.modalidad,resp:fd.resp,pregunta:fd.pregunta.trim(),candidatura:fd.candidatura||"ejecutiva",funcionario:fd.funcionario||"no",cierreListas:fd.cierreListas||"",escenario:fd.escenario||"a-definir",servicio:fd.servicio||"completa"};
-    if(c){const{id,...old}=c;put(`clientes/${id}`,{...old,...body,editado:Date.now()});ui.editCli=false;render()}
+    if(c){const{id,...old}=c;put(`clientes/${id}`,{...old,...body,editado:Date.now()});
+      /* Si el radar buscaba por el nombre viejo, pasa a buscar por el nuevo (lo usa la escucha automática) */
+      const rd=st.conf.radar;if(rd&&old.nombre&&body.nombre!==old.nombre&&(rd.nombre||"").trim()===old.nombre.trim()){const nx=stamp({...rd,nombre:body.nombre.slice(0,120)});st.conf={...st.conf,radar:nx};put(`clientes/${id}/config/radar`,nx)}
+      ui.editCli=false;render()}
     else{if(!db)return;const ref=db.collection("clientes").doc();const nuevo={...body,estado:"activo",creado:Date.now(),creadoPor:myId,resumen:{fases:{},bloq:0,venc:[]}};
       st.clientes=[...st.clientes,{id:ref.id,...nuevo}];put(`clientes/${ref.id}`,nuevo);ui.nuevo=false;selectCliente(ref.id);location.hash="#cliente"}
     return}
@@ -2558,6 +2561,13 @@ window.cpoSinAcceso=function(correo){clearTimeout(connTimer);desconectar();sesio
 /* Para los módulos del final: cliente activo por id (estable aunque cambie el nombre) y re-dibujo */
 window.cpoClienteActual=function(){const c=cli();return c?{id:c.id,nombre:c.nombre||""}:null};
 window.cpoRefrescar=function(){render()};
+/* Abre el formulario de datos del cliente (nombre, código, cargo, fechas) desde cualquier sección */
+function abrirEdicionCliente(){
+  if(!cli())return;ui.editCli=true;
+  if(routeOf().v!=="cliente")location.hash="#cliente";else render();
+  setTimeout(()=>{const f=document.getElementById("fcli");if(!f)return;f.scrollIntoView({behavior:"smooth",block:"start"});const n=f.querySelector("[name=nombre]");if(n){n.focus({preventScroll:true});n.select()}},120);
+}
+window.cpoEditarCliente=abrirEdicionCliente;
 window.cpoFallo=function(msg){clearTimeout(connTimer);connErr=msg;st.ok.clientes=true;canWrite=false;setSave("err","Sin conexión");render()};
 
 /* ---------- Arranque ---------- */
@@ -4615,12 +4625,14 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     wrap.id = 'cpo-cliente-tools';
     wrap.setAttribute('translate', 'no');
     wrap.innerHTML = `
+      <button type="button" class="cpo-btn-tool" id="cpo-btn-edit-cli" title="Editar nombre y datos del cliente">✏️<span class="cpo-txt"> Editar</span></button>
       <button type="button" class="cpo-btn-tool cpo-btn-dl" id="cpo-btn-dl-cli" title="Descargar respaldo completo del cliente">⬇<span class="cpo-txt"> Descargar historial</span></button>
       <button type="button" class="cpo-btn-tool cpo-btn-del" id="cpo-btn-del-cli" title="Ocultar del tablero sin borrar de Firebase">🗑️<span class="cpo-txt"> Ocultar cliente</span></button>
       <button type="button" class="cpo-btn-tool cpo-btn-res" id="cpo-btn-res-cli" style="display:none;">👁️ Restaurar</button>
     `;
     sel.insertAdjacentElement('afterend', wrap);
 
+    document.getElementById('cpo-btn-edit-cli').onclick = () => { if (window.cpoEditarCliente) window.cpoEditarCliente(); };
     document.getElementById('cpo-btn-dl-cli').onclick = () => {
       const cli = obtenerClienteActual();
       const leer = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };

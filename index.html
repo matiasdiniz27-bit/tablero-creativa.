@@ -623,6 +623,73 @@ html.side-min{--sw:72px}
 .side-mods{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line);padding:10px 0 8px}
 .side-mods:empty{display:none}
 .cfilt{display:flex;gap:8px;flex-wrap:wrap}
+.nucleos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:4px 0 18px}
+.nuc{all:unset;box-sizing:border-box;cursor:pointer;position:relative;display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line-2);border-radius:14px;background:var(--surface);transition:border-color .16s,box-shadow .2s,background-color .16s}
+.nuc:hover{border-color:var(--nc);box-shadow:var(--shadow-up)}.nuc:focus-visible{outline:2px solid var(--nc);outline-offset:2px}
+.nuc-ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;flex:none;color:var(--nc);background:color-mix(in srgb,var(--nc) 12%,var(--surface))}
+.nuc-ic svg{width:20px;height:20px}
+.nuc b{display:block;font:600 1.05rem/1.2 var(--f-display);color:var(--brand)}.nuc small{display:block;font-size:.76rem;color:var(--muted)}
+.nuc .nbadge{position:absolute;top:10px;right:12px}
+.nuc-pub{--nc:var(--accent)}.nuc-agenda{--nc:var(--st-guion)}.nuc-ideas{--nc:var(--st-aprobacion)}
+.nuc.on{border-color:var(--nc);background:color-mix(in srgb,var(--nc) 7%,var(--surface));box-shadow:inset 0 -3px 0 var(--nc)}
+.nuc-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.agb-tarea{background:var(--st-guion)!important;border-color:var(--st-guion)!important;color:var(--surface)!important}
+.agb-grabacion{background:var(--st-grabacion)!important;border-color:var(--st-grabacion)!important;color:var(--surface)!important}
+/* formularios de la agenda, cada uno con su color */
+.agf{--af:var(--st-guion);border-color:color-mix(in srgb,var(--af) 45%,var(--line));border-top:4px solid var(--af);display:flex;flex-direction:column;gap:14px;animation:rise .3s var(--ease) both}
+.agf-grabacion{--af:var(--st-grabacion)}.agf-reunion{--af:var(--st-programado)}
+.agf-cab{display:flex;gap:12px;align-items:flex-start}
+.agf-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;color:var(--af);background:color-mix(in srgb,var(--af) 12%,var(--surface))}.agf-ic svg{width:22px;height:22px}
+.agf-cab h3{font:600 1.4rem/1.15 var(--f-display);color:var(--brand)}
+.agf-grande{font-size:1.05rem!important;padding:11px 12px!important}
+.flbl{font-size:.8rem;font-weight:500;color:var(--fg-2);display:block;margin-bottom:6px}
+.agf-pers{display:flex;flex-wrap:wrap;gap:8px}
+.pchip{display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:999px;border:1px solid var(--line-2);cursor:pointer;font-size:.88rem;font-weight:500;background:var(--surface);transition:border-color .15s,background-color .15s}
+.pchip input{position:absolute;opacity:0;pointer-events:none}
+.pchip:has(input:checked){border-color:var(--af,var(--accent));background:color-mix(in srgb,var(--af,var(--accent)) 10%,var(--surface))}
+.pchip:has(input:focus-visible){outline:2px solid var(--af,var(--accent));outline-offset:2px}
+.pini{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;flex:none;font:600 .78rem var(--f-body);background:var(--surface-2);color:var(--fg-2)}
+.pchip:has(input:checked) .pini{background:var(--af,var(--accent));color:var(--surface)}
+.agf-check{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;background:var(--surface-2)}
+/* agenda semanal en lista */
+.agsem{display:flex;flex-direction:column;gap:0;padding:18px 20px}
+.agdia{display:grid;grid-template-columns:120px 1fr;gap:4px 16px;padding:12px 0;border-top:1px solid var(--line)}
+.agdia:first-of-type{border-top:0}
+.agdia>header{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.agdia>header b{font:600 1.05rem var(--f-display);color:var(--brand)}
+.agdia.pasado{opacity:.6}.agdia.hoy>header b{color:var(--accent)}
+.agdia-acc{display:flex;flex-direction:column;gap:2px;opacity:0;transition:opacity .15s}.agdia:hover .agdia-acc,.agdia-acc:focus-within{opacity:1}
+.agdia-acc .link{font-size:.76rem}
+.agdia ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.agdia .cvac{align-self:center;margin:0}
+.agit{--ac:var(--st-guion);color:var(--fg);display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);border-left:3px solid var(--ac);background:var(--surface)}
+.agit.ag-grabacion{--ac:var(--st-grabacion);background:color-mix(in srgb,var(--st-grabacion) 6%,var(--surface))}.agit.ag-reunion,.agit.ag-otro{--ac:var(--st-programado)}
+.agit-ic{color:var(--ac);display:grid;place-items:center}.agit-ic svg{width:18px;height:18px}
+.agit-ic.ag-grabacion{color:var(--st-grabacion)}.agit-ic.ag-reunion{color:var(--st-programado)}
+.agit-h{font:500 .82rem var(--f-body);font-variant-numeric:tabular-nums;color:var(--fg-2);min-width:40px}
+.agit-b{all:unset;cursor:pointer;flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.agit-b b{font-weight:600;font-size:.92rem}.agit-b i{font-style:normal;color:var(--muted)}.agit-b small{color:var(--muted);font-size:.78rem}
+.agit.hecha .agit-b b{text-decoration:line-through;color:var(--muted)}.agit.vencida{border-color:var(--crit)}
+.tgrupos{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.tgrupo h4{display:flex;align-items:center;gap:8px;font-size:.95rem;font-weight:600;margin:0 0 4px}.tgrupo h4 b{margin-left:auto;font-weight:500;color:var(--muted);font-size:.8rem}
+/* ideas */
+.ideas-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}.ideas-cab p{color:var(--fg-2);margin:0;max-width:60ch}
+.ideas{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:14px;overflow-x:auto;padding-bottom:8px;align-items:start}
+.icol{background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:240px}
+.icol.mia{border-color:var(--st-aprobacion);background:color-mix(in srgb,var(--st-aprobacion) 6%,var(--surface-2))}
+.icol>header{display:flex;align-items:center;gap:8px}.icol h3{font:600 1.08rem var(--f-display);color:var(--brand);margin:0}.icol>header b{margin-left:auto;font-weight:500;color:var(--muted);font-size:.8rem}
+.inueva{display:flex;flex-direction:column;gap:6px}.inueva textarea{resize:vertical;min-height:58px}.inueva .confirm{display:flex;gap:6px}.inueva .confirm .in{flex:1;min-width:0}
+.icol-nota{margin:0}
+.inotas{display:flex;flex-direction:column;gap:10px}
+.inota{background:color-mix(in srgb,var(--st-aprobacion) 13%,var(--surface));border:1px solid color-mix(in srgb,var(--st-aprobacion) 28%,transparent);border-radius:4px 4px 14px 4px;padding:12px 13px 10px;box-shadow:0 1px 0 color-mix(in srgb,var(--st-aprobacion) 20%,transparent),0 6px 14px -10px rgba(0,0,0,.25);transform:rotate(var(--rot,0deg));transition:transform .2s var(--ease)}
+.inota:hover{transform:none}
+.inota h4{font:600 1rem var(--f-display);margin:0 0 4px;color:var(--fg)}
+.inota p{margin:0;white-space:pre-wrap;font-size:.9rem;line-height:1.45;color:var(--fg)}
+.inota footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.inota-acc{margin-left:auto;display:inline-flex;align-items:center;gap:4px}
+.inota.usada{opacity:.65}.inota.edit{display:flex;flex-direction:column;gap:6px;transform:none}
+.iconlink{all:unset;cursor:pointer;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:var(--muted)}.iconlink:hover{background:var(--surface);color:var(--fg)}.iconlink svg{width:15px;height:15px}
+@media (max-width:760px){.nucleos{grid-template-columns:1fr;gap:6px}.nuc{padding:10px 12px}.nuc small{display:none}.agdia{grid-template-columns:1fr}.agdia>header{flex-direction:row;align-items:center}.agdia-acc{opacity:1;flex-direction:row;gap:10px}.ideas{grid-auto-flow:row;grid-auto-columns:auto}}
 .ri{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:5px;flex:none;background:var(--surface-2)}
 .ri svg{width:11px;height:11px;fill:currentColor}
 .ri-ig{color:#FF0069;background:color-mix(in srgb,#FF0069 12%,var(--surface))}.ri-fb{color:#0866FF;background:color-mix(in srgb,#0866FF 12%,var(--surface))}
@@ -1513,7 +1580,7 @@ const resolved=x=>x&&(x.estado==="hecha"||x.estado==="no-aplica");
    de esta pantalla (cliente elegido, quién trabaja, tema y efectos). */
 let db=null,user=null,myId=null,canWrite=true,connErr="",writeErr="";
 let sesion={estado:"cargando",correo:"",nombre:""},unsubBase=[],connTimer=0;
-const st={clientes:[],cid:ls.get("cpo:cid",""),equipo:[],tareas:{},fichas:{},cierre:{},entreg:{},eventos:{},plan:{},conf:{},men:{},menLoaded:false,menAt:0,bita:[],inf:[],cont:{},contAll:{},agenda:{},agAll:{},ok:{clientes:false,cliente:false},names:{}};
+const st={clientes:[],cid:ls.get("cpo:cid",""),equipo:[],tareas:{},fichas:{},cierre:{},entreg:{},eventos:{},plan:{},conf:{},men:{},menLoaded:false,menAt:0,bita:[],inf:[],cont:{},contAll:{},agenda:{},agAll:{},ideas:{},ok:{clientes:false,cliente:false},names:{}};
 let como=ls.get("cpo:como","");
 const ui={sub:{},open:new Set(),filtro:{},verArch:false,nuevo:false,editCli:false,confirm:"",mes:"",dia:"",calModo:"mes",calFiltro:"todo",evEdit:"",evDraft:null,planMsg:"",menEdit:"",menDraft:null,menWarn:"",menF:"todas",menQ:"",radEdit:false,radDraft:null,tlSel:null,tlDraft:null,tlWarn:"",tlZoom:"meses",tlCenter:false,justDragged:false,menNew:new Set(),menAcc:false,menAlc:"",menPlat:"",menTag:"",menDesde:"",menHasta:"",menLim:60,menImp:null,menPer:"dia",menResDia:"",bustT0:0};
 let unsubCli=[],pendientes=0,dirty=false;
@@ -1562,7 +1629,7 @@ function tareasAbiertas(){const out=[];F.forEach(f=>f.tareas.forEach((t,i)=>{con
 /* ---------- Suscripciones en tiempo real ---------- */
 function subscribeCliente(){
   unsubCli.forEach(u=>{try{u()}catch(e){}});unsubCli=[];
-  st.tareas={};st.fichas={};st.cierre={};st.entreg={};st.eventos={};st.plan={};st.conf={};st.men={};st.menLoaded=false;st.bita=[];st.inf=[];st.cont={};st.agenda={};st.ok.cliente=false;
+  st.tareas={};st.fichas={};st.cierre={};st.entreg={};st.eventos={};st.plan={};st.conf={};st.men={};st.menLoaded=false;st.bita=[];st.inf=[];st.cont={};st.agenda={};st.ideas={};st.ok.cliente=false;
   if(!db||!st.cid)return;
   const map=(k)=>s=>{const o={};s.docs.forEach(d=>o[d.id]=d.data());st[k]=o;st.ok.cliente=true;resolveNames();render()};
   const err=e=>{console.error(e);connErr="Se cortó la conexión con el registro de este cliente. Recargá la página para volver a conectarte.";render()};
@@ -1577,10 +1644,11 @@ function subscribeCliente(){
   unsubCli.push(db.collection(c+"/menciones").onSnapshot(s=>{const o={};s.docs.forEach(d=>o[d.id]=d.data());if(st.menLoaded){const nn=Object.keys(o).filter(id=>!st.men[id]);nn.forEach(id=>ui.menNew.add(id));if(nn.length)toast(nn.length===1?"Nueva mención · "+(o[nn[0]].titulo||"sin título"):`${nn.length} menciones nuevas en el registro`)}st.men=o;if(!s.fromCache)st.menLoaded=true;st.menAt=Date.now();st.ok.cliente=true;resolveNames();render()},err));
   unsubCli.push(db.collection(c+"/contenidos").onSnapshot(map("cont"),err));
   unsubCli.push(db.collection(c+"/agenda").onSnapshot(map("agenda"),err));
+  unsubCli.push(db.collection(c+"/ideas").onSnapshot(map("ideas"),err));
   unsubCli.push(db.collection(c+"/informes").orderBy("hasta","desc").limit(60).onSnapshot(s=>{st.inf=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>console.error(e)));
   unsubCli.push(db.collection(c+"/bitacora").orderBy("at","desc").limit(300).onSnapshot(s=>{st.bita=s.docs.map(d=>({id:d.id,...d.data()}));resolveNames();render()},err));
 }
-function selectCliente(id){if(id===st.cid)return;st.cid=id;ls.set("cpo:cid",id);ui.editCli=false;ui.evEdit="";ui.evDraft=null;ui.confirm="";ui.menEdit="";ui.menDraft=null;ui.radEdit=false;ui.menNew=new Set();ui.menImp=null;ui.menTag="";ui.infVer="";ui.escEdit=false;ui.escDraft=null;ui.cEdit="";ui.cDraft=null;ui.agEdit="";ui.agDraft=null;ui.cMenuDia="";subscribeCliente();render()}
+function selectCliente(id){if(id===st.cid)return;st.cid=id;ls.set("cpo:cid",id);ui.editCli=false;ui.evEdit="";ui.evDraft=null;ui.confirm="";ui.menEdit="";ui.menDraft=null;ui.radEdit=false;ui.menNew=new Set();ui.menImp=null;ui.menTag="";ui.infVer="";ui.escEdit=false;ui.escDraft=null;ui.cEdit="";ui.cDraft=null;ui.agEdit="";ui.agDraft=null;ui.cMenuDia="";ui.ideaEdit="";subscribeCliente();render()}
 let namesBusy=false;
 async function resolveNames(){
   if(!user||namesBusy)return;const ids=new Set();
@@ -2698,7 +2766,7 @@ function syncContAll(on){
   });
 }
 /* ---------- Tareas y grabaciones del equipo de contenidos ---------- */
-const TAG=[["tarea","Tarea"],["grabacion","Grabación"],["reunion","Reunión"],["otro","Otro"]];
+const TAG=[["tarea","Tarea"],["grabacion","Grabación"],["reunion","Salida o reunión"],["otro","Otro"]];
 const AG_IC={tarea:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m5.2 8.2 2 2 3.8-4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   grabacion:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="4" width="9" height="8" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 7.2 14.5 5v6l-4-2.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
   reunion:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="6.5" r="1.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 13c.4-2 1.8-3 3.5-3S8.6 11 9 13M9.8 10.2c1.7-.3 3.2.6 3.7 2.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
@@ -2706,69 +2774,17 @@ const AG_IC={tarea:'<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y=
 function agPersonas(a){return (a.tipo==="tarea"?[a.resp]:(a.equipo||[])).filter(Boolean).map(k=>persona(k)).filter(Boolean).map(m=>m.nombre)}
 function agEsMio(a){return !!como&&(a.resp===como||(a.equipo||[]).includes(como))}
 function agVencida(a,t){return a.tipo==="tarea"&&!a.hecha&&a.fecha&&a.fecha<t}
-function agChip(a,t,conCliente){
-  const ps=agPersonas(a),venc=agVencida(a,t);
-  return `<button type="button" class="achip ag-${esc(a.tipo||"tarea")}${a.hecha?" hecha":""}${venc?" vencida":""}${agEsMio(a)?" mia":""}" data-ag="${esc(a.id)}" data-ccli="${esc(a.cid)}">${AG_IC[a.tipo]||AG_IC.tarea}${a.hora?`<b>${esc(a.hora)}</b>`:""}<span>${conCliente?`<i>${esc(cliNombre(a.cid))}</i> `:""}${esc(a.titulo||"Sin título")}${ps.length?` · ${esc(ps.join(", "))}`:""}</span>
-   <span class="cprev" role="tooltip"><strong>${esc(lab(TAG,a.tipo||"tarea"))}${a.hecha?" · hecha":venc?" · vencida":""}</strong>${esc(a.titulo||"")}${ps.length?`<em>${a.tipo==="tarea"?"Para":"Van"} ${esc(ps.join(", "))}</em>`:""}${a.lugar?`<em>${a.tipo==="grabacion"?"Salida y lugar":"Lugar"} ${esc(a.lugar)}</em>`:""}${a.nota?`<small>${esc(a.nota.slice(0,140))}</small>`:""}</span></button>`;
-}
-function agForm(){
-  const nuevo=ui.agEdit==="new",prev=nuevo?{}:(st.agenda[ui.agEdit]||{});
-  const v=ui.agDraft||{...prev},tipo=v.tipo||"tarea";
-  const eq=new Set(v.equipo||[]);st.equipo.forEach(m=>{if(v["eq_"+m.k]===true)eq.add(m.k);if(v["eq_"+m.k]===false)eq.delete(m.k)});
-  const pz=new Set(v.piezas||[]);contLista().forEach(p=>{if(v["pz_"+p.id]===true)pz.add(p.id);if(v["pz_"+p.id]===false)pz.delete(p.id)});
-  const piezasGrab=contLista().filter(p=>pz.has(p.id)||EST_ORD[p.estado||"idea"]<=EST_ORD.grabacion).sort((a,b)=>(a.fecha||"9").localeCompare(b.fecha||"9"));
-  const opt=(L,val,vacio)=>(vacio?`<option value="">${vacio}</option>`:"")+L.map(x=>`<option value="${esc(x[0])}"${x[0]===val?" selected":""}>${esc(x[1])}</option>`).join("");
-  return `<form class="panelbox evf cform" id="fagenda" data-hold style="margin:0 0 16px"><div class="head" style="margin-bottom:4px"><span class="caps">${nuevo?"Nueva "+(tipo==="grabacion"?"grabación":tipo==="reunion"?"reunión":"tarea"):lab(TAG,tipo)}</span>${!nuevo&&prev.at?`<span class="small">Último cambio de ${esc(quien(prev))} ${hace(prev.at)}</span>`:""}</div>
-   <div class="segtipo" role="group" aria-label="Tipo">${TAG.map(x=>`<label class="${tipo===x[0]?"on":""}"><input type="radio" name="tipo" value="${x[0]}"${tipo===x[0]?" checked":""}>${AG_IC[x[0]]}${x[1]}</label>`).join("")}</div>
-   <label class="f"><span>${tipo==="tarea"?"Qué hay que hacer":"Título"}</span><input class="in" name="titulo" required maxlength="160" value="${esc(v.titulo||"")}" placeholder="${tipo==="grabacion"?"Ej. Grabación recorrida Las Heras":tipo==="tarea"?"Ej. Editar el reel de la recorrida":"Ej. Reunión de pauta semanal"}"></label>
-   <div class="form">
-    <label class="f"><span>${tipo==="tarea"?"Para cuándo":"Fecha"}</span><input class="in" type="date" name="fecha" required value="${esc(v.fecha||"")}"></label>
-    <label class="f"><span>Hora</span><input class="in" type="time" name="hora" value="${esc(v.hora||"")}"></label>
-    ${tipo==="tarea"?`<label class="f"><span>Responsable</span><select class="sel" name="resp">${opt(st.equipo.map(m=>[m.k,m.nombre]),v.resp||"","Sin asignar")}</select></label>`
-      :`<label class="f"><span>${tipo==="grabacion"?"Lugar y punto de salida":"Lugar"}</span><input class="in" name="lugar" maxlength="200" value="${esc(v.lugar||"")}" placeholder="${tipo==="grabacion"?"Ej. Salimos de la oficina, grabamos en plaza Rocha":"Ej. Oficina o videollamada"}"></label>`}
-   </div>
-   ${tipo!=="tarea"?`<fieldset class="credes"><legend>${tipo==="grabacion"?"Quiénes van":"Participan"}</legend>${st.equipo.length?st.equipo.map(m=>`<label class="rchk"><input type="checkbox" name="eq_${esc(m.k)}"${eq.has(m.k)?" checked":""}>${esc(m.nombre)}</label>`).join(""):`<span class="small">Cargá al equipo en la sección Equipo para poder asignarlo.</span>`}</fieldset>`:""}
-   ${tipo==="grabacion"?`<fieldset class="credes cpiezas"><legend>Piezas que se graban ese día</legend>${piezasGrab.length?piezasGrab.map(p=>`<label class="rchk"><input type="checkbox" name="pz_${esc(p.id)}"${pz.has(p.id)?" checked":""}>${redIcons(p)}${esc(p.titulo||"Sin título")}${p.fecha?` <small>· sale ${esc(fechaCorta(p.fecha))}</small>`:""}</label>`).join(""):`<span class="small">No hay piezas en Idea, Guion o Grabación para vincular.</span>`}</fieldset>`:""}
-   <label class="f"><span>${tipo==="grabacion"?"Qué llevar, vestuario, permisos":"Detalle"}</span><textarea class="in" name="nota" rows="3" maxlength="2000">${esc(v.nota||"")}</textarea></label>
-   ${nuevo?"":`<label class="esc-chk"><input type="checkbox" name="hecha"${(v.hecha??prev.hecha)?" checked":""}> ${tipo==="grabacion"?"Grabación hecha":tipo==="tarea"?"Tarea hecha":"Ya pasó"}</label>`}
-   ${tipo==="grabacion"&&!nuevo?`<p class="small">Al marcarla hecha, las piezas vinculadas que estaban en Idea, Guion o Grabación pasan a Edición y diseño.</p>`:""}
-   <div class="confirm"><button class="btn" type="submit"${dis()}>${nuevo?"Agregar al calendario":"Guardar"}</button><button class="btn grey" type="button" data-act="ag-cancel">Cancelar</button>${nuevo?"":ui.confirm==="ag-del"?`<span>¿Eliminar?</span><button class="btn danger" type="button" data-act="ag-del-si"${dis()}>Sí, eliminar</button>`:`<button class="btn grey" type="button" data-act="ag-del"${dis()}>Eliminar</button>`}</div></form>`;
-}
 function agAbrir(id,cid,tipo,fecha){
   if(cid&&cid!==st.cid){ui.agAbrirLuego=id;selectCliente(cid);return}
-  ui.cEdit="";ui.cDraft=null;ui.cMenuDia="";ui.confirm="";
+  ui.cNucleo="agenda";ui.cEdit="";ui.cDraft=null;ui.cMenuDia="";ui.confirm="";
   if(id==="new"){ui.agEdit="new";ui.agDraft={tipo:tipo||"tarea",fecha:fecha||hoy()}}else{ui.agEdit=id;ui.agDraft=null}
   render();setTimeout(()=>{const f=document.getElementById("fagenda");if(f){f.scrollIntoView({behavior:"smooth",block:"start"});if(id==="new"){const n=f.querySelector("[name=titulo]");n&&n.focus({preventScroll:true})}}},60);
-}
-function agLeerForm(fm){
-  const fd=Object.fromEntries(new FormData(fm).entries());
-  const tipo=fd.tipo||"tarea";
-  const b={tipo,titulo:(fd.titulo||"").trim().slice(0,160),fecha:fd.fecha||"",hora:fd.hora||"",nota:(fd.nota||"").trim().slice(0,2000)};
-  if(tipo==="tarea"){b.resp=fd.resp||"";b.equipo=[];b.lugar=""}
-  else{b.resp="";b.lugar=(fd.lugar||"").trim().slice(0,200);b.equipo=st.equipo.map(m=>m.k).filter(k=>{const i=fm.querySelector(`[name="eq_${CSS.escape(k)}"]`);return i&&i.checked})}
-  b.piezas=tipo==="grabacion"?[...fm.querySelectorAll('[name^="pz_"]')].filter(i=>i.checked).map(i=>i.name.slice(3)):[];
-  const h=fm.querySelector("[name=hecha]");if(h)b.hecha=h.checked;
-  return b;
 }
 function agGuardar(id,body){const nx=stamp(body);st.agenda={...st.agenda,[id]:nx};put(`${base()}/agenda/${id}`,nx);return nx}
 function agMarcar(id,hecha){
   const a=st.agenda[id];if(!a||!db||!canWrite)return;
   agGuardar(id,{...a,hecha});
   if(hecha&&a.tipo==="grabacion")(a.piezas||[]).forEach(pid=>{const p=st.cont[pid];if(p&&EST_ORD[p.estado||"idea"]<=EST_ORD.grabacion)cGuardar(pid,{...p,estado:"edicion"})});
-}
-function agTareasPanel(t){
-  const L=agLista().filter(a=>a.tipo==="tarea"),soloMio=ui.agMio&&como;
-  const pend=L.filter(a=>!a.hecha&&(!soloMio||agEsMio(a))).sort((a,b)=>(a.fecha||"9").localeCompare(b.fecha||"9")||(a.hora||"99").localeCompare(b.hora||"99"));
-  const hechas=L.filter(a=>a.hecha&&(!soloMio||agEsMio(a))).sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||"")).slice(0,15);
-  const grupos={};pend.forEach(a=>{const k=a.resp&&persona(a.resp)?persona(a.resp).nombre:"Sin asignar";(grupos[k]=grupos[k]||[]).push(a)});
-  const fila=a=>`<li class="${agVencida(a,t)?"vencida":""}${a.hecha?" hecha":""}"><label class="tchk"><input type="checkbox" data-agok="${esc(a.id)}"${a.hecha?" checked":""}${dis()} aria-label="Marcar como hecha"></label><button type="button" class="evlink" data-ag="${esc(a.id)}" data-ccli="${esc(a.cid)}">${esc(a.titulo||"Sin título")}</button><span class="fz">${a.fecha?(a.fecha===t?"Hoy":a.fecha===addD(t,1)?"Mañana":fechaCorta(a.fecha)):""}${a.hora?" "+esc(a.hora):""}</span>${agVencida(a,t)?`<span class="kp r">Vencida</span>`:""}</li>`;
-  return `<section class="panelbox atareas"><div class="head" style="margin-bottom:10px"><div><h3 style="font-weight:600;font-size:1.1rem">Tareas del equipo</h3><p class="small">${pend.length?`${pend.length} pendiente${pend.length>1?"s":""}`:"Nada pendiente"}${soloMio?" para vos":""}.</p></div>
-   <div class="confirm"><button class="chip" type="button" data-agmio="1" aria-pressed="${!!soloMio}"${como?"":" disabled title=\"Elegí arriba con qué nombre trabajás\""}>Solo lo mío</button><button class="btn sm" type="button" data-agnew="tarea"${dis()}>Nueva tarea</button></div></div>
-   ${pend.length?Object.entries(grupos).map(([n,arr])=>`<div class="tgrupo"><span class="caps">${esc(n)} · ${arr.length}</span><ul class="tlista">${arr.map(fila).join("")}</ul></div>`).join(""):`<p class="small">Cargá una tarea con su responsable y su fecha. Aparece en el calendario y en esta lista.</p>`}
-   ${hechas.length?`<details class="inf-mas"><summary>Hechas recientemente · ${hechas.length}</summary><ul class="tlista">${hechas.map(fila).join("")}</ul></details>`:""}</section>`;
-}
-function cDiaMenu(d){
-  return `<div class="cmenu" role="menu"><button type="button" role="menuitem" data-cnew="${d}">${IC.cont}Pieza para publicar</button><button type="button" role="menuitem" data-agnew="tarea" data-agfecha="${d}">${AG_IC.tarea}Tarea</button><button type="button" role="menuitem" data-agnew="grabacion" data-agfecha="${d}">${AG_IC.grabacion}Grabación</button><button type="button" role="menuitem" data-agnew="reunion" data-agfecha="${d}">${AG_IC.reunion}Reunión u otro</button></div>`;
 }
 function contAlertas(){const t=hoy();return contLista().filter(p=>cAlerta(p,t)).length+agLista().filter(a=>agVencida(a,t)).length}
 /* Logos oficiales de cada red (Simple Icons, licencia CC0) */
@@ -2784,37 +2800,6 @@ function cChip(p,t,conCliente){
 }
 function cFiltrar(L){return L.filter(p=>(!ui.cRed||(p.redes||[]).includes(ui.cRed))&&(!ui.cEst||(p.estado||"idea")===ui.cEst))}
 function agFiltrar(L){if(ui.cRed||ui.cEst||ui.cVer==="piezas")return[];return L.filter(a=>!ui.agMio||!como||agEsMio(a))}
-function contenidos(){
-  const c=cli(),t=hoy(),todos=ui.cAlcance==="todos";
-  syncContAll(todos);
-  if(ui.cAbrirLuego&&st.cont[ui.cAbrirLuego]){ui.cEdit=ui.cAbrirLuego;ui.cDraft=null;ui.cAbrirLuego="";setTimeout(()=>{const f=document.getElementById("fcont");if(f)f.scrollIntoView({behavior:"smooth",block:"start"})},60)}
-  if(ui.agAbrirLuego&&st.agenda[ui.agAbrirLuego]){ui.agEdit=ui.agAbrirLuego;ui.agDraft=null;ui.agAbrirLuego="";setTimeout(()=>{const f=document.getElementById("fagenda");if(f)f.scrollIntoView({behavior:"smooth",block:"start"})},60)}
-  if(!ui.cMes)ui.cMes=t.slice(0,7);
-  if(!ui.cSem){const d=new Date(t+"T12:00:00");ui.cSem=addD(t,-((d.getDay()+6)%7))}
-  const vista=ui.cVista||"mes",L=cFiltrar(contTodos()),A=agFiltrar(agTodos()),mias=contLista();
-  const semFin=addD(ui.cSem,6),ini=t.slice(0,7);
-  const nSem=mias.filter(p=>p.fecha>=ui.cSem&&p.fecha<=semFin).length,nApr=mias.filter(p=>p.estado==="aprobacion").length,nAtr=mias.filter(p=>cAlerta(p,t)==="atrasada").length;
-  const tareasPend=agLista().filter(a=>a.tipo==="tarea"&&!a.hecha).length,grabProx=agLista().filter(a=>a.tipo==="grabacion"&&!a.hecha&&a.fecha>=t&&a.fecha<=addD(t,6)).length;
-  let h=`<div class="head"><div><span class="eyebrow">${esc(c.codigo||"Proyecto")} · ${esc(c.nombre)}</span><h1 class="sectitle" style="margin-top:6px">Contenidos</h1><p>Lo que se publica, lo que hay que hacer y cuándo se graba, todo en un mismo calendario.</p></div>
-   <div class="confirm"><button class="btn grey" type="button" data-agnew="tarea"${dis()}>${AG_IC.tarea}Tarea</button><button class="btn grey" type="button" data-agnew="grabacion"${dis()}>${AG_IC.grabacion}Grabación</button><button class="btn" type="button" data-act="c-new"${dis()}>Nueva pieza</button></div></div>`;
-  if(ui.cEdit)h+=contForm();
-  if(ui.agEdit)h+=agForm();
-  h+=`<div class="stats">${tile("Publicaciones esta semana",nSem,nSem===1?"pieza":"piezas")}${tile("Esperan aprobación",nApr,"del cliente",nApr?"warn":"")}${tile("Tareas pendientes",tareasPend,grabProx?`${grabProx} grabaci${grabProx>1?"ones":"ón"} en 7 días`:"del equipo")}${tile("Atrasadas",nAtr,"con fecha pasada sin publicar",nAtr?"crit":"")}</div>`;
-  const alertas=mias.filter(p=>cAlerta(p,t)).map(p=>({f:p.fecha||"",h:`<li><span class="fz">${p.fecha?fechaCorta(p.fecha):"Sin fecha"}</span><button type="button" class="evlink" data-cont="${esc(p.id)}" data-ccli="${esc(p.cid)}">${esc(p.titulo||"Sin título")}</button><span class="kp ${cAlerta(p,t)==="atrasada"?"r":"y"}">${esc(ALERTA_TXT[cAlerta(p,t)])}</span></li>`}))
-    .concat(agLista().filter(a=>agVencida(a,t)).map(a=>({f:a.fecha,h:`<li><span class="fz">${fechaCorta(a.fecha)}</span><button type="button" class="evlink" data-ag="${esc(a.id)}" data-ccli="${esc(a.cid)}">${esc(a.titulo||"Tarea")}${agPersonas(a).length?" · "+esc(agPersonas(a).join(", ")):""}</button><span class="kp r">Tarea vencida</span></li>`}))).sort((a,b)=>a.f.localeCompare(b.f));
-  if(alertas.length)h+=`<section class="panelbox calert"><h3 style="font-weight:600;font-size:1.05rem;margin-bottom:8px">Requiere atención</h3><ul class="alist">${alertas.slice(0,10).map(x=>x.h).join("")}</ul></section>`;
-  h+=`<div class="calbar"><div class="subtabs" role="tablist" aria-label="Vista de contenidos">${[["mes","Mes"],["semana","Semana"],["tablero","Producción"],["tareas","Tareas"]].map(x=>`<button type="button" role="tab" aria-selected="${vista===x[0]}" data-cvista="${x[0]}">${x[1]}</button>`).join("")}</div>
-   <div class="chips" role="group" aria-label="Alcance">${[["cliente",esc(c.nombre)],["todos","Todos los candidatos"]].map(x=>`<button class="chip" type="button" data-calc="${x[0]}" aria-pressed="${(ui.cAlcance||"cliente")===x[0]}">${x[1]}</button>`).join("")}</div>
-   <div class="cfilt">${vista==="mes"||vista==="semana"?`<select class="sel" data-cflt="cVer" aria-label="Qué mostrar"><option value="">Publicaciones, tareas y grabaciones</option><option value="piezas"${ui.cVer==="piezas"?" selected":""}>Solo publicaciones</option><option value="agenda"${ui.cVer==="agenda"?" selected":""}>Solo tareas y grabaciones</option></select>`:""}<select class="sel" data-cflt="cRed" aria-label="Filtrar por red"><option value="">Todas las redes</option>${REDES_C.map(r=>`<option value="${r[0]}"${ui.cRed===r[0]?" selected":""}>${r[1]}</option>`).join("")}</select>${vista!=="tareas"?`<select class="sel" data-cflt="cEst" aria-label="Filtrar por etapa"><option value="">Todas las etapas</option>${ESTADOS_C.map(e=>`<option value="${e[0]}"${ui.cEst===e[0]?" selected":""}>${e[1]}</option>`).join("")}</select>`:""}</div></div>`;
-  if(todos)h+=`<p class="small" style="margin:-4px 0 8px">Se ven las piezas, tareas y grabaciones de todos los candidatos activos. Al abrir algo de otro candidato, el tablero pasa a ese candidato.</p>`;
-  const Lv=ui.cVer==="agenda"?[]:L;
-  if(vista==="tareas")h+=agTareasPanel(t);
-  else if(vista==="tablero")h+=cTablero(L,t,todos);
-  else if(vista==="semana")h+=cSemana(Lv,A,t,todos);
-  else h+=cMesV(Lv,A,t,todos);
-  if(vista!=="tareas")h+=`<div class="cley">${ESTADOS_C.map(e=>`<span><i class="est-${e[0]}"></i>${e[1]}</span>`).join("")}<span class="cley-sep"></span><span class="ag-tarea">${AG_IC.tarea}Tarea</span><span class="ag-grabacion">${AG_IC.grabacion}Grabación</span><span class="ag-reunion">${AG_IC.reunion}Reunión</span></div>`;
-  return h;
-}
 function cMesV(L,A,t,todos){
   const[Y,M]=ui.cMes.split("-").map(Number);
   const first=ui.cMes+"-01",dim=new Date(Y,M,0).getDate(),dow=(new Date(first+"T12:00:00").getDay()+6)%7;
@@ -2826,7 +2811,7 @@ function cMesV(L,A,t,todos){
   const it=o=>o.k==="p"?cChip(o.x,t,todos):agChip(o.x,t,todos);
   let cells="";
   for(let k=0;k<weeks*7;k++){const d=addD(start,k),its=por[d]||[],out=d.slice(0,7)!==ui.cMes,fds=k%7>=5;
-    cells+=`<div class="cday${out?" out":""}${d===t?" today":""}${fds?" fds":""}${ui.cMenuDia===d?" conmenu":""}"><div class="cdh"><span class="cdn">${+d.slice(8)}</span>${canWrite&&db?`<button type="button" class="cadd" data-cmenu="${d}" aria-label="Agregar el ${esc(diaLargo(d))}" aria-expanded="${ui.cMenuDia===d}">+</button>`:""}</div>${ui.cMenuDia===d?cDiaMenu(d):""}<div class="cits">${its.slice(0,4).map(it).join("")}${its.length>4?`<button type="button" class="more" data-csem="${d}">+${its.length-4} más</button>`:""}</div></div>`}
+    cells+=`<div class="cday${out?" out":""}${d===t?" today":""}${fds?" fds":""}${ui.cMenuDia===d?" conmenu":""}"><div class="cdh"><span class="cdn">${+d.slice(8)}</span>${canWrite&&db?`<button type="button" class="cadd" ${(ui.cNucleo||"pub")==="pub"?`data-cnew="${d}"`:`data-cmenu="${d}"`} aria-label="Agregar el ${esc(diaLargo(d))}" aria-expanded="${ui.cMenuDia===d}">+</button>`:""}</div>${ui.cMenuDia===d?cDiaMenu(d):""}<div class="cits">${its.slice(0,4).map(it).join("")}${its.length>4?`<button type="button" class="more" data-csem="${d}">+${its.length-4} más</button>`:""}</div></div>`}
   const label=MESL[M-1][0].toUpperCase()+MESL[M-1].slice(1)+" "+Y;
   const sinFecha=L.filter(p=>!p.fecha);
   return `<div class="card soft cal ccal"><div class="calnav"><h2>${label}</h2><button class="btn grey sm" type="button" data-cmes="-1" aria-label="Mes anterior">←</button><button class="btn grey sm" type="button" data-cmes="0">Hoy</button><button class="btn grey sm" type="button" data-cmes="1" aria-label="Mes siguiente">→</button></div>
@@ -2837,7 +2822,140 @@ function cSemana(L,A,t,todos){
   const dias=[...Array(7)].map((_,i)=>addD(ui.cSem,i));
   return `<div class="card soft cal"><div class="calnav"><h2>Semana del ${esc(fechaCorta(dias[0]))} al ${esc(fecha(dias[6]))}</h2><button class="btn grey sm" type="button" data-csemn="-7" aria-label="Semana anterior">←</button><button class="btn grey sm" type="button" data-csemn="0">Esta semana</button><button class="btn grey sm" type="button" data-csemn="7" aria-label="Semana siguiente">→</button></div>
    <div class="csem">${dias.map((d,i)=>{const its=[...L.filter(p=>p.fecha===d).map(p=>({k:"p",h:p.hora||"99",x:p})),...A.filter(a=>a.fecha===d).map(a=>({k:"a",h:a.hora||"98",x:a}))].sort((x,y)=>x.h.localeCompare(y.h));
-    return `<div class="csd${d===t?" today":""}${i>=5?" fds":""}${ui.cMenuDia===d?" conmenu":""}"><div class="cdh"><span class="cdn">${esc(DSEM[i])} ${+d.slice(8)}</span>${canWrite&&db?`<button type="button" class="cadd" data-cmenu="${d}" aria-label="Agregar" aria-expanded="${ui.cMenuDia===d}">+</button>`:""}</div>${ui.cMenuDia===d?cDiaMenu(d):""}${its.map(o=>o.k==="p"?`<div class="cscard">${cChip(o.x,t,todos)}<small>${esc(lab(FORMATOS_C,o.x.formato||""))}${o.x.resp&&persona(o.x.resp)?" · "+esc(persona(o.x.resp).nombre):""} · ${esc(lab(ESTADOS_C,o.x.estado||"idea"))}</small></div>`:`<div class="cscard">${agChip(o.x,t,todos)}${o.x.lugar?`<small>${esc(o.x.lugar)}</small>`:""}</div>`).join("")||`<p class="small cvac">Nada programado</p>`}</div>`}).join("")}</div></div>`;
+    return `<div class="csd${d===t?" today":""}${i>=5?" fds":""}${ui.cMenuDia===d?" conmenu":""}"><div class="cdh"><span class="cdn">${esc(DSEM[i])} ${+d.slice(8)}</span>${canWrite&&db?`<button type="button" class="cadd" ${(ui.cNucleo||"pub")==="pub"?`data-cnew="${d}"`:`data-cmenu="${d}"`} aria-label="Agregar" aria-expanded="${ui.cMenuDia===d}">+</button>`:""}</div>${ui.cMenuDia===d?cDiaMenu(d):""}${its.map(o=>o.k==="p"?`<div class="cscard">${cChip(o.x,t,todos)}<small>${esc(lab(FORMATOS_C,o.x.formato||""))}${o.x.resp&&persona(o.x.resp)?" · "+esc(persona(o.x.resp).nombre):""} · ${esc(lab(ESTADOS_C,o.x.estado||"idea"))}</small></div>`:`<div class="cscard">${agChip(o.x,t,todos)}${o.x.lugar?`<small>${esc(o.x.lugar)}</small>`:""}</div>`).join("")||`<p class="small cvac">Nada programado</p>`}</div>`}).join("")}</div></div>`;
+}
+function cDiaMenu(d){
+  return `<div class="cmenu" role="menu"><button type="button" role="menuitem" data-agnew="tarea" data-agfecha="${d}">${AG_IC.tarea}Asignar una tarea</button><button type="button" role="menuitem" data-agnew="grabacion" data-agfecha="${d}">${AG_IC.grabacion}Programar una grabación</button><button type="button" role="menuitem" data-agnew="reunion" data-agfecha="${d}">${AG_IC.reunion}Salida, visita o reunión</button></div>`;
+}
+/* Formulario propio para cada tipo de la agenda */
+function agForm(){
+  const nuevo=ui.agEdit==="new",prev=nuevo?{}:(st.agenda[ui.agEdit]||{});
+  const v=ui.agDraft||{...prev},tipo=v.tipo||prev.tipo||"tarea";
+  const eq=new Set(v.equipo||[]);st.equipo.forEach(m=>{if(v["eq_"+m.k]===true)eq.add(m.k);if(v["eq_"+m.k]===false)eq.delete(m.k)});
+  const pz=new Set(v.piezas||[]);contLista().forEach(p=>{if(v["pz_"+p.id]===true)pz.add(p.id);if(v["pz_"+p.id]===false)pz.delete(p.id)});
+  const cab=`<div class="agf-cab"><span class="agf-ic">${AG_IC[tipo]||AG_IC.tarea}</span><div><h3>${nuevo?(tipo==="tarea"?"Asignar una tarea":tipo==="grabacion"?"Programar una grabación":"Salida, visita o reunión"):esc(v.titulo||lab(TAG,tipo))}</h3><p class="small">${tipo==="tarea"?"Una cosa concreta para una persona, con fecha.":tipo==="grabacion"?"El día de rodaje: a qué hora salen, de dónde, quiénes van y qué se graba.":"Una salida al territorio, una visita o una reunión del equipo."}${!nuevo&&prev.at?` Último cambio de ${esc(quien(prev))} ${hace(prev.at)}.`:""}</p></div></div>`;
+  const personas=(nombre,sel,multi)=>st.equipo.length?`<div class="agf-pers" role="group">${st.equipo.map(m=>`<label class="pchip${sel.has(m.k)?" on":""}"><input type="${multi?"checkbox":"radio"}" name="${multi?"eq_"+esc(m.k):nombre}" value="${esc(m.k)}"${sel.has(m.k)?" checked":""}><span class="pini">${esc(m.nombre.trim().charAt(0).toUpperCase())}</span>${esc(m.nombre)}</label>`).join("")}</div>`:`<p class="small">Cargá al equipo en la sección Equipo para poder asignar.</p>`;
+  let cuerpo="";
+  if(tipo==="tarea"){
+    const resp=new Set([v.resp||prev.resp||""].filter(Boolean));
+    cuerpo=`<label class="f"><span>Qué hay que hacer</span><input class="in agf-grande" name="titulo" required maxlength="160" value="${esc(v.titulo||"")}" placeholder="Ej. Editar el reel de la recorrida"></label>
+     <div class="f"><span class="flbl">Para quién</span>${personas("resp",resp,false)}</div>
+     <div class="form"><label class="f"><span>Para cuándo</span><input class="in" type="date" name="fecha" required value="${esc(v.fecha||"")}"></label><label class="f"><span>Hora límite (opcional)</span><input class="in" type="time" name="hora" value="${esc(v.hora||"")}"></label>
+      <label class="f"><span>Prioridad</span><select class="sel" name="prioridad"><option value="normal"${(v.prioridad||"normal")==="normal"?" selected":""}>Normal</option><option value="alta"${v.prioridad==="alta"?" selected":""}>Alta</option></select></label></div>
+     <label class="f"><span>Detalle o indicaciones</span><textarea class="in" name="nota" rows="3" maxlength="2000" placeholder="Qué tiene que tener en cuenta, dónde están los archivos">${esc(v.nota||"")}</textarea></label>`;
+  }else if(tipo==="grabacion"){
+    const piezasGrab=contLista().filter(p=>pz.has(p.id)||EST_ORD[p.estado||"idea"]<=EST_ORD.grabacion).sort((a,b)=>(a.fecha||"9").localeCompare(b.fecha||"9"));
+    cuerpo=`<label class="f"><span>Qué se graba</span><input class="in agf-grande" name="titulo" required maxlength="160" value="${esc(v.titulo||"")}" placeholder="Ej. Recorrida por Las Heras"></label>
+     <div class="form"><label class="f"><span>Día</span><input class="in" type="date" name="fecha" required value="${esc(v.fecha||"")}"></label><label class="f"><span>Hora de salida</span><input class="in" type="time" name="hora" value="${esc(v.hora||"")}"></label><label class="f"><span>Punto de encuentro</span><input class="in" name="salida" maxlength="160" value="${esc(v.salida||"")}" placeholder="Ej. Oficina"></label></div>
+     <label class="f"><span>Dónde se graba</span><input class="in" name="lugar" maxlength="200" value="${esc(v.lugar||"")}" placeholder="Ej. Plaza Rocha y la feria de la calle 12"></label>
+     <div class="f"><span class="flbl">Quiénes van</span>${personas("",eq,true)}</div>
+     <fieldset class="credes cpiezas"><legend>Publicaciones que salen de esta grabación</legend>${piezasGrab.length?piezasGrab.map(p=>`<label class="rchk"><input type="checkbox" name="pz_${esc(p.id)}"${pz.has(p.id)?" checked":""}>${redIcons(p)}${esc(p.titulo||"Sin título")}${p.fecha?` <small>· sale ${esc(fechaCorta(p.fecha))}</small>`:""}</label>`).join(""):`<span class="small">No hay publicaciones en Idea, Guion o Grabación para vincular. Crealas en Publicaciones.</span>`}</fieldset>
+     <label class="f"><span>Qué llevar (uno por renglón)</span><textarea class="in" name="llevar" rows="3" maxlength="1500" placeholder="Micrófono corbatero&#10;Gimbal&#10;Camisa celeste">${esc(v.llevar||"")}</textarea></label>
+     <label class="f"><span>Guion, permisos u otras notas</span><textarea class="in" name="nota" rows="2" maxlength="2000">${esc(v.nota||"")}</textarea></label>`;
+  }else{
+    cuerpo=`<label class="f"><span>Qué es</span><input class="in agf-grande" name="titulo" required maxlength="160" value="${esc(v.titulo||"")}" placeholder="Ej. Visita al club Kimberley"></label>
+     <div class="form"><label class="f"><span>Día</span><input class="in" type="date" name="fecha" required value="${esc(v.fecha||"")}"></label><label class="f"><span>Hora</span><input class="in" type="time" name="hora" value="${esc(v.hora||"")}"></label><label class="f"><span>Lugar o enlace</span><input class="in" name="lugar" maxlength="200" value="${esc(v.lugar||"")}" placeholder="Ej. Sede del club o videollamada"></label></div>
+     <div class="f"><span class="flbl">Quiénes van</span>${personas("",eq,true)}</div>
+     <label class="f"><span>Detalle</span><textarea class="in" name="nota" rows="3" maxlength="2000">${esc(v.nota||"")}</textarea></label>`;
+  }
+  const llevar=(prev.llevar||"").split("\n").map(x=>x.trim()).filter(Boolean);
+  return `<form class="panelbox agf agf-${tipo}" id="fagenda" data-hold style="margin:0 0 16px"><input type="hidden" name="tipo" value="${tipo}">${cab}${cuerpo}
+   ${!nuevo&&tipo==="grabacion"&&llevar.length?`<div class="agf-check"><span class="flbl">Antes de salir</span>${llevar.map((x,i)=>`<label class="rchk"><input type="checkbox" data-aglleva="${i}"${(prev.listo||[]).includes(i)?" checked":""}${dis()}>${esc(x)}</label>`).join("")}</div>`:""}
+   ${nuevo?"":`<label class="esc-chk"><input type="checkbox" name="hecha"${(v.hecha??prev.hecha)?" checked":""}> ${tipo==="grabacion"?"Grabación hecha. Las publicaciones vinculadas pasan a Edición y diseño.":tipo==="tarea"?"Tarea hecha":"Ya pasó"}</label>`}
+   <div class="confirm"><button class="btn" type="submit"${dis()}>${nuevo?(tipo==="tarea"?"Asignar tarea":tipo==="grabacion"?"Programar grabación":"Agendar"):"Guardar"}</button><button class="btn grey" type="button" data-act="ag-cancel">Cancelar</button>${nuevo?"":ui.confirm==="ag-del"?`<span>¿Eliminar?</span><button class="btn danger" type="button" data-act="ag-del-si"${dis()}>Sí, eliminar</button>`:`<button class="btn grey" type="button" data-act="ag-del"${dis()}>Eliminar</button>`}</div></form>`;
+}
+function agLeerForm(fm){
+  const fd=Object.fromEntries(new FormData(fm).entries());
+  const tipo=fd.tipo||"tarea";
+  const b={tipo,titulo:(fd.titulo||"").trim().slice(0,160),fecha:fd.fecha||"",hora:fd.hora||"",nota:(fd.nota||"").trim().slice(0,2000)};
+  if(tipo==="tarea"){b.resp=fd.resp||"";b.equipo=[];b.lugar="";b.prioridad=fd.prioridad==="alta"?"alta":"normal"}
+  else{b.resp="";b.lugar=(fd.lugar||"").trim().slice(0,200);b.equipo=st.equipo.map(m=>m.k).filter(k=>{const i=fm.querySelector(`[name="eq_${CSS.escape(k)}"]`);return i&&i.checked})}
+  if(tipo==="grabacion"){b.salida=(fd.salida||"").trim().slice(0,160);b.llevar=(fd.llevar||"").slice(0,1500)}
+  b.piezas=tipo==="grabacion"?[...fm.querySelectorAll('[name^="pz_"]')].filter(i=>i.checked).map(i=>i.name.slice(3)):[];
+  const h=fm.querySelector("[name=hecha]");if(h)b.hecha=h.checked;
+  return b;
+}
+function agChip(a,t,conCliente){
+  const ps=agPersonas(a),venc=agVencida(a,t);
+  return `<button type="button" class="achip ag-${esc(a.tipo||"tarea")}${a.hecha?" hecha":""}${venc?" vencida":""}${agEsMio(a)?" mia":""}${a.prioridad==="alta"?" alta":""}" data-ag="${esc(a.id)}" data-ccli="${esc(a.cid)}">${AG_IC[a.tipo]||AG_IC.tarea}${a.hora?`<b>${esc(a.hora)}</b>`:""}<span class="ct">${conCliente?`<i>${esc(cliNombre(a.cid))}</i> `:""}${esc(a.titulo||"Sin título")}${ps.length?` · ${esc(ps.join(", "))}`:""}</span>
+   <span class="cprev" role="tooltip"><strong>${esc(lab(TAG,a.tipo||"tarea"))}${a.hecha?" · hecha":venc?" · vencida":""}</strong>${esc(a.titulo||"")}${ps.length?`<em>${a.tipo==="tarea"?"Para":"Van"} ${esc(ps.join(", "))}</em>`:""}${a.salida?`<em>Salen de ${esc(a.salida)}</em>`:""}${a.lugar?`<em>${esc(a.lugar)}</em>`:""}${a.nota?`<small>${esc(a.nota.slice(0,140))}</small>`:""}</span></button>`;
+}
+/* Agenda de la semana como lista por día, con hora, tipo y quiénes */
+function agSemana(A,t,todos){
+  const dias=[...Array(7)].map((_,i)=>addD(ui.cSem,i));
+  return `<div class="card soft agsem"><div class="calnav"><h2>Semana del ${esc(fechaCorta(dias[0]))} al ${esc(fecha(dias[6]))}</h2><button class="btn grey sm" type="button" data-csemn="-7" aria-label="Semana anterior">←</button><button class="btn grey sm" type="button" data-csemn="0">Esta semana</button><button class="btn grey sm" type="button" data-csemn="7" aria-label="Semana siguiente">→</button></div>
+   ${dias.map((d,i)=>{const its=A.filter(a=>a.fecha===d).sort((x,y)=>(x.hora||"99").localeCompare(y.hora||"99"));
+    return `<section class="agdia${d===t?" hoy":""}${d<t?" pasado":""}"><header><b>${esc(DSEM[i])} ${+d.slice(8)}</b>${d===t?`<span class="kp g">Hoy</span>`:""}${canWrite&&db&&d>=t?`<span class="agdia-acc"><button type="button" class="link" data-agnew="tarea" data-agfecha="${d}">+ Tarea</button><button type="button" class="link" data-agnew="grabacion" data-agfecha="${d}">+ Grabación</button><button type="button" class="link" data-agnew="reunion" data-agfecha="${d}">+ Salida</button></span>`:""}</header>
+     ${its.length?`<ul>${its.map(a=>{const ps=agPersonas(a);return `<li class="agit ag-${esc(a.tipo)}${a.hecha?" hecha":""}${agVencida(a,t)?" vencida":""}">${a.tipo==="tarea"?`<label class="tchk"><input type="checkbox" data-agok="${esc(a.id)}"${a.hecha?" checked":""}${dis()} aria-label="Marcar como hecha"></label>`:`<span class="agit-ic">${AG_IC[a.tipo]||AG_IC.otro}</span>`}<span class="agit-h">${esc(a.hora||"")}</span><button type="button" class="agit-b" data-ag="${esc(a.id)}" data-ccli="${esc(a.cid)}"><b>${todos?`<i>${esc(cliNombre(a.cid))}</i> `:""}${esc(a.titulo||"Sin título")}</b><small>${esc(lab(TAG,a.tipo))}${ps.length?` · ${a.tipo==="tarea"?"para":"van"} ${esc(ps.join(", "))}`:""}${a.salida?` · salen de ${esc(a.salida)}`:""}${a.lugar?` · ${esc(a.lugar)}`:""}</small></button>${a.prioridad==="alta"&&!a.hecha?`<span class="kp y">Prioridad alta</span>`:""}</li>`}).join("")}</ul>`:`<p class="small cvac">Sin nada agendado.</p>`}</section>`}).join("")}</div>`;
+}
+/* Por persona: lo pendiente de cada uno (tareas y grabaciones) */
+function agPersonasPanel(t){
+  const L=agLista().filter(a=>a.tipo==="tarea"||a.fecha>=t),soloMio=ui.agMio&&como;
+  const pend=L.filter(a=>!a.hecha&&(!soloMio||agEsMio(a))).sort((a,b)=>(a.fecha||"9").localeCompare(b.fecha||"9")||(a.hora||"99").localeCompare(b.hora||"99"));
+  const hechas=agLista().filter(a=>a.tipo==="tarea"&&a.hecha&&(!soloMio||agEsMio(a))).sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||"")).slice(0,15);
+  const grupos={};pend.forEach(a=>{const ks=a.tipo==="tarea"?[a.resp||""]:(a.equipo&&a.equipo.length?a.equipo:[""]);ks.forEach(k=>{const n=k&&persona(k)?persona(k).nombre:"Sin asignar";(grupos[n]=grupos[n]||[]).push(a)})});
+  const fila=a=>`<li class="${agVencida(a,t)?"vencida":""}${a.hecha?" hecha":""}">${a.tipo==="tarea"?`<label class="tchk"><input type="checkbox" data-agok="${esc(a.id)}"${a.hecha?" checked":""}${dis()} aria-label="Marcar como hecha"></label>`:`<span class="agit-ic ag-${esc(a.tipo)}">${AG_IC[a.tipo]||AG_IC.otro}</span>`}<button type="button" class="evlink" data-ag="${esc(a.id)}" data-ccli="${esc(a.cid)}">${esc(a.titulo||"Sin título")}</button><span class="fz">${a.fecha?(a.fecha===t?"Hoy":a.fecha===addD(t,1)?"Mañana":fechaCorta(a.fecha)):""}${a.hora?" "+esc(a.hora):""}</span>${agVencida(a,t)?`<span class="kp r">Vencida</span>`:a.prioridad==="alta"?`<span class="kp y">Alta</span>`:""}</li>`;
+  return `<section class="panelbox atareas"><div class="head" style="margin-bottom:10px"><div><h3 style="font-weight:600;font-size:1.1rem">Lo de cada uno</h3><p class="small">${pend.length?`${pend.length} pendiente${pend.length>1?"s":""}`:"Nada pendiente"}${soloMio?" para vos":""}, entre tareas, grabaciones y salidas.</p></div>
+   <div class="confirm"><button class="chip" type="button" data-agmio="1" aria-pressed="${!!soloMio}"${como?"":" disabled title=\"Elegí arriba con qué nombre trabajás\""}>Solo lo mío</button></div></div>
+   ${pend.length?`<div class="tgrupos">${Object.entries(grupos).map(([n,arr])=>`<div class="tgrupo"><h4><span class="pini">${esc(n.charAt(0).toUpperCase())}</span>${esc(n)}<b>${arr.length}</b></h4><ul class="tlista">${arr.map(fila).join("")}</ul></div>`).join("")}</div>`:`<p class="small">Asigná una tarea o programá una grabación. Aparece en la agenda y acá, en la columna de cada persona.</p>`}
+   ${hechas.length?`<details class="inf-mas"><summary>Tareas hechas recientemente · ${hechas.length}</summary><ul class="tlista">${hechas.map(fila).join("")}</ul></details>`:""}</section>`;
+}
+/* ---------- Ideas: lluvia de ideas por persona ---------- */
+function ideasLista(){return Object.entries(st.ideas).map(([id,x])=>({id,...x}))}
+function ideasPanel(){
+  const L=ideasLista().filter(x=>ui.ideaVer==="usadas"?x.usada:!x.usada).sort((a,b)=>(b.at||0)-(a.at||0));
+  const cols=[...st.equipo.map(m=>({k:m.k,n:m.nombre})),{k:"",n:"Del equipo"}];
+  const de=k=>L.filter(x=>(x.autorK||"")===k||(!k&&!st.equipo.some(m=>m.k===x.autorK)));
+  const nota=x=>ui.ideaEdit===x.id?`<form class="inota edit" id="fidea-ed" data-hold><input class="in" name="titulo" maxlength="120" value="${esc(x.titulo||"")}" placeholder="Título"><textarea class="in" name="texto" rows="4" maxlength="3000">${esc(x.texto||"")}</textarea><input class="in" name="tag" maxlength="40" value="${esc(x.tag||"")}" placeholder="Etiqueta, por ejemplo Seguridad"><div class="confirm"><button class="btn sm" type="submit"${dis()}>Guardar</button><button class="btn grey sm" type="button" data-act="idea-cancel">Cancelar</button></div></form>`
+    :`<article class="inota${x.usada?" usada":""}" style="--rot:${((x.id.charCodeAt(0)+x.id.charCodeAt(1))%5-2)*.4}deg">${x.titulo?`<h4>${esc(x.titulo)}</h4>`:""}${x.texto?`<p>${esc(x.texto)}</p>`:""}<footer>${x.tag?`<span class="kp">${esc(x.tag)}</span>`:""}<span class="small">${esc(hace(x.at))}</span>${x.pieza&&st.cont[x.pieza]?`<button type="button" class="link" data-cont="${esc(x.pieza)}" data-ccli="${esc(st.cid)}">Ver publicación</button>`:""}<span class="inota-acc">${canWrite&&db?`${x.usada?"":`<button type="button" class="link" data-ideapub="${esc(x.id)}" title="Crear una publicación en etapa Idea a partir de esta nota">Pasar a publicación</button>`}<button type="button" class="iconlink" data-ideaed="${esc(x.id)}" aria-label="Editar">${SV('<path d="M13.5 3.5l3 3L7 16l-3.5.5L4 13z"/>')}</button><button type="button" class="iconlink" data-ideadel="${esc(x.id)}" aria-label="Eliminar">${SV('<path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10"/>')}</button>`:""}</span></footer></article>`;
+  return `<div class="ideas-cab"><p>Un lugar para tirar ideas sin filtro. Cada persona tiene su columna; cuando una idea se decide, pasala a publicación.</p><div class="chips" role="group" aria-label="Qué ideas ver">${[["","En juego"],["usadas","Ya usadas"]].map(x=>`<button class="chip" type="button" data-ideaver="${x[0]}" aria-pressed="${(ui.ideaVer||"")===x[0]}">${x[1]}</button>`).join("")}</div></div>
+   <div class="ideas">${cols.map(c=>{const arr=de(c.k);if(!c.k&&!arr.length)return"";const mia=c.k&&c.k===como;
+    return `<section class="icol${mia?" mia":""}"><header><span class="pini">${esc(c.n.charAt(0).toUpperCase())}</span><h3>${c.k?"Ideas de "+esc(c.n):esc(c.n)}</h3><b>${arr.length}</b></header>
+     ${canWrite&&db&&(mia||!como)&&(c.k||!st.equipo.length)?`<form class="inueva" data-hold data-ideak="${esc(c.k)}"><textarea class="in" name="texto" rows="2" maxlength="3000" placeholder="Escribí una idea y apretá Agregar"></textarea><div class="confirm"><input class="in" name="tag" maxlength="40" placeholder="Etiqueta (opcional)"><button class="btn sm" type="submit">Agregar</button></div></form>`:""}
+     <div class="inotas">${arr.map(nota).join("")||`<p class="small cvac">Todavía no hay ideas.</p>`}</div></section>`}).join("")}</div>`;
+}
+function contenidos(){
+  const c=cli(),t=hoy(),todos=ui.cAlcance==="todos",nucleo=ui.cNucleo||"pub";
+  syncContAll(todos);
+  if(ui.cAbrirLuego&&st.cont[ui.cAbrirLuego]){ui.cNucleo="pub";ui.cEdit=ui.cAbrirLuego;ui.cDraft=null;ui.cAbrirLuego="";setTimeout(()=>{const f=document.getElementById("fcont");if(f)f.scrollIntoView({behavior:"smooth",block:"start"})},60)}
+  if(ui.agAbrirLuego&&st.agenda[ui.agAbrirLuego]){ui.cNucleo="agenda";ui.agEdit=ui.agAbrirLuego;ui.agDraft=null;ui.agAbrirLuego="";setTimeout(()=>{const f=document.getElementById("fagenda");if(f)f.scrollIntoView({behavior:"smooth",block:"start"})},60)}
+  if(!ui.cMes)ui.cMes=t.slice(0,7);
+  if(!ui.cSem){const d=new Date(t+"T12:00:00");ui.cSem=addD(t,-((d.getDay()+6)%7))}
+  const mias=contLista(),ag=agLista();
+  const nAtr=mias.filter(p=>cAlerta(p,t)==="atrasada").length,nApr=mias.filter(p=>p.estado==="aprobacion").length,semFin=addD(ui.cSem,6);
+  const nSem=mias.filter(p=>p.fecha>=ui.cSem&&p.fecha<=semFin).length,tPend=ag.filter(a=>a.tipo==="tarea"&&!a.hecha).length,tVenc=ag.filter(a=>agVencida(a,t)).length;
+  const gProx=ag.filter(a=>a.tipo==="grabacion"&&!a.hecha&&a.fecha>=t&&a.fecha<=addD(t,6)).length,nIdeas=ideasLista().filter(x=>!x.usada).length;
+  const N=[["pub","Publicaciones","Lo que se sube a cada red",IC.cont,nAtr+nApr],["agenda","Agenda del equipo","Tareas, grabaciones y salidas",AG_IC.tarea,tVenc],["ideas","Ideas","Lluvia de ideas por persona",SV('<path d="M7.5 15.5h5M8 17.5h4M10 2.5a5 5 0 0 0-3 9c.6.5 1 1.2 1 2h4c0-.8.4-1.5 1-2a5 5 0 0 0-3-9z"/>'),0]];
+  let h=`<div class="head"><div><span class="eyebrow">${esc(c.codigo||"Proyecto")} · ${esc(c.nombre)}</span><h1 class="sectitle" style="margin-top:6px">Contenidos</h1></div></div>
+   <nav class="nucleos" aria-label="Espacios de Contenidos">${N.map(x=>`<button type="button" class="nuc nuc-${x[0]}${nucleo===x[0]?" on":""}" data-nucleo="${x[0]}" aria-pressed="${nucleo===x[0]}"><span class="nuc-ic">${x[3]}</span><span><b>${x[1]}</b><small>${x[2]}</small></span>${x[4]?`<span class="nbadge">${x[4]}</span>`:""}</button>`).join("")}</nav>`;
+  if(nucleo==="ideas")return h+ideasPanel();
+  if(nucleo==="agenda"){
+    if(ui.agEdit)h+=agForm();
+    const vista=["semana","mes","personas"].includes(ui.agVista)?ui.agVista:"semana";
+    h+=`<div class="nuc-bar"><div class="subtabs" role="tablist" aria-label="Vista de la agenda">${[["semana","Semana"],["mes","Mes"],["personas","Por persona"]].map(x=>`<button type="button" role="tab" aria-selected="${vista===x[0]}" data-agvista="${x[0]}">${x[1]}</button>`).join("")}</div>
+     <div class="confirm"><button class="btn agb-tarea" type="button" data-agnew="tarea"${dis()}>${AG_IC.tarea}Asignar tarea</button><button class="btn agb-grabacion" type="button" data-agnew="grabacion"${dis()}>${AG_IC.grabacion}Programar grabación</button><button class="btn grey" type="button" data-agnew="reunion"${dis()}>${AG_IC.reunion}Salida o reunión</button></div></div>`;
+    h+=`<div class="stats">${tile("Tareas pendientes",tPend,"del equipo")}${tile("Vencidas",tVenc,"tareas con fecha pasada",tVenc?"crit":"")}${tile("Grabaciones",gProx,"en los próximos 7 días")}${tile("Salidas y reuniones",ag.filter(a=>a.tipo==="reunion"&&a.fecha>=t&&a.fecha<=addD(t,6)).length,"en los próximos 7 días")}</div>`;
+    h+=`<div class="chips" role="group" aria-label="Alcance" style="margin:4px 0 10px">${[["cliente",esc(c.nombre)],["todos","Todos los candidatos"]].map(x=>`<button class="chip" type="button" data-calc="${x[0]}" aria-pressed="${(ui.cAlcance||"cliente")===x[0]}">${x[1]}</button>`).join("")}</div>`;
+    const A=agTodos().filter(a=>!ui.agMio||!como||agEsMio(a));
+    if(vista==="personas")h+=agPersonasPanel(t);
+    else if(vista==="mes")h+=cMesV([],A,t,todos);
+    else h+=agSemana(A,t,todos);
+    return h+`<div class="cley"><span class="ag-tarea">${AG_IC.tarea}Tarea</span><span class="ag-grabacion">${AG_IC.grabacion}Grabación</span><span class="ag-reunion">${AG_IC.reunion}Salida o reunión</span></div>`;
+  }
+  // Publicaciones
+  const vista=["mes","semana","tablero"].includes(ui.cVista)?ui.cVista:"mes",L=cFiltrar(contTodos());
+  if(ui.cEdit)h+=contForm();
+  h+=`<div class="nuc-bar"><div class="subtabs" role="tablist" aria-label="Vista de publicaciones">${[["mes","Mes"],["semana","Semana"],["tablero","Producción"]].map(x=>`<button type="button" role="tab" aria-selected="${vista===x[0]}" data-cvista="${x[0]}">${x[1]}</button>`).join("")}</div>
+   <div class="confirm"><button class="btn" type="button" data-act="c-new"${dis()}>Nueva publicación</button></div></div>`;
+  h+=`<div class="stats">${tile("Esta semana",nSem,nSem===1?"publicación":"publicaciones")}${tile("Esperan aprobación",nApr,"del cliente",nApr?"warn":"")}${tile("Atrasadas",nAtr,"con fecha pasada sin publicar",nAtr?"crit":"")}${tile("Publicadas",mias.filter(p=>p.estado==="publicado"&&(p.fecha||"").slice(0,7)===t.slice(0,7)).length,"en este mes")}</div>`;
+  const alertas=mias.filter(p=>cAlerta(p,t)).sort((a,b)=>(a.fecha||"").localeCompare(b.fecha||""));
+  if(alertas.length)h+=`<section class="panelbox calert"><h3 style="font-weight:600;font-size:1.05rem;margin-bottom:8px">Requiere atención</h3><ul class="alist">${alertas.slice(0,8).map(p=>`<li><span class="fz">${p.fecha?fechaCorta(p.fecha):"Sin fecha"}</span><button type="button" class="evlink" data-cont="${esc(p.id)}" data-ccli="${esc(p.cid)}">${esc(p.titulo||"Sin título")}</button><span class="kp ${cAlerta(p,t)==="atrasada"?"r":"y"}">${esc(ALERTA_TXT[cAlerta(p,t)])}</span></li>`).join("")}</ul></section>`;
+  h+=`<div class="calbar"><div class="chips" role="group" aria-label="Alcance">${[["cliente",esc(c.nombre)],["todos","Todos los candidatos"]].map(x=>`<button class="chip" type="button" data-calc="${x[0]}" aria-pressed="${(ui.cAlcance||"cliente")===x[0]}">${x[1]}</button>`).join("")}</div>
+   <div class="cfilt"><select class="sel" data-cflt="cRed" aria-label="Filtrar por red"><option value="">Todas las redes</option>${REDES_C.map(r=>`<option value="${r[0]}"${ui.cRed===r[0]?" selected":""}>${r[1]}</option>`).join("")}</select><select class="sel" data-cflt="cEst" aria-label="Filtrar por etapa"><option value="">Todas las etapas</option>${ESTADOS_C.map(e=>`<option value="${e[0]}"${ui.cEst===e[0]?" selected":""}>${e[1]}</option>`).join("")}</select></div></div>`;
+  if(vista==="tablero")h+=cTablero(L,t,todos);
+  else if(vista==="semana")h+=cSemana(L,[],t,todos);
+  else h+=cMesV(L,[],t,todos);
+  return h+`<div class="cley">${ESTADOS_C.map(e=>`<span><i class="est-${e[0]}"></i>${e[1]}</span>`).join("")}</div>`;
 }
 function cTablero(L,t,todos){
   return `<div class="ckan">${ESTADOS_C.map(e=>{const its=L.filter(p=>(p.estado||"idea")===e[0]).sort((a,b)=>(a.fecha||"9").localeCompare(b.fecha||"9"));
@@ -2878,7 +2996,7 @@ function contForm(){
 }
 function cAbrir(id,cid){
   if(cid&&cid!==st.cid){ui.cAbrirLuego=id;selectCliente(cid);return}
-  ui.agEdit="";ui.agDraft=null;ui.cMenuDia="";ui.cEdit=id;ui.cDraft=null;ui.confirm="";render();
+  ui.cNucleo="pub";ui.agEdit="";ui.agDraft=null;ui.cMenuDia="";ui.cEdit=id;ui.cDraft=null;ui.confirm="";render();
   setTimeout(()=>{const f=document.getElementById("fcont");if(f)f.scrollIntoView({behavior:"smooth",block:"start"})},60);
 }
 function cLeerForm(fm){
@@ -2960,12 +3078,24 @@ view.addEventListener("click",e=>{
   if(el=g("[data-agok]")){agMarcar(el.dataset.agok,el.checked);render();return}
   if(el=g("[data-agmio]")){ui.agMio=!ui.agMio;render();return}
   if(el=g("[data-ag]")){agAbrir(el.dataset.ag,el.dataset.ccli);return}
+  if(el=g("[data-nucleo]")){ui.cNucleo=el.dataset.nucleo;ui.cEdit="";ui.cDraft=null;ui.agEdit="";ui.agDraft=null;ui.ideaEdit="";ui.cMenuDia="";ui.confirm="";render();return}
+  if(el=g("[data-agvista]")){ui.agVista=el.dataset.agvista;render();return}
+  if(el=g("[data-ideaver]")){ui.ideaVer=el.dataset.ideaver;render();return}
+  if(el=g("[data-ideaed]")){ui.ideaEdit=el.dataset.ideaed;render();const f=document.getElementById("fidea-ed");if(f){const n=f.querySelector("textarea");n&&n.focus()}return}
+  if(el=g("[data-ideadel]")){const id=el.dataset.ideadel,x=st.ideas[id];if(!x||!db||!canWrite)return;if(!confirm("¿Eliminar esta idea?"))return;const o={...st.ideas};delete o[id];st.ideas=o;del(`${base()}/ideas/${id}`);render();return}
+  if(el=g("[data-ideapub]")){const id=el.dataset.ideapub,x=st.ideas[id];if(!x||!db||!canWrite)return;
+    const pid=db.collection(`${base()}/contenidos`).doc().id,tit=(x.titulo||(x.texto||"").split("\n")[0]).trim().slice(0,160)||"Idea sin título";
+    cGuardar(pid,{titulo:tit,copy:(x.texto||"").slice(0,5000),eje:(x.tag||"").slice(0,80),estado:"idea",redes:[],fecha:"",hora:"",formato:"",resp:x.autorK||"",guion:"",linkArchivo:"",linkPublicado:"",nota:"Salió de la lluvia de ideas"});
+    const nx=stamp({...x,usada:true,pieza:pid});st.ideas={...st.ideas,[id]:nx};put(`${base()}/ideas/${id}`,nx);
+    toast("La idea pasó a Publicaciones, en etapa Idea");cAbrir(pid,st.cid);return}
+  if(el=g("[data-aglleva]")){const id=ui.agEdit,a=st.agenda[id];if(!a||!db||!canWrite)return;const i=+el.dataset.aglleva,s=new Set(a.listo||[]);el.checked?s.add(i):s.delete(i);
+    const nx=stamp({...a,listo:[...s]});st.agenda={...st.agenda,[id]:nx};put(`${base()}/agenda/${id}`,nx);return}
   if(el=g("[data-cvista]")){ui.cVista=el.dataset.cvista;render();return}
   if(el=g("[data-calc]")){ui.cAlcance=el.dataset.calc;render();return}
   if(el=g("[data-cmes]")){const v=+el.dataset.cmes;if(!v)ui.cMes=hoy().slice(0,7);else{const[Y,M]=ui.cMes.split("-").map(Number);const d=new Date(Y,M-1+v,1);ui.cMes=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")}render();return}
   if(el=g("[data-csemn]")){const v=+el.dataset.csemn;if(!v){const t=hoy(),d=new Date(t+"T12:00:00");ui.cSem=addD(t,-((d.getDay()+6)%7))}else ui.cSem=addD(ui.cSem,v);render();return}
   if(el=g("[data-csem]")){const d0=el.dataset.csem,d=new Date(d0+"T12:00:00");ui.cSem=addD(d0,-((d.getDay()+6)%7));ui.cVista="semana";render();return}
-  if(el=g("[data-cnew]")){if(!db||!canWrite)return;ui.cMenuDia="";ui.agEdit="";ui.agDraft=null;ui.cEdit="new";ui.cDraft={fecha:el.dataset.cnew,estado:"idea"};ui.confirm="";render();const f=document.getElementById("fcont");if(f){f.scrollIntoView({behavior:"smooth",block:"start"});const n=f.querySelector("[name=titulo]");n&&n.focus({preventScroll:true})}return}
+  if(el=g("[data-cnew]")){if(!db||!canWrite)return;ui.cNucleo="pub";ui.cMenuDia="";ui.agEdit="";ui.agDraft=null;ui.cEdit="new";ui.cDraft={fecha:el.dataset.cnew,estado:"idea"};ui.confirm="";render();const f=document.getElementById("fcont");if(f){f.scrollIntoView({behavior:"smooth",block:"start"});const n=f.querySelector("[name=titulo]");n&&n.focus({preventScroll:true})}return}
   if(el=g("[data-cont]")){cAbrir(el.dataset.cont,el.dataset.ccli);return}
   if(el=g("[data-sub]")){const r=routeOf();ui.sub[r.n]=el.dataset.sub;render();return}
   if(el=g("[data-filtro]")){ui.filtro[routeOf().n]=el.dataset.filtro;render();return}
@@ -3015,10 +3145,11 @@ view.addEventListener("click",e=>{
     else if(a==="men-cancel"){ui.menEdit="";ui.menDraft=null;ui.menWarn="";ui.confirm="";render()}
     else if(a==="men-ask"){ui.confirm="men";render()}
     else if(a==="men-del"){const id=ui.menEdit;if(id&&id!=="new"){del(`${base()}/menciones/${id}`);const o={...st.men};delete o[id];st.men=o}ui.menEdit="";ui.menDraft=null;ui.confirm="";render()}
+    else if(a==="idea-cancel"){ui.ideaEdit="";render()}
     else if(a==="ag-cancel"){ui.agEdit="";ui.agDraft=null;ui.confirm="";render()}
     else if(a==="ag-del"){ui.confirm="ag-del";render()}
     else if(a==="ag-del-si"){const id=ui.agEdit;if(id&&id!=="new"&&db&&canWrite){const o={...st.agenda};delete o[id];st.agenda=o;del(`${base()}/agenda/${id}`);toast("Eliminado del calendario")}ui.agEdit="";ui.agDraft=null;ui.confirm="";render()}
-    else if(a==="c-new"){ui.agEdit="";ui.agDraft=null;ui.cEdit="new";ui.cDraft={estado:"idea"};ui.confirm="";render();const f=document.getElementById("fcont");if(f){f.scrollIntoView({behavior:"smooth",block:"start"});const n=f.querySelector("[name=titulo]");n&&n.focus({preventScroll:true})}}
+    else if(a==="c-new"){ui.cNucleo="pub";ui.agEdit="";ui.agDraft=null;ui.cEdit="new";ui.cDraft={estado:"idea"};ui.confirm="";render();const f=document.getElementById("fcont");if(f){f.scrollIntoView({behavior:"smooth",block:"start"});const n=f.querySelector("[name=titulo]");n&&n.focus({preventScroll:true})}}
     else if(a==="c-cancel"){ui.cEdit="";ui.cDraft=null;ui.confirm="";render()}
     else if(a==="c-del"){ui.confirm="c-del";render()}
     else if(a==="c-del-si"){const id=ui.cEdit;if(id&&id!=="new"&&db&&canWrite){const o={...st.cont};delete o[id];st.cont=o;del(`${base()}/contenidos/${id}`);toast("Pieza eliminada")}ui.cEdit="";ui.cDraft=null;ui.confirm="";render()}
@@ -3093,6 +3224,12 @@ view.addEventListener("submit",e=>{
     const body={...prev,titulo:tl.slice(0,140),tipo:fd.tipo||"hito",fecha:fd.fecha,hora:fd.hora||"",fin:fd.fin&&fd.fin>fd.fecha?fd.fin:"",fase:fd.fase?+fd.fase:0,resp:fd.resp||"",nota:(fd.nota||"").trim().slice(0,2000)};
     const id=s.k==="new"?db.collection(`${base()}/eventos`).doc().id:s.id;const nx=stamp(body);st.eventos={...st.eventos,[id]:nx};put(`${base()}/eventos/${id}`,nx);
     ui.tlSel={k:"ev",id};ui.tlDraft=null;ui.tlWarn="";blur();render();return}
+  if(fm.classList&&fm.classList.contains("inueva")){if(!db||!canWrite)return;const tx=(fd.texto||"").trim();if(!tx)return;
+    const id=db.collection(`${base()}/ideas`).doc().id,nx=stamp({texto:tx.slice(0,3000),titulo:"",tag:(fd.tag||"").trim().slice(0,40),autorK:fm.dataset.ideak||"",usada:false});
+    st.ideas={...st.ideas,[id]:nx};put(`${base()}/ideas/${id}`,nx);fm.reset();if(document.activeElement)document.activeElement.blur();render();return}
+  if(fm.id==="fidea-ed"){if(!db||!canWrite)return;const id=ui.ideaEdit,x=st.ideas[id];if(!x)return;
+    const nx=stamp({...x,titulo:(fd.titulo||"").trim().slice(0,120),texto:(fd.texto||"").trim().slice(0,3000),tag:(fd.tag||"").trim().slice(0,40)});
+    st.ideas={...st.ideas,[id]:nx};put(`${base()}/ideas/${id}`,nx);ui.ideaEdit="";if(document.activeElement)document.activeElement.blur();render();return}
   if(fm.id==="fagenda"){if(!db||!canWrite)return;const b=agLeerForm(fm);if(!b.titulo||!b.fecha)return;
     const nuevo=ui.agEdit==="new",id=nuevo?db.collection(`${base()}/agenda`).doc().id:ui.agEdit,prev=nuevo?{}:st.agenda[id]||{};
     agGuardar(id,{...prev,...b,hecha:!!b.hecha});if(b.hecha&&!prev.hecha)agMarcar(id,true);

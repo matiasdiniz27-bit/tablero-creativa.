@@ -1122,11 +1122,41 @@ h1.sectitle,.phead h1,.empty h3,.calnav h2,.inf-card .inf-tit{color:var(--brand)
 
 /* Fondo decorativo solo en Inicio */
 .bgfx{transition:opacity .6s var(--ease)}
+.flujo{margin:6px 0 34px}
+.flujo-cab{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
+.flujo-cab h2{font:600 1.75rem/1.1 var(--f-display);color:var(--brand);letter-spacing:-.005em}
+.ftrack{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.ftrack::before{content:"";position:absolute;left:6%;right:6%;top:34px;height:1px;background:var(--line-2)}
+.fpaso{position:relative;display:flex;flex-direction:column;gap:7px;min-width:0;padding:16px 14px 14px;border:1px solid var(--line-2);border-radius:14px;background:var(--surface);text-decoration:none;color:var(--fg);transition:border-color .16s,box-shadow .2s,transform .16s var(--ease)}
+.fpaso:hover{border-color:var(--accent);box-shadow:var(--shadow-up);transform:translateY(-2px)}
+.fpaso:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.fnum{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font:600 1.1rem/1 var(--f-display);border:1px solid var(--line-2);background:var(--surface);color:var(--fg-2);position:relative;z-index:1}
+.fnom{font:600 1.12rem/1.2 var(--f-display);color:var(--brand)}
+.fq{font-size:.78rem;color:var(--muted);line-height:1.38;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:4.1em}
+.fbar{height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden;margin-top:auto}.fbar i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.fmeta{font-size:.74rem;color:var(--muted)}
+.fpaso.cerrada .fnum{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
+.fpaso.actual{background:var(--logo-osc);border-color:transparent;color:var(--surface)}
+.fpaso.actual .fnom{color:var(--surface)}
+.fpaso.actual .fq,.fpaso.actual .fmeta{color:color-mix(in srgb,var(--surface) 76%,transparent)}
+.fpaso.actual .fnum{background:var(--logo-ver);color:var(--surface);border-color:transparent}
+.fpaso.actual .fbar{background:color-mix(in srgb,var(--surface) 18%,transparent)}.fpaso.actual .fbar i{background:var(--logo-ver)}
+.hacc-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:12px}
+.hacc{display:flex;align-items:center;gap:12px;min-width:0;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-decoration:none;color:var(--fg);cursor:pointer;font:inherit;text-align:left;transition:border-color .16s,background-color .16s}
+.hacc:hover{border-color:var(--accent-line);background:color-mix(in srgb,var(--accent-soft) 45%,var(--surface))}
+.hacc:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hacc .hic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none}
+.hacc .hic svg{width:20px;height:20px}
+.hacc>span:last-child{min-width:0}.hacc b{display:block;font-weight:600;font-size:.9rem;line-height:1.25}.hacc small{display:block;color:var(--muted);font-size:.75rem;line-height:1.35;margin-top:2px}
+@media (max-width:1180px){.ftrack{grid-template-columns:repeat(3,minmax(0,1fr))}.ftrack::before{display:none}.hacc-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:620px){.ftrack{grid-template-columns:1fr}.fpaso{display:grid;grid-template-columns:auto 1fr;column-gap:12px;row-gap:4px;align-items:center}.fpaso .fnum{grid-row:span 2}.fq{display:none}.fbar,.fmeta{grid-column:2}.hacc-grid{grid-template-columns:1fr 1fr}.flujo-cab h2{font-size:1.45rem}}
 .cpo-ic{width:15px;height:15px;flex:none;display:inline-block;vertical-align:-3px}
 #cpo-mapa-modal button:has(.cpo-ic),#cpo-redaccion-modal button:has(.cpo-ic){display:inline-flex;align-items:center;gap:6px}
 .sar-modo-ico .cpo-ic{width:20px;height:20px;color:var(--c-prod)}
 .cchip .ct{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
-html.fx-fuera .bgfx{opacity:0}
+html.fx-fuera .bgfx{opacity:.7}
+.bgfx canvas{opacity:.85!important}
+.bgfx::after{background:linear-gradient(100deg,var(--bg) 18%,color-mix(in srgb,var(--bg) 55%,transparent) 48%,transparent 100%)!important}
 
 /* Pantalla de carga con el logo */
 .carga{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:12vh 16px 6vh;text-align:center}
@@ -1641,10 +1671,23 @@ function clienteForm(c){
  </form>`;
 }
 function sugerirCodigo(){const y=new Date().getFullYear();const n=st.clientes.length+1;return `CP-${y}-XXX-${String(n).padStart(3,"0")}`}
+/* Inicio: recorrido de las seis fases del cliente elegido y accesos a cada herramienta */
+const IC_MAPA='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 5.5 7.5 3l5 2.5 5-2.5v11.5l-5 2.5-5-2.5-5 2.5z"/><path d="M7.5 3v11.5M12.5 5.5V17"/></svg>';
+const IC_PLUMA='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16l-3.5.5L4 13z"/><path d="M11.5 5.5l3 3"/></svg>';
+function flujoInicio(){
+  const c=cli();if(!c||ui.verArch)return"";
+  const fa=faseActual();
+  const pasos=F.map(f=>{const p=faseProg(f),cerr=p.ct&&p.c===p.ct,cur=f.n===fa&&!cerr,pct=p.ht?Math.round(p.h/p.ht*100):0;
+    return `<a class="fpaso${cerr?" cerrada":cur?" actual":""}" href="#fase-${f.n}"><span class="fnum" aria-hidden="true">${cerr?"✓":f.n}</span><span class="fnom">${esc(SHORT[f.n])}</span><span class="fq">${esc(f.q)}</span><span class="fbar" aria-hidden="true"><i style="width:${pct}%"></i></span><span class="fmeta">${cerr?"Cerrada":cur?"En curso":"Por empezar"} · ${p.h} de ${p.ht} tareas</span></a>`}).join("");
+  const H=[["#contenidos","Contenidos","Publicaciones, tareas y grabaciones",IC.cont],["#calendario","Calendario","Reuniones, recorridas y entregas",IC.cal],["#menciones","Menciones","Qué se dice y cómo responder",IC.men],["mapa","Mapa territorial","Zonas, padrón y bancas",IC_MAPA],["redaccion","Análisis y redacción","Discursos y proyectos",IC_PLUMA]];
+  return `<section class="flujo" aria-labelledby="flujo-t"><div class="flujo-cab"><h2 id="flujo-t">El método con ${esc(c.nombre)}</h2><a class="link" href="#linea">Ver línea de tiempo</a></div>
+   <nav class="ftrack" aria-label="Fases del método">${pasos}</nav>
+   <div class="hacc-grid">${H.map(x=>x[0].startsWith("#")?`<a class="hacc" href="${x[0]}"><span class="hic">${x[3]}</span><span><b>${x[1]}</b><small>${x[2]}</small></span></a>`:`<button type="button" class="hacc" data-abrir="${x[0]}"><span class="hic">${x[3]}</span><span><b>${x[1]}</b><small>${x[2]}</small></span></button>`).join("")}</div></section>`;
+}
 function panel(){
   const list=st.clientes.filter(c=>ui.verArch?c.estado==="archivado":c.estado!=="archivado");
   const nArch=st.clientes.filter(c=>c.estado==="archivado").length;
-  let h=(ui.verArch?"":bienvenida())+`<div class="head"><div><span class="eyebrow">Cartera</span><h1 class="sectitle" style="margin-top:6px">${ui.verArch?"Clientes archivados":"Clientes en curso"}</h1><p>Cada cliente lleva su propio avance por fase, sus fichas, sus entregables y su bitácora.</p></div>
+  let h=(ui.verArch?"":bienvenida()+flujoInicio())+`<div class="head"><div><h1 class="sectitle">${ui.verArch?"Clientes archivados":"Clientes en curso"}</h1><p>Cada cliente lleva su propio avance por fase, sus fichas, sus entregables y su bitácora.</p></div>
    <div class="confirm">${nArch?`<button class="btn grey sm" type="button" data-act="toggle-arch">${ui.verArch?"Ver en curso":"Ver archivados ("+nArch+")"}</button>`:""}${!ui.verArch?`<button class="btn" type="button" data-act="nuevo-cli"${dis()}>Nuevo cliente</button>`:""}</div></div>`;
   if(ui.nuevo)h+=clienteForm();
   if(!st.equipo.length&&!ui.verArch)h+=`<div class="banner info">Todavía no cargaron al equipo. <a href="#equipo" style="color:var(--neon)">Cargá las personas</a> para poder asignar responsables y firmar los cambios.</div>`;
@@ -2212,7 +2255,7 @@ function opciones(){
   <div class="optgrid">
    <section class="panelbox opt"><h3>Apariencia</h3>
     <div class="orow"><div><b>Tema</b><small>Sistema sigue la configuración de tu dispositivo.</small></div>${seg("optmode",m,[["sistema","Sistema"],["light","Claro"],["dark","Oscuro"]],"Tema")}</div>
-    <div class="orow"><div><b>Fondo animado</b><small>Medallón de Il Principe y Florencia al pie, en segundo plano. El busto de Inicio sigue estas mismas opciones. Automático se queda quieto si el dispositivo pide reducir el movimiento.</small></div>${seg("optfx",fxv,[["auto","Automático"],["full","Siempre en movimiento"],["off","Desactivado"]],"Fondo animado")}</div>
+    <div class="orow"><div><b>Fondo animado</b><small>Hemiciclo de bancas detrás de las pantallas, con una votación que lo recorre cada tanto y bancas que se encienden al pasar el mouse. Se ve más en Inicio y muy tenue en el resto. Automático se queda quieto si el dispositivo pide reducir el movimiento.</small></div>${seg("optfx",fxv,[["auto","Automático"],["full","Siempre en movimiento"],["off","Desactivado"]],"Fondo animado")}</div>
     <div class="orow"><div><b>Menú lateral</b><small>Comprimido muestra solo los íconos en pantallas grandes.</small></div>${seg("optside",mn?"min":"full",[["full","Completo"],["min","Comprimido"]],"Menú lateral")}</div>
    </section>
    <section class="panelbox opt"><h3>Tu perfil</h3>
@@ -2909,6 +2952,7 @@ function iniciarSesion(){
 
 view.addEventListener("click",e=>{
   const g=e.target.closest.bind(e.target);let el;
+  if(el=g("[data-abrir]")){const b=document.getElementById(el.dataset.abrir==="mapa"?"cpo-btn-abrir-mapa":"cpo-btn-abrir-redaccion");if(b)b.click();return}
   if(el=g("[data-cli]")){selectCliente(el.dataset.cli);location.hash="#cliente";return}
   if(ui.cMenuDia&&!g(".cmenu")&&!g("[data-cmenu]")){ui.cMenuDia="";if(!g("[data-cnew],[data-agnew],[data-cont],[data-ag]")){render();return}}
   if(el=g("[data-cmenu]")){ui.cMenuDia=ui.cMenuDia===el.dataset.cmenu?"":el.dataset.cmenu;render();return}
@@ -3138,123 +3182,81 @@ render();
 connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se pudo cargar Firebase. Revisá la conexión, que no haya un bloqueador de contenido activo y que la página se abra desde un servidor web y no como archivo local.")},12000);
 </script>
 <script>
+/* ---------- Fondo: la cámara ----------
+   Un hemiciclo de bancas en los verdes de la marca, con el estrado y la P al
+   centro (la idea del logo). Cada tanto corre una votación de izquierda a
+   derecha; las bancas cercanas al mouse se encienden y un clic en una zona
+   libre de la página dispara una votación desde ese punto.
+   Respeta "Efectos de fondo", la pausa y el movimiento reducido del sistema. */
 (function(){
   const cv=document.getElementById("bgfx");if(!cv||!cv.getContext)return;
   const ctx=cv.getContext("2d"),R=document.documentElement,rmq=matchMedia("(prefers-reduced-motion: reduce)"),TAU=Math.PI*2;
-  const QUOTES=[["È molto più sicuro essere temuto che amato","Il Principe · XVII"],["Bisogna adunque essere golpe a conoscere e' lacci, e lione a sbigottire e' lupi","Il Principe · XVIII"],["Li uomini, in universali, iudicano più alli occhi che alle mani","Il Principe · XVIII"],["Non è cosa più difficile a trattare, né più dubia a riuscire, né più pericolosa a maneggiare, che farsi capo a introdurre nuovi ordini","Il Principe · VI"]];
-  const INSCR="NICOLAVS · MACLAVELLVS · SECRETARIVS · FLORENTINVS · IL PRINCIPE · MDXIII · ";
-  const SERIF='"Cormorant Garamond",Garamond,"Times New Roman",serif',CAPS='Cinzel,"Times New Roman",serif';
-  let W=0,H=0,dpr=1,raf=0,last=0,cx=0,cy=0,S=0,px=0,py=0,tx=0,ty=0,stat=null,glyphs=null;
-  const col={ink:"#1B4332",gold:"#9A7631",bg:"#F2F4F1"};
+  let W=0,H=0,dpr=1,raf=0,last=0,seats=[],cx=0,cy=0,S=0,mx=-9999,my=-9999,px=0,py=0,ondas=[],proxVoto=0;
+  const col={osc:"#13392C",ver:"#2A7E62",lin:"#C9D1D8",oro:"#94712C",bg:"#F3F5F7"};
   const mode=()=>{try{return localStorage.getItem("cpo:fx")||"auto"}catch(e){return "auto"}};
-  const off=()=>R.classList.contains("fx-off")||R.classList.contains("fx-fuera");
-  const still=()=>rmq.matches&&mode()!=="full";
-  function colors(){const s=getComputedStyle(R);col.ink=s.getPropertyValue("--fx-ink").trim()||col.ink;col.gold=s.getPropertyValue("--fx-gold").trim()||col.gold;col.bg=s.getPropertyValue("--bg").trim()||col.bg}
-  function size(){
+  const off=()=>R.classList.contains("fx-off");
+  const quieto=()=>(rmq.matches&&mode()!=="full")||R.classList.contains("fx-paused");
+  const enInicio=()=>!R.classList.contains("fx-fuera");
+  function colores(){const s=getComputedStyle(R),g=k=>s.getPropertyValue(k).trim();col.osc=g("--logo-osc")||col.osc;col.ver=g("--logo-ver")||col.ver;col.lin=g("--line-2")||col.lin;col.oro=g("--gold")||col.oro;col.bg=g("--bg")||col.bg}
+  function armar(){
     dpr=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
-    if(W<760){S=Math.min(W*.4,H*.22);cx=W*.72;cy=H*.3}else{S=Math.min(W*.24,H*.34);cx=W*.76;cy=H*.4}
-    build();
-  }
-  function build(){
-    const D=Math.ceil(S*2.2),s=document.createElement("canvas");s.width=Math.round(D*dpr);s.height=Math.round(D*dpr);
-    const g=s.getContext("2d"),c=D/2;g.setTransform(dpr,0,0,dpr,0,0);g.strokeStyle=col.ink;g.fillStyle=col.ink;
-    g.save();g.beginPath();g.arc(c,c,S*.655,0,TAU);g.clip();
-    g.globalAlpha=.2;g.lineWidth=.6;for(let x=-S*1.6;x<S*1.6;x+=5.5){g.beginPath();g.moveTo(c+x,c-S);g.lineTo(c+x-S*.9,c+S);g.stroke()}
-    g.beginPath();g.arc(c-S*.2,c+S*.22,S*.62,0,TAU);g.clip();g.globalAlpha=.16;for(let x=-S*1.6;x<S*1.6;x+=5.5){g.beginPath();g.moveTo(c+x,c-S);g.lineTo(c+x+S*.9,c+S);g.stroke()}
-    g.restore();
-    g.globalAlpha=.75;g.lineWidth=1.6;g.beginPath();g.arc(c,c,S,0,TAU);g.stroke();
-    g.lineWidth=.8;g.beginPath();g.arc(c,c,S*.968,0,TAU);g.stroke();
-    g.globalAlpha=.6;for(let i=0;i<140;i++){const a=i/140*TAU;g.beginPath();g.arc(c+Math.cos(a)*S*.984,c+Math.sin(a)*S*.984,.9,0,TAU);g.fill()}
-    g.globalAlpha=.7;g.lineWidth=1.1;g.beginPath();g.arc(c,c,S*.797,0,TAU);g.stroke();
-    g.lineWidth=.6;g.beginPath();g.arc(c,c,S*.775,0,TAU);g.stroke();
-    g.lineWidth=.9;g.beginPath();g.arc(c,c,S*.655,0,TAU);g.stroke();
-    g.globalAlpha=.92;g.textAlign="center";g.textBaseline="middle";g.fillStyle=col.ink;
-    g.font=`italic 600 ${Math.round(S*.205)}px ${SERIF}`;g.fillText("Il Principe",c,c-S*.05);
-    g.strokeStyle=col.gold;g.fillStyle=col.gold;g.lineWidth=1;g.globalAlpha=.9;
-    g.beginPath();g.moveTo(c-S*.3,c+S*.085);g.lineTo(c-S*.06,c+S*.085);g.moveTo(c+S*.06,c+S*.085);g.lineTo(c+S*.3,c+S*.085);g.stroke();
-    g.beginPath();g.moveTo(c,c+S*.06);g.lineTo(c+S*.025,c+S*.085);g.lineTo(c,c+S*.11);g.lineTo(c-S*.025,c+S*.085);g.closePath();g.fill();
-    g.font=`600 ${Math.round(S*.068)}px ${CAPS}`;g.fillText("MDXIII",c,c+S*.19);
-    g.font=`500 ${Math.round(S*.05)}px ${CAPS}`;g.fillStyle=col.ink;g.globalAlpha=.75;g.fillText("FIRENZE",c,c-S*.27);
-    stat={cv:s,D};
-    ctx.font=`600 ${Math.round(S*.066)}px ${CAPS}`;
-    const r=S*.886,circ=TAU*r,wAll=ctx.measureText(INSCR).width||1,n=Math.max(1,Math.round(circ/wAll)),sc=circ/(n*wAll),txt=INSCR.repeat(n);
-    glyphs={r,font:ctx.font,list:[...txt].map(ch=>({ch,a:ctx.measureText(ch).width*sc/r}))};
-  }
-  function inscription(mx,my,ang){
-    ctx.save();ctx.translate(mx,my);ctx.rotate(ang);ctx.font=glyphs.font;ctx.fillStyle=col.ink;ctx.globalAlpha=.85;ctx.textAlign="center";ctx.textBaseline="middle";
-    let a=0;for(const g of glyphs.list){const m=a+g.a/2;ctx.save();ctx.rotate(m);ctx.fillText(g.ch,0,-glyphs.r);ctx.restore();a+=g.a}
-    ctx.restore();
-  }
-  function laurel(mx,my,ang){
-    ctx.save();ctx.translate(mx,my);ctx.rotate(ang);ctx.fillStyle=col.ink;ctx.strokeStyle=col.ink;const r=S*.716,n=48;
-    ctx.globalAlpha=.5;ctx.lineWidth=.7;ctx.beginPath();ctx.arc(0,0,r,0,TAU);ctx.stroke();
-    for(let i=0;i<n;i++){const a=i/n*TAU;for(const sd of[-1,1]){ctx.save();ctx.rotate(a);ctx.translate(0,-r);ctx.rotate(sd*.62);ctx.globalAlpha=i%2?.5:.62;ctx.beginPath();ctx.ellipse(0,-S*.03,S*.011,S*.032,0,0,TAU);ctx.fill();ctx.restore()}}
-    ctx.restore();
-  }
-  function skyline(t){
-    const wid=Math.min(W*.8,1040),k=wid/1000,x0=W-wid-W*.012+(still()?0:Math.sin(t*0.00007)*12)+px*.5,base=H-2;
-    ctx.save();ctx.translate(x0,base);ctx.scale(k,k);ctx.lineWidth=1.15/k;ctx.lineJoin="round";ctx.strokeStyle=col.ink;ctx.fillStyle=col.bg;
-    const P=pts=>{ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],-p[1]):ctx.moveTo(p[0],-p[1]))};
-    const S1=(pts,a,fill)=>{P(pts);if(fill){ctx.globalAlpha=1;ctx.fill()}ctx.globalAlpha=a;ctx.stroke()};
-    ctx.globalAlpha=.28;ctx.beginPath();ctx.moveTo(-40,-70);ctx.bezierCurveTo(140,-130,300,-95,420,-120);ctx.bezierCurveTo(600,-160,760,-100,1040,-135);ctx.stroke();
-    S1([[-40,0],[-40,34],[20,34],[34,48],[70,48],[84,36],[110,36]],.5);
-    S1([[240,40],[262,52],[300,52],[300,40],[330,40],[344,56],[380,56],[392,44],[420,44]],.5);
-    S1([[700,62],[720,46],[760,46],[772,58],[800,58]],.5);S1([[818,44],[850,44],[862,58],[900,58],[912,40],[1040,40]],.5);
-    S1([[110,0],[110,125],[240,125],[240,0]],.62,true);
-    ctx.globalAlpha=.62;for(let x=110;x<240;x+=10){ctx.strokeRect(x,-133,5,8)}
-    for(let row=0;row<2;row++)for(let x=124;x<234;x+=18){ctx.beginPath();ctx.moveTo(x,-(38+row*40));ctx.lineTo(x,-(52+row*40));ctx.arc(x+4,-(52+row*40),4,Math.PI,0);ctx.lineTo(x+8,-(38+row*40));ctx.stroke()}
-    S1([[172,125],[172,215],[196,215],[196,125]],.62,true);S1([[164,215],[164,240],[204,240],[204,215],[164,215]],.62,true);
-    for(let x=164;x<204;x+=8)ctx.strokeRect(x,-248,4,8);
-    S1([[175,240],[175,262],[193,262],[193,240]],.62,true);S1([[173,262],[184,292],[195,262]],.62);
-    S1([[300,0],[300,190],[318,190],[318,0]],.55,true);for(let x=298;x<320;x+=6)ctx.strokeRect(x,-197,4,7);
-    S1([[476,0],[476,92],[488,104],[688,104],[700,92],[700,0]],.6,true);
-    ctx.globalAlpha=.6;ctx.beginPath();ctx.arc(712,-60,30,Math.PI,0);ctx.stroke();
-    S1([[520,104],[520,142],[640,142],[640,104]],.62,true);
-    ctx.beginPath();ctx.moveTo(523,-142);ctx.quadraticCurveTo(523,-262,580,-302);ctx.quadraticCurveTo(637,-262,637,-142);ctx.closePath();ctx.globalAlpha=1;ctx.fill();ctx.globalAlpha=.7;ctx.stroke();
-    ctx.globalAlpha=.45;ctx.beginPath();ctx.moveTo(552,-142);ctx.quadraticCurveTo(554,-250,576,-299);ctx.moveTo(608,-142);ctx.quadraticCurveTo(606,-250,584,-299);ctx.stroke();
-    for(const [h,rx] of [[170,55],[205,50],[240,38]]){ctx.beginPath();ctx.ellipse(580,-h,rx,5,0,0,Math.PI);ctx.stroke()}
-    ctx.globalAlpha=.7;S1([[572,302],[572,324],[588,324],[588,302]],.7,true);S1([[572,324],[580,342],[588,324]],.7);ctx.beginPath();ctx.arc(580,-346,3.2,0,TAU);ctx.stroke();ctx.beginPath();ctx.moveTo(580,-350);ctx.lineTo(580,-360);ctx.moveTo(576,-356);ctx.lineTo(584,-356);ctx.stroke();
-    S1([[426,0],[426,268],[466,268],[466,0]],.65,true);S1([[422,268],[422,276],[470,276],[470,268]],.65);
-    ctx.globalAlpha=.55;for(const y of[62,112,162,214]){ctx.beginPath();ctx.moveTo(426,-y);ctx.lineTo(466,-y);ctx.stroke()}
-    for(const y of[124,176,226]){for(const x of[434,450]){ctx.beginPath();ctx.moveTo(x,-y);ctx.lineTo(x,-(y+24));ctx.arc(x+4,-(y+24),4,Math.PI,0);ctx.lineTo(x+8,-y);ctx.stroke()}}
-    S1([[804,0],[804,168],[822,168],[822,0]],.55,true);S1([[802,168],[813,205],[824,168]],.55);
-    ctx.globalAlpha=.5;for(const [x,h,w] of[[930,46,7],[946,34,6],[985,40,6]]){ctx.beginPath();ctx.ellipse(x,-h,w,h,0,0,TAU);ctx.fill();ctx.stroke()}
-    ctx.restore();
-  }
-  function quotes(t){
-    const P=17000,G=8500,N=QUOTES.length,cyc=N*G,fs=Math.round(Math.max(16,Math.min(24,W*.0145)));
-    const slots=W<760?[[.08,.62],[.12,.5],[.06,.72],[.1,.42]]:[[.6,.72],[.64,.88],[.58,.58],[.66,.62]];
-    for(let i=0;i<N;i++){
-      let ph=((t-i*G)%cyc+cyc)%cyc;if(ph>P)continue;
-      const fade=Math.min(1,ph/2600,(P-ph)/2600),a=fade*fade*(3-2*fade);
-      const sl=slots[i],x=W*sl[0],y=H*sl[1]-(still()?0:ph*0.0035),maxw=Math.min(W*.3,420);
-      ctx.save();ctx.globalAlpha=.7*a;ctx.fillStyle=col.ink;ctx.font=`italic 500 ${fs}px ${SERIF}`;ctx.textBaseline="alphabetic";
-      const words=("«"+QUOTES[i][0]+"»").split(" "),lines=[];let ln="";for(const w of words){const tt=ln?ln+" "+w:w;if(ctx.measureText(tt).width>maxw&&ln){lines.push(ln);ln=w}else ln=tt}if(ln)lines.push(ln);
-      lines.forEach((l,j)=>ctx.fillText(l,x,y+j*fs*1.25));
-      ctx.fillStyle=col.gold;ctx.font=`600 ${Math.round(fs*.48)}px ${CAPS}`;ctx.fillText("MACHIAVELLI · "+QUOTES[i][1].toUpperCase(),x,y+lines.length*fs*1.25+fs*.55);
-      ctx.restore();
+    const chico=W<760;
+    S=chico?Math.min(W*.6,H*.4):Math.min(W*.34,H*.6);
+    cx=chico?W*.5:W*.76;cy=chico?H*.995:H*.985;
+    const filas=chico?10:15,r0=S*.34,paso=(S-r0)/(filas-1),tam=Math.max(1.6,Math.min(3.4,paso*.21));
+    seats=[];
+    for(let f=0;f<filas;f++){
+      const r=r0+f*paso,n=Math.max(6,Math.round(Math.PI*r/(paso*.95)));
+      for(let k=0;k<=n;k++){
+        const a=Math.PI+Math.PI*k/n,x=Math.cos(a)*r,y=Math.sin(a)*r,t=k/n;
+        // bloques como en una cámara real: el oscuro arriba a la izquierda, el verde en el resto
+        const bloque=t<.18?0:t<.47?1:t<.53?2:t<.84?3:4;
+        seats.push({x,y,t,f,r:tam,bloque,v:0,fase:Math.random()*TAU});
+      }
     }
   }
-  function draw(t){
-    if(!stat)return;ctx.clearRect(0,0,W,H);
-    if(!still()){px+=(tx*18-px)*.05;py+=(ty*12-py)*.05}
-    skyline(t);
-    const mx=cx+px,my=cy+py,ang=still()?0:t*0.00011;
-    ctx.globalAlpha=1;ctx.drawImage(stat.cv,mx-stat.D/2,my-stat.D/2,stat.D,stat.D);
-    laurel(mx,my,-ang*.45);inscription(mx,my,ang);
+  function colorBloque(b){return b===0||b===1?col.osc:b===2?col.oro:col.ver}
+  function votar(x0){ondas.push({ini:performance.now(),x0:x0==null?null:x0})}
+  function dibujar(t){
+    ctx.clearRect(0,0,W,H);
+    const fuerte=enInicio(),base=fuerte?1:.55;
+    if(!quieto()){px+=(((mx>0?mx:W*.5)-W*.5)/W*14-px)*.05;py+=(((my>0?my:H*.5)-H*.5)/H*8-py)*.05}
+    const ox=cx+px,oy=cy+py;
+    // arco del recinto y estrado
+    ctx.save();ctx.globalAlpha=.35*base;ctx.strokeStyle=col.lin;ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(ox,oy,S*1.05,Math.PI,TAU);ctx.stroke();
+    ctx.beginPath();ctx.arc(ox,oy,S*.3,Math.PI,TAU);ctx.stroke();
+    ctx.globalAlpha=.28*base;ctx.fillStyle=col.osc;const ew=S*.16,eh=S*.05;ctx.fillRect(ox-ew/2,oy-eh,ew,eh);
+    ctx.font=`600 ${Math.round(S*.12)}px "Instrument Sans",system-ui,sans-serif`;ctx.textAlign="center";ctx.textBaseline="alphabetic";ctx.globalAlpha=.32*base;ctx.fillText("P",ox,oy-eh-S*.03);
+    ctx.restore();
+    const ahora=performance.now();
+    ondas=ondas.filter(o=>ahora-o.ini<5200);
+    for(const s of seats){
+      const x=ox+s.x,y=oy+s.y;
+      // votación: una ola que recorre el hemiciclo
+      let v=0;for(const o of ondas){const e=(ahora-o.ini)/1000;const pos=o.x0==null?s.t:Math.min(1,Math.abs((x-o.x0)/(S*2)));const d=e*.55-pos;if(d>0&&d<1.6)v=Math.max(v,Math.sin(Math.min(1,d/.25)*Math.PI/2)*(1-Math.max(0,d-.6)));}
+      // cercanía del mouse
+      const dx=x-mx,dy=y-my,cerca=Math.max(0,1-Math.sqrt(dx*dx+dy*dy)/(S*.28));
+      const brillo=quieto()?0:.08*Math.sin(t/1400+s.fase);
+      const a=Math.min(1,(.2+s.f*.01+v*.55+cerca*.6+brillo)*base);
+      ctx.globalAlpha=a;ctx.fillStyle=v>.15||cerca>.2?colorBloque(s.bloque):col.lin;
+      ctx.beginPath();ctx.arc(x,y,s.r*(1+cerca*.6+v*.15),0,TAU);ctx.fill();
+    }
     ctx.globalAlpha=1;
+    if(!quieto()&&ahora>proxVoto){votar();proxVoto=ahora+9000+Math.random()*5000}
   }
-  function loop(t){raf=0;if(off()||document.hidden)return;if(R.classList.contains("fx-paused")){draw(t||performance.now());return}if(!last||t-last>=33){last=t;draw(t)}raf=requestAnimationFrame(loop)}
-  function start(){if(raf)cancelAnimationFrame(raf);raf=0;last=0;colors();build();if(off())return;raf=requestAnimationFrame(loop)}
-  addEventListener("pointermove",e=>{tx=e.clientX/(W||1)-.5;ty=e.clientY/(H||1)-.5},{passive:true});
-  addEventListener("resize",()=>{size();if(!raf&&!off())draw(performance.now())});
+  function loop(t){raf=0;if(off()||document.hidden)return;if(quieto()){dibujar(t||performance.now());return}if(!last||t-last>=33){last=t;dibujar(t)}raf=requestAnimationFrame(loop)}
+  function start(){if(raf)cancelAnimationFrame(raf);raf=0;last=0;colores();if(off())return;raf=requestAnimationFrame(loop)}
+  addEventListener("pointermove",e=>{mx=e.clientX;my=e.clientY;if(quieto()&&!off()){cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}},{passive:true});
+  addEventListener("pointerleave",()=>{mx=my=-9999});
+  addEventListener("pointerdown",e=>{const el=e.target;if(el.closest&&el.closest("a,button,input,select,textarea,label,[data-act],.card,.panelbox,.side,.top,.tile,.cday,.csd,.ccol"))return;votar(e.clientX)},{passive:true});
+  addEventListener("resize",()=>{armar();if(!raf&&!off())dibujar(performance.now())});
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)start()});
-  new MutationObserver(()=>{colors();build();start()}).observe(R,{attributes:true,attributeFilter:["data-theme","data-mode","class"]});
-  try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{colors();build()})}catch(e){}
+  new MutationObserver(()=>{colores();start()}).observe(R,{attributes:true,attributeFilter:["data-theme","data-mode","class"]});
+  try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{colores();start()})}catch(e){}
   try{rmq.addEventListener("change",start)}catch(e){}
-  window.cpoFx={refresh:start};
-  colors();size();start();
-  try{Promise.all([document.fonts.load(`600 20px ${CAPS}`),document.fonts.load(`italic 600 20px ${SERIF}`),document.fonts.load(`italic 500 20px ${SERIF}`)]).then(()=>{build()})}catch(e){}
+  window.cpoFx={refresh:start,votar};
+  colores();armar();proxVoto=performance.now()+1800;start();
 })();
 </script>
 <script>
@@ -3590,7 +3592,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
   .leaflet-popup-tip { background: var(--surface) !important; }
   .leaflet-container a.leaflet-popup-close-button { color: var(--muted) !important; }
   .cpo-popup-form {
-    display: flex; flex-direction: column; gap: 7px; width: 305px; max-height: 380px;
+    display: flex; flex-direction: column; gap: 7px; width: 305px; max-height: min(380px, 52vh);
     overflow-y: auto; padding-right: 4px; color: var(--fg); font-size: 12px;
   }
   .cpo-popup-form label { font-size: 10.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; display: block; }
@@ -3697,8 +3699,11 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     #cpo-mapa-municipio { flex: 1 1 100%; max-width: none !important; }
     #cpo-mapa-buscar { flex: 1; width: auto !important; min-width: 0; }
     #cpo-cliente-tools { margin-left: 4px; }
-    .cpo-sidebar { position: absolute; right: 0; top: 0; bottom: 0; width: min(86vw, 320px); box-shadow: var(--shadow-up); }
-    #cpo-btn-toggle-side { right: calc(min(86vw, 320px) + 12px); }
+    .cpo-sidebar { position: absolute; left: 0; right: 0; bottom: 0; top: auto; width: auto !important; height: 44%; border-left: 0 !important; border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; box-shadow: var(--shadow-up); transition: transform .3s var(--ease); }
+    .cpo-sidebar.oculto { width: auto !important; transform: translateY(100%); border-top: 0 !important; }
+    #cpo-btn-toggle-side { right: auto !important; left: 50%; top: auto; bottom: calc(44% + 12px); transform: translateX(-50%); transition: bottom .3s var(--ease); white-space: nowrap; }
+    #cpo-btn-toggle-side.plegado { bottom: 18px; }
+    .leaflet-pm-toolbar, .leaflet-bar { transform: scale(.92); transform-origin: top left; }
     .cpo-warroom-box { padding: 16px; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -4137,7 +4142,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
       container.innerHTML = `
         <div class="cpo-popup-cab">
           <strong>
-            ${d.esPin ? `${h(d.emojiPin || '📍')} ${h(d.tipoPin || 'Pin Estratégico')}` : '🗳️ Ficha Electoral de Zona'}
+            ${d.esPin ? `${h(d.emojiPin || '📍')} ${h(d.tipoPin || 'Pin Estratégico')}` : '🗳️ Ficha de la zona'}
           </strong>
           ${!d.esPin ? `<span class="cpo-chip">🧱 ~${geoCalc.manzanas} mz (${geoCalc.hectareas} ha)</span>` : ''}
         </div>
@@ -4145,12 +4150,12 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         <div class="${d.esPin ? 'cpo-popup-grid2' : ''}">
           ${d.esPin ? `
           <div>
-            <label>Ícono / Emoji</label>
+            <label>Ícono</label>
             <input type="text" id="pop-emoji" value="${h(d.emojiPin || '📍')}" style="text-align:center; font-size:14px;" />
           </div>
           ` : ''}
           <div>
-            <label>Nombre Identificatorio</label>
+            <label>Nombre</label>
             <input type="text" id="pop-nombre" value="${h(d.nombre)}" placeholder="Ej: Circuito 364 / EP N° 12" />
           </div>
         </div>
@@ -4172,7 +4177,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         <!-- Datos de Padrón y Meta en Vivo -->
         <div class="cpo-popup-grid3">
           <div>
-            <label>Padrón Electores</label>
+            <label>Padrón</label>
             <input type="number" id="pop-votantes" value="${h(d.votantes)}" placeholder="Ej: 4500" />
           </div>
           <div>
@@ -4180,7 +4185,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
             <input type="number" id="pop-part" value="${h(num(d.participacion, 75))}" />
           </div>
           <div>
-            <label>% Voto Objetivo</label>
+            <label>% objetivo</label>
             <input type="number" id="pop-obj" value="${h(num(d.objetivoPct, 40))}" />
           </div>
         </div>
@@ -4192,14 +4197,14 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
 
         <!-- Desplegable 1: Comparativa Elecciones Anteriores -->
         <details class="cpo-details-box" ${(d.histPropio || d.histRival) ? 'open' : ''}>
-          <summary>⚖️ Comparar Elecciones Anteriores (Histórico %)</summary>
+          <summary>⚖️ Elección anterior (%)</summary>
           <div class="cpo-popup-grid3" style="margin-top:6px;">
             <div>
-              <label>% Nuestro (Ant.)</label>
+              <label>% propio</label>
               <input type="number" id="pop-hist-prop" value="${h(d.histPropio)}" placeholder="Ej: 38" />
             </div>
             <div>
-              <label>% 1° Rival</label>
+              <label>% rival</label>
               <input type="number" id="pop-hist-riv" value="${h(d.histRival)}" placeholder="Ej: 34" />
             </div>
             <div>
@@ -4209,11 +4214,11 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
           </div>
           <div class="cpo-popup-grid2" style="margin-top:5px;">
             <div>
-              <label>Nombre Fuerza Rival</label>
+              <label>Nombre del rival</label>
               <input type="text" id="pop-hist-nom" value="${h(d.histNombreRival)}" placeholder="Ej: Oficialismo / Rival" />
             </div>
             <div>
-              <label>Avance Rastrillaje</label>
+              <label>Avance del recorrido</label>
               <select id="pop-avance">
                 <option value="Pendiente" ${d.avance==='Pendiente'?'selected':''}>⏳ Pendiente</option>
                 <option value="En rastrillaje" ${d.avance==='En rastrillaje'?'selected':''}>🚶 En rastrillaje</option>
@@ -4226,26 +4231,26 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
 
         <!-- Desplegable 2: Referente, Escuela y Notas -->
         <details class="cpo-details-box" ${(d.referente || d.escuela || d.notas) ? 'open' : ''}>
-          <summary>👤 Referente, Escuela y Notas de Campaña</summary>
+          <summary>👤 Referente, escuela y notas</summary>
           <div class="cpo-popup-grid2" style="margin-top:6px;">
             <div>
-              <label>Escuela / Centro Votación</label>
+              <label>Escuela o lugar de votación</label>
               <input type="text" id="pop-escuela" value="${h(d.escuela)}" placeholder="EP N° / Dirección..." />
             </div>
             <div>
-              <label>Referente y Teléfono</label>
+              <label>Referente y teléfono</label>
               <input type="text" id="pop-referente" value="${h(d.referente)}" placeholder="Nombre y WhatsApp..." />
             </div>
           </div>
-          <label style="margin-top:5px;">Diagnóstico / Observaciones</label>
+          <label style="margin-top:5px;">Diagnóstico y observaciones</label>
           <textarea id="pop-notas" rows="2" placeholder="Problemáticas de la zona, pedidos vecinales...">${h(d.notas)}</textarea>
         </details>
 
-        <!-- Desplegable 3: Apartados Personalizados Creados por el Usuario -->
+        <!-- Desplegable 3: Campos propios Creados por el Usuario -->
         <details class="cpo-details-box" ${Object.keys(d.camposExtra || {}).length > 0 ? 'open' : ''}>
-          <summary>➕ Apartados Personalizados (${Object.keys(d.camposExtra || {}).length})</summary>
+          <summary>➕ Campos propios (${Object.keys(d.camposExtra || {}).length})</summary>
           <div style="display:flex; justify-content:flex-end; margin-top:4px;">
-            <button type="button" id="pop-add-campo" class="cpo-btn-mini">+ Crear Nuevo Apartado</button>
+            <button type="button" id="pop-add-campo" class="cpo-btn-mini">+ Nuevo campo</button>
           </div>
           <div id="pop-custom-fields-wrap" style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"></div>
         </details>
@@ -4261,7 +4266,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         wrapCustom.innerHTML = '';
         const claves = Object.keys(d.camposExtra || {});
         if (claves.length === 0) {
-          wrapCustom.innerHTML = `<small class="cpo-ayuda">Tocá "+ Crear Nuevo Apartado" para agregar casilleros propios (ej: Intención de voto, Pasacalles, Fiscales, etc.).</small>`;
+          wrapCustom.innerHTML = `<small class="cpo-ayuda">Tocá "+ Nuevo campo" para agregar casilleros propios (ej: Intención de voto, Pasacalles, Fiscales, etc.).</small>`;
           return;
         }
         claves.forEach(k => {
@@ -4442,9 +4447,14 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
           `;
 
           card.onclick = () => {
-            if (layer.getBounds) map.fitBounds(layer.getBounds(), { maxZoom: 16, padding: [40, 40] });
+            // La ficha se abre cuando el mapa terminó de moverse, así no queda cortada
+            let abierta = false;
+            const abrir = () => { if (abierta) return; abierta = true; layer.fire('click'); };
+            map.once('moveend', abrir);
+            setTimeout(abrir, 900);
+            if (layer.getBounds) map.fitBounds(layer.getBounds(), { maxZoom: 16, paddingTopLeft: [40, 200], paddingBottomRight: [40, 40] });
             else if (layer.getLatLng) map.setView(layer.getLatLng(), 16);
-            layer.fire('click');
+            if (innerWidth < 760) { const s = document.getElementById('cpo-sidebar'); if (s && !s.classList.contains('oculto')) document.getElementById('cpo-btn-toggle-side').click(); }
           };
 
           card.querySelector('.cpo-card-del').onclick = (e) => {
@@ -4504,6 +4514,8 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         }
       });
       actualizarPanelYKPIs();
+      // Al abrir, el mapa se acomoda para mostrar todas las zonas y pines del cliente
+      if (fg.getLayers().length) { try { map.fitBounds(fg.getBounds(), { padding: [70, 70], maxZoom: 15 }); } catch (e) {} }
     } catch (e) { console.error(e); }
   }
 
@@ -4565,7 +4577,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         </div>
         <div style="display:flex; gap:8px;">
           <button type="button" id="wr-btn-print" class="cpo-btn-azul" style="cursor:pointer;">🖨️ Imprimir Hoja de Ruta / PDF</button>
-          <button type="button" id="wr-btn-close" class="cpo-btn-rojo" style="cursor:pointer;">✕ Cerrar</button>
+          <button type="button" id="wr-btn-close" class="cpo-btn-rojo" style="cursor:pointer;">Cerrar</button>
         </div>
       </div>
 
@@ -4577,7 +4589,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
       <div class="cpo-wr-grid">
         <!-- Columna 1: Configuración de Categoría en Juego (Concejales / Diputados / Senadores) -->
         <div class="cpo-wr-card">
-          <strong style="color:var(--warn); font-size:13px;">1️⃣ Categoría Legislativa y Bancas en Juego</strong>
+          <strong style="color:var(--warn); font-size:13px;">Categoría y bancas en juego</strong>
           <label style="font-size:11px; color:var(--muted); display:block; margin-top:8px;">Elegir qué elección querés calcular:</label>
           <select id="wr-tipo-eleccion" style="width:100%; margin-top:4px;">
             <option value="CONCEJALES" selected>🏛️ Concejales Municipales (${muniActualObj.n} renueva ${bancasMuniDefault})</option>
@@ -4604,7 +4616,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
 
         <!-- Columna 2: Porcentajes de Fuerzas Políticas para Simular el Reparto D'Hondt -->
         <div class="cpo-wr-card">
-          <strong style="color:var(--accent); font-size:13px;">2️⃣ Simulador de Fuerzas (% de Votos Válidos)</strong>
+          <strong style="color:var(--accent); font-size:13px;">Simulador de fuerzas (% de votos válidos)</strong>
           <div style="font-size:11px; color:var(--muted); margin-top:4px;">Ajustá los porcentajes para ver cuántas bancas entra cada lista:</div>
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
@@ -4632,13 +4644,13 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
 
         <!-- Columna 3: Resultado del Reparto de Bancas D'Hondt -->
         <div class="cpo-wr-card destacada">
-          <strong style="color:var(--c-prod); font-size:13px;">3️⃣ Resultado de Bancas (Sistema D'Hondt)</strong>
+          <strong style="color:var(--c-prod); font-size:13px;">Resultado de bancas (D'Hondt)</strong>
           <div id="wr-dhondt-resumen" style="margin-top:8px; font-size:12px;"></div>
         </div>
       </div>
 
       <!-- Tabla Comparativa de Zonas Dibujadas (Meta Actual vs Elección Anterior) -->
-      <h4 class="cpo-wr-h4">📊 Comparativa por Circuito / Zona: Elección Anterior vs. Meta Actual</h4>
+      <h4 class="cpo-wr-h4">Comparativa por zona, elección anterior y meta actual</h4>
       <table class="cpo-wr-table">
         <thead>
           <tr>
@@ -4919,6 +4931,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
       ponerCapa();
       fg = L.featureGroup().addTo(map);
 
+      try { map.pm.setLang('es'); } catch (e) {}
       map.pm.addControls({
         position: 'topleft',
         drawCircle: false,
@@ -4968,6 +4981,7 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
         setTimeout(() => marker.fire('click'), 140);
       });
     }
+    if (innerWidth < 760 && document.getElementById('cpo-panel-desplegable').classList.contains('abierto')) document.getElementById('cpo-btn-toggle-panel').click();
     if (innerWidth < 760 && !document.getElementById('cpo-sidebar').classList.contains('oculto')) {
       document.getElementById('cpo-btn-toggle-side').click();
     }
@@ -4992,7 +5006,8 @@ connTimer=setTimeout(()=>{if(sesion.estado==="cargando")window.cpoFallo("No se p
     const b = document.getElementById('cpo-btn-toggle-side');
     s.classList.toggle('oculto');
     b.classList.toggle('plegado');
-    b.textContent = s.classList.contains('oculto') ? '◂ Ver lista' : 'Ocultar lista ▸';
+    const n = fg ? fg.getLayers().length : 0, cel = innerWidth < 760;
+    b.textContent = s.classList.contains('oculto') ? (cel ? '▴ Ver lista' : '◂ Ver lista') + (n ? ' (' + n + ')' : '') : (cel ? '▾ Ocultar lista' : 'Ocultar lista ▸');
     if (map) setTimeout(() => map.invalidateSize(), 300);
   };
 
